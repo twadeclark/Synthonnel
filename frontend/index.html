@@ -64,62 +64,127 @@
             text-align: center; /* Ensures the title text is centered */
             flex-grow: 1; /* Allows the title to fill the space */
         }
+        #userPrompt {
+            width: calc(100% - 200px); /* Adjust the subtraction value based on the total width of the side elements */
+            margin: 0 auto; /* Center the textarea */
+            height: auto; /* Initial height to accommodate 3 lines, but it will be resizable */
+            min-height: 30px; /* Roughly 3 lines high depending on font size */
+            resize: none; /* Allows vertical resizing */
+            position: fixed;
+            left: 100px; /* Adjust based on the space needed for the "other stuff" on the left */
+            bottom: 10px; /* Adjust as needed to not overlap with your button */
+        }
+        #trashcan.highlight {
+            background-color: #f88; /* Highlight color, choose as per your UI theme */
+            transition: background-color 0.3s; /* Smooth transition for the color change */
+        }
 
     </style>
 </head>
 <body>
-    <h1>- = chat history here = -</h1>
-    <div id="drag-elements">
-        <div class="item" 
-            data-provider="Provider1" 
-            data-model="Model1" 
-            data-parameters="temperature=1.1\nmax_tokens=1000" 
-            data-providerurl="http://localhost:8000" 
-            data-apikey="API111KEY111" 
-            >
-            <span class="handle">☰</span> <div class="itemTitle">Provider One</div>
-        </div>
-        <div class="item" 
-            data-provider="Provider2" 
-            data-model="Model2" 
-            data-parameters="temperature=2.2\nmax_tokens=2000" 
-            data-providerurl="http://localhost:8000" 
-            data-apikey="API222KEY222" 
-            >
-            <span class="handle">☰</span> <div class="itemTitle">Provider Two</div>
-        </div>
-    </div>
+    <div id="trashcan" style="position: fixed; left: 20px; bottom: 20px; font-size: 24px;">🗑️</div>
+
+    <div id="drag-elements"></div>
+
+    <textarea id="userPrompt" placeholder="Enter your prompt here..." style="width: calc(100% - 200px); min-height: 30px; overflow-y: hidden;"></textarea>
 
     <!-- Add Item Button -->
-    <button id="addItemBtn" style="position: fixed; right: 20px; bottom: 20px;">Add Item</button>
+    <button id="addItemBtn" style="position: fixed; right: 20px; bottom: 20px;">+</button>
 
     <!-- Hidden form for adding items -->
-    <div id="addItemForm" style="display: none; position: fixed; right: 20px; bottom: 80px; background: white; padding: 10px; border: 1px solid #ccc;">
-        <input type="text" id="newItemProvider" placeholder="Provider">
-        <input type="text" id="newItemModel" placeholder="Model">
-        <input type="text" id="newItemParameters" placeholder="Parameters">
-        <input type="text" id="newItemProviderUrl" placeholder="ProviderUrl">
-        <input type="text" id="newItemApiKey" placeholder="ApiKey">
-        <button id="confirmAddItem">Add</button>
+    <div id="addItemFormHider" style="display:none">
+        <div id="addItemForm" style="position: fixed; right: 20px; bottom: 80px; background: white; padding: 10px; border: 1px solid #ccc; display: grid; gap: 10px;">
+            <input type="text" id="newItemProvider" placeholder="Provider">
+            <input type="text" id="newItemModel" placeholder="Model">
+            <textarea id="newItemParameters" placeholder="Parameters" rows="4" style="resize: vertical;"></textarea>
+            <input type="text" id="newItemProviderUrl" placeholder="ProviderUrl">
+            <input type="text" id="newItemApiKey" placeholder="ApiKey">
+            <button id="confirmAddItem">Add</button>
+        </div>
     </div>
-
     <script src="dragula.min.js"></script>
     <script>
         // Initialize Dragula
         var drake = dragula([document.getElementById('drag-elements')], {
-            moves: function (el, container, handle) {
-                return handle.classList.contains('handle');
-            }
+                moves: function (el, container, handle) {
+                    return handle.classList.contains('handle');
+                }
             });
 
-        drake.on('drop', (el, target) => {
-            saveItems();
-        });
-    </script>
+        let droppedOnTrashcan = false;
 
-    <script>
+        drake.on('drop', (el, target) => {
+            if (!droppedOnTrashcan && target) {
+                // Item was not dropped on the trashcan and has a valid target container
+                saveItems();
+            }
+            // Reset the flag
+            droppedOnTrashcan = false;
+        });
+
+        drake.on('dragend', (el) => {
+            const trashcan = document.getElementById('trashcan');
+            const trashRect = trashcan.getBoundingClientRect();
+            const elRect = el.getBoundingClientRect();
+
+            const overlaps = !(elRect.right < trashRect.left || 
+                                elRect.left > trashRect.right || 
+                                elRect.bottom < trashRect.top || 
+                                elRect.top > trashRect.bottom);
+
+            if (overlaps) {
+                // If the item overlaps the trashcan, mark it for deletion
+                droppedOnTrashcan = true;
+                // Remove the item
+                el.parentNode.removeChild(el);
+                // Optionally, call saveItems() here if you want to immediately save the state after deletion
+            }
+        });
+
+        let isOverTrashcan = false; // Flag to track when an item is over the trashcan
+
+        drake.on('drag', (el, source) => {
+            document.addEventListener('mousemove', onMouseMove);
+        });
+
+        drake.on('dragend', (el) => {
+            document.removeEventListener('mousemove', onMouseMove);
+            const trashcan = document.getElementById('trashcan');
+            trashcan.classList.remove('highlight'); // Always remove highlight on drag end
+            
+            if (isOverTrashcan) {
+                // Handle item deletion
+                el.parentNode.removeChild(el);
+                isOverTrashcan = false; // Reset flag
+                // Optionally, save the state here if you want
+                saveItems();
+            }
+        });
+
+        function onMouseMove(event) {
+            const trashcan = document.getElementById('trashcan');
+            const trashRect = trashcan.getBoundingClientRect();
+            const isMouseOverTrashcan = event.clientX >= trashRect.left && event.clientX <= trashRect.right &&
+                                        event.clientY >= trashRect.top && event.clientY <= trashRect.bottom;
+            
+            if (isMouseOverTrashcan && !isOverTrashcan) {
+                trashcan.classList.add('highlight');
+                isOverTrashcan = true;
+            } else if (!isMouseOverTrashcan && isOverTrashcan) {
+                trashcan.classList.remove('highlight');
+                isOverTrashcan = false;
+            }
+        }
+
+
+
+
         document.getElementById('addItemBtn').onclick = function() {
-            document.getElementById('addItemForm').style.display = 'block';
+            if (document.getElementById('addItemFormHider').style.display == 'block') {
+                document.getElementById('addItemFormHider').style.display = 'none'
+            } else {
+                document.getElementById('addItemFormHider').style.display = 'block';
+            }
         };
 
         document.getElementById('confirmAddItem').onclick = async function() {
@@ -130,23 +195,19 @@
             const newItemApiKey = document.getElementById('newItemApiKey').value.trim();
             
             if (newItemProvider && newItemModel && newItemProviderUrl && newItemApiKey) {
-                const newItem = document.createElement('div');
-
                 const newItemHTML = `
                     <div class="item" 
                         data-provider="${newItemProvider}" 
                         data-model="${newItemModel}" 
                         data-parameters="${newItemParameters}" 
                         data-providerurl="${newItemProviderUrl}" 
-                        data-apikey="${newItemApiKey}" 
-                        >
+                        data-apikey="${newItemApiKey}">
                         <span class="handle">☰</span> <div class="itemTitle">${newItemProvider}</div>
                     </div>
                 `;
 
-                newItem.innerHTML = newItemHTML;
-                document.getElementById('drag-elements').appendChild(newItem);
-                
+                document.getElementById('drag-elements').insertAdjacentHTML('beforeend', newItemHTML);
+
                 // Reset form
                 // document.getElementById('newItemTitle').value = '';
                 // document.getElementById('newItemProvider').value = '';
@@ -155,7 +216,6 @@
                 // document.getElementById('addItemForm').style.display = 'none';
 
                 saveItems();
-
             }
         };
 
@@ -176,6 +236,70 @@
                 body: JSON.stringify(items),
             });
         }
+
+        document.addEventListener('DOMContentLoaded', (event) => {
+            fetchItemsAndPopulateUI();
+        });
+
+        async function fetchItemsAndPopulateUI() {
+            try {
+                const response = await fetch('http://localhost:8000/get-items');
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                const items = await response.json();
+                
+                const container = document.getElementById('drag-elements');
+                container.innerHTML = ''; // Clear existing items, if necessary
+                
+                items.forEach(item => {
+                    const div = document.createElement('div');
+                    div.className = 'item';
+                    div.setAttribute('data-provider', item.provider);
+                    div.setAttribute('data-model', item.model);
+                    div.setAttribute('data-parameters', item.parameters);
+                    div.setAttribute('data-providerurl', item.providerurl);
+                    div.setAttribute('data-apikey', item.apikey);
+
+                    // <span class="handle">☰</span> <div class="itemTitle">${newItemProvider}</div>
+
+                    // Assuming you want to display the title and have a draggable handle
+                    div.innerHTML = `<span class="handle">☰</span> <div class="itemTitle">${item.provider}</div>`;
+                    // // Optionally, add a hidden input for API_key if needed elsewhere in your logic
+                    // const apiKeyInput = document.createElement('input');
+                    // apiKeyInput.type = 'hidden';
+                    // apiKeyInput.className = 'api-key';
+                    // apiKeyInput.value = item.API_key;
+                    // div.appendChild(apiKeyInput);
+                    
+                    container.appendChild(div);
+                });
+                
+                // Re-initialize drag-and-drop functionality if needed
+            } catch (error) {
+                console.error('Failed to fetch items:', error);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            const textarea = document.getElementById('userPrompt');
+            
+            function autoGrowTextArea(textAreaElement) {
+                // Reset the height to ensure we're not perpetually growing
+                textAreaElement.style.height = 'auto';
+                // Set the height to scrollHeight to include the height of the overflow text
+                textAreaElement.style.height = `${textAreaElement.scrollHeight}px`;
+            }
+            
+            // Listen for input event on the textarea
+            textarea.addEventListener('input', function() {
+                autoGrowTextArea(this);
+            });
+
+            // Initial call in case of any pre-filled value when the page loads
+            autoGrowTextArea(textarea);
+        });
+
     </script>
 </body>
 </html>
