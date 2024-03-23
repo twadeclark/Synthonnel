@@ -5,6 +5,11 @@ Start the vitual env:
 .\venv\Scripts\activate
 
 
+Pip Freeze:
+
+pip freeze > requirements.txt
+
+
 Start FastAPI backend:
 
 uvicorn main:app --reload
