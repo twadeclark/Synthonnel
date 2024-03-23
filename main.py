@@ -1,12 +1,16 @@
 from typing import List
 import json
 import os
-from fastapi import FastAPI
+from fastapi import FastAPI, WebSocket
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
+import httpx
 from pydantic import BaseModel
 
 app = FastAPI()
+
+# The path to your JSON file
+json_file_path = 'items.json'
 
 app.add_middleware(
     CORSMiddleware,
@@ -23,9 +27,15 @@ class Item(BaseModel):
     providerurl: str
     apikey: str
 
-# The path to your JSON file
-json_file_path = 'items.json'
-
+@app.websocket("/ws/stream-responses")
+async def websocket_endpoint(websocket: WebSocket):
+    await websocket.accept()
+    async with httpx.AsyncClient() as client:
+        async with client.stream("POST", "LLM_PROVIDER_STREAM_URL", data={"prompt": "Your prompt here"}) as response:
+            async for line in response.aiter_lines():
+                # Stream the line to the frontend
+                await websocket.send_text(line)
+    await websocket.close()
 
 @app.post("/save-items")
 def save_items(items: List[Item]):
