@@ -11,17 +11,16 @@
         }
 
         #drag-elements {
-            display: flex; /* Use flexbox to align children horizontally */
-            gap: 10px; /* Optional: adds some space between items */
+            display: flex;
+            gap: 10px;
         }
         #drag-elements div {
-            padding: 0px; /* Optional: adds some padding inside each item */
-            background-color: #f0f0f0; /* Optional: adds a background color */
-            display: flex; /* Enables flexbox layout */
-            justify-content: center; /* Centers the item title horizontally */
-            position: relative; /* Allows absolute positioning inside */
+            padding: 0px;
+            background-color: #f0f0f0;
+            display: flex;
+            justify-content: center;
+            position: relative;
         }
-        /* Add styling for when you're dragging an item */
         .gu-mirror {
             list-style: none;
             margin: 0;
@@ -43,46 +42,43 @@
         }
         #addItemBtn {
             cursor: pointer;
-            
-            /* Add more styling here */
         }
 
         #addItemForm {
-            /* Ensure the form is visually distinct and easy to use */
             border-radius: 5px;
             box-shadow: 0 2px 5px rgba(0,0,0,0.2);
         }
 
         #userPrompt {
-            width: calc(100% - 200px); /* Adjust the subtraction value based on the total width of the side elements */
-            margin: 0 auto; /* Center the textarea */
-            height: auto; /* Initial height to accommodate 3 lines, but it will be resizable */
-            min-height: 30px; /* Roughly 3 lines high depending on font size */
-            resize: none; /* Allows vertical resizing */
+            width: calc(100% - 200px);
+            margin: 0 auto;
+            height: auto;
+            min-height: 30px;
+            resize: none;
             position: fixed;
-            left: 100px; /* Adjust based on the space needed for the "other stuff" on the left */
-            bottom: 10px; /* Adjust as needed to not overlap with your button */
+            left: 100px;
+            bottom: 10px;
         }
         #trashcan.highlight {
-            background-color: #f88; /* Highlight color, choose as per your UI theme */
-            transition: background-color 0.3s; /* Smooth transition for the color change */
+            background-color: #f88;
+            transition: background-color 0.3s;
         }
         .item {
-            display: flex; /* Enables Flexbox */
-            flex-direction: column; /* Stacks children vertically */
-            gap: 8px; /* Optional: Adds some space between the children */
-            padding: 0px; /* Optional: Adds some padding inside each item */
-            border: 1px solid #ccc; /* Optional: Adds a border around each item */
-            margin-bottom: 10px; /* Optional: Adds space between items */
-            flex-grow: 1; /* Allows the title to fill the space */
-            width: 100%; /* Ensures the item takes up the full width */
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            padding: 0px;
+            border: 1px solid #ccc;
+            margin-bottom: 10px;
+            flex-grow: 1;
+            width: 100%;
         }
         .itemTitle {
-            font-weight: bold; /* Optional: Makes the title stand out */
-            margin-bottom: 4px; /* Ensures space between the title and the response */
-            text-align: center; /* Ensures the title text is centered */
-            border: 1px solid #ccc; /* Optional: Adds a border around each item */
-            width: 100%; /* Ensures the item takes up the full width */
+            font-weight: bold;
+            margin-bottom: 4px;
+            text-align: center;
+            border: 1px solid #ccc;
+            width: 100%;
             padding-top: 5px;
             padding-bottom: 5px;
         }
@@ -102,7 +98,6 @@
     <textarea id="userPrompt"   style="width: calc(100% - 200px); min-height: 30px; overflow-y: hidden;" placeholder="Enter your prompt here..."></textarea>
     <button id="submitPrompt"   style="position: fixed; right: 30px; bottom: 16px; font-size: 24px; border: none;">🠉</button>
 
-    <!-- Hidden form for adding items -->
     <div id="addItemFormHider" style="display:none">
         <div id="addItemForm" style="position: fixed; left: 20px; bottom: 80px; background: white; padding: 10px; border: 1px solid #ccc; display: grid; gap: 10px;">
             <input type="text" id="newItemProvider" placeholder="Provider">
@@ -115,7 +110,6 @@
     </div>
     <script src="dragula.min.js"></script>
     <script>
-        // Initialize Dragula
         var drake = dragula([document.getElementById('drag-elements')], {
                 moves: function (el, container, handle) {
                     return handle.classList.contains('handle');
@@ -126,10 +120,8 @@
 
         drake.on('drop', (el, target) => {
             if (!droppedOnTrashcan && target) {
-                // Item was not dropped on the trashcan and has a valid target container
                 saveItems();
             }
-            // Reset the flag
             droppedOnTrashcan = false;
         });
 
@@ -144,15 +136,12 @@
                                 elRect.top > trashRect.bottom);
 
             if (overlaps) {
-                // If the item overlaps the trashcan, mark it for deletion
                 droppedOnTrashcan = true;
-                // Remove the item
                 el.parentNode.removeChild(el);
-                // Optionally, call saveItems() here if you want to immediately save the state after deletion
             }
         });
 
-        let isOverTrashcan = false; // Flag to track when an item is over the trashcan
+        let isOverTrashcan = false;
 
         drake.on('drag', (el, source) => {
             document.addEventListener('mousemove', onMouseMove);
@@ -161,13 +150,11 @@
         drake.on('dragend', (el) => {
             document.removeEventListener('mousemove', onMouseMove);
             const trashcan = document.getElementById('trashcan');
-            trashcan.classList.remove('highlight'); // Always remove highlight on drag end
+            trashcan.classList.remove('highlight');
             
             if (isOverTrashcan) {
-                // Handle item deletion
                 el.parentNode.removeChild(el);
-                isOverTrashcan = false; // Reset flag
-                // Optionally, save the state here if you want
+                isOverTrashcan = false;
                 saveItems();
             }
         });
@@ -259,7 +246,7 @@
                 const items = await response.json();
                 
                 const container = document.getElementById('drag-elements');
-                container.innerHTML = ''; // Clear existing items, if necessary
+                container.innerHTML = '';
                 
                 items.forEach(item => {
                     const div = document.createElement('div');
@@ -274,8 +261,6 @@
                     
                     container.appendChild(div);
                 });
-                
-                // Re-initialize drag-and-drop functionality if needed
             } catch (error) {
                 console.error('Failed to fetch items:', error);
             }
@@ -285,18 +270,14 @@
             const textarea = document.getElementById('userPrompt');
             
             function autoGrowTextArea(textAreaElement) {
-                // Reset the height to ensure we're not perpetually growing
                 textAreaElement.style.height = 'auto';
-                // Set the height to scrollHeight to include the height of the overflow text
                 textAreaElement.style.height = `${textAreaElement.scrollHeight}px`;
             }
             
-            // Listen for input event on the textarea
             textarea.addEventListener('input', function() {
                 autoGrowTextArea(this);
             });
 
-            // Initial call in case of any pre-filled value when the page loads
             autoGrowTextArea(textarea);
         });
 
@@ -308,7 +289,6 @@
                 const ws = new WebSocket(`ws://localhost:8000/ws/stream-llm-response`);
 
                 ws.onopen = function(event) {
-                    // Prepare item parameters
                     const itemData = {
                         prompt: prompt,
                         provider: item.dataset.provider,
@@ -317,7 +297,6 @@
                         providerUrl: item.dataset.providerurl,
                         apiKey: item.dataset.apikey
                     };
-                    // Send the item parameters after connection opens
                     ws.send(JSON.stringify(itemData));
                 };
 
