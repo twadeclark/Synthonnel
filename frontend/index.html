@@ -6,17 +6,20 @@
     <title>Synthonnel</title>
     <link rel="stylesheet" href="dragula.min.css" />
     <style>
+        .handle {
+            cursor: grab;
+        }
+
         #drag-elements {
             display: flex; /* Use flexbox to align children horizontally */
             gap: 10px; /* Optional: adds some space between items */
         }
         #drag-elements div {
-            flex: 1; /* Allows each item to grow to fill the container */
-            text-align: center; /* Center the text inside each item */
-            border: 1px solid #ccc; /* Optional: adds a border around each item */
-            padding: 10px; /* Optional: adds some padding inside each item */
+            padding: 0px; /* Optional: adds some padding inside each item */
             background-color: #f0f0f0; /* Optional: adds a background color */
-            cursor: grab; /* Changes the cursor to indicate items can be moved */
+            display: flex; /* Enables flexbox layout */
+            justify-content: center; /* Centers the item title horizontally */
+            position: relative; /* Allows absolute positioning inside */
         }
         /* Add styling for when you're dragging an item */
         .gu-mirror {
@@ -49,22 +52,7 @@
             border-radius: 5px;
             box-shadow: 0 2px 5px rgba(0,0,0,0.2);
         }
-        #drag-elements div {
-            display: flex; /* Enables flexbox layout */
-            align-items: center; /* Centers items vertically */
-            justify-content: center; /* Centers the item title horizontally */
-            position: relative; /* Allows absolute positioning inside */
-        }
-        .handle {
-            position: absolute;
-            left: 0; /* Positions handle at the left */
-            top: 0; /* Positions handle at the top */
-            cursor: grab;
-        }
-        .item-title {
-            text-align: center; /* Ensures the title text is centered */
-            flex-grow: 1; /* Allows the title to fill the space */
-        }
+
         #userPrompt {
             width: calc(100% - 200px); /* Adjust the subtraction value based on the total width of the side elements */
             margin: 0 auto; /* Center the textarea */
@@ -79,15 +67,40 @@
             background-color: #f88; /* Highlight color, choose as per your UI theme */
             transition: background-color 0.3s; /* Smooth transition for the color change */
         }
+        .item {
+            display: flex; /* Enables Flexbox */
+            flex-direction: column; /* Stacks children vertically */
+            gap: 8px; /* Optional: Adds some space between the children */
+            padding: 0px; /* Optional: Adds some padding inside each item */
+            border: 1px solid #ccc; /* Optional: Adds a border around each item */
+            margin-bottom: 10px; /* Optional: Adds space between items */
+            flex-grow: 1; /* Allows the title to fill the space */
+            width: 100%; /* Ensures the item takes up the full width */
+        }
+        .itemTitle {
+            font-weight: bold; /* Optional: Makes the title stand out */
+            margin-bottom: 4px; /* Ensures space between the title and the response */
+            text-align: center; /* Ensures the title text is centered */
+            border: 1px solid #ccc; /* Optional: Adds a border around each item */
+            width: 100%; /* Ensures the item takes up the full width */
+            padding-top: 5px;
+            padding-bottom: 5px;
+        }
+        .response {
+            flex-grow: 1;
+            border: none;
+            padding: 10px;
+            text-align: left;
+        }
 
     </style>
 </head>
 <body>
     <div id="drag-elements"></div>
-    <div id="trashcan"          style="position: fixed; left: 20px; bottom: 20px; font-size: 24px;">🗑️</div>
-    <button id="addItemBtn"     style="position: fixed; left: 60px; bottom: 20px; font-size: 24px; border: none;">+</button>
+    <div id="trashcan"          style="position: fixed; left: 20px; bottom: 16px; font-size: 24px;">🗑️</div>
+    <button id="addItemBtn"     style="position: fixed; left: 60px; bottom: 16px; font-size: 24px; border: none;">+</button>
     <textarea id="userPrompt"   style="width: calc(100% - 200px); min-height: 30px; overflow-y: hidden;" placeholder="Enter your prompt here..."></textarea>
-    <button id="submitPrompt"   style="position: fixed; right: 30px; bottom: 20px; font-size: 24px; border: none;">🠉</button>
+    <button id="submitPrompt"   style="position: fixed; right: 30px; bottom: 16px; font-size: 24px; border: none;">🠉</button>
 
     <!-- Hidden form for adding items -->
     <div id="addItemFormHider" style="display:none">
@@ -197,7 +210,7 @@
                         data-parameters="${newItemParameters}" 
                         data-providerurl="${newItemProviderUrl}" 
                         data-apikey="${newItemApiKey}">
-                        <span class="handle">☰</span> <div class="itemTitle">${newItemProvider}</div>
+                        <div class="itemTitle handle">${newItemProvider}</div>
                         <div class="response"></div>
                     </div>
                 `;
@@ -257,16 +270,7 @@
                     div.setAttribute('data-providerurl', item.providerurl);
                     div.setAttribute('data-apikey', item.apikey);
 
-                    // <span class="handle">☰</span> <div class="itemTitle">${newItemProvider}</div>
-
-                    // Assuming you want to display the title and have a draggable handle
-                    div.innerHTML = `<span class="handle">☰</span> <div class="itemTitle">${item.provider}</div><div class="response"></div>`;
-                    // // Optionally, add a hidden input for API_key if needed elsewhere in your logic
-                    // const apiKeyInput = document.createElement('input');
-                    // apiKeyInput.type = 'hidden';
-                    // apiKeyInput.className = 'api-key';
-                    // apiKeyInput.value = item.API_key;
-                    // div.appendChild(apiKeyInput);
+                    div.innerHTML = `<div class="itemTitle handle">${item.provider}</div><div class="response"></div>`;
                     
                     container.appendChild(div);
                 });
@@ -296,38 +300,29 @@
             autoGrowTextArea(textarea);
         });
 
-        // document.getElementById('submitPrompt').addEventListener('click', function() {
-        //     const prompt = document.getElementById('userPrompt').value;
-        //     const items = Array.from(document.querySelectorAll('.item')).map(item => ({
-        //         provider: item.dataset.provider,
-        //         model: item.dataset.model,
-        //         parameters: item.dataset.parameters,
-        //         providerUrl: item.dataset.providerurl,
-        //         apiKey: item.dataset.apikey
-        //     }));
-
-        //     // loop through items and send to backend
-        //     // tie each backend request to the appropriate item
-        //     // route each response to the correct item in the UI
-
-        // });
         document.getElementById('submitPrompt').addEventListener('click', function() {
             const prompt = document.getElementById('userPrompt').value;
             const items = Array.from(document.querySelectorAll('.item'));
 
-            items.forEach((item, index) => {
-                // Assuming each item needs to initiate a separate WebSocket connection
-                // Modify the URL as needed to match your backend WebSocket endpoint
+            items.forEach((item) => {
                 const ws = new WebSocket(`ws://localhost:8000/ws/stream-llm-response`);
 
                 ws.onopen = function(event) {
-                    // Send the prompt to the backend (if needed)
-                    ws.send(JSON.stringify({ prompt }));
+                    // Prepare item parameters
+                    const itemData = {
+                        prompt: prompt,
+                        provider: item.dataset.provider,
+                        model: item.dataset.model,
+                        parameters: item.dataset.parameters,
+                        providerUrl: item.dataset.providerurl,
+                        apiKey: item.dataset.apikey
+                    };
+                    // Send the item parameters after connection opens
+                    ws.send(JSON.stringify(itemData));
                 };
 
                 ws.onmessage = function(event) {
                     const responseContainer = item.querySelector('.response');
-                    // Append each received word to the response container
                     responseContainer.textContent += event.data + ' ';
                 };
 
@@ -336,7 +331,7 @@
                 };
 
                 ws.onclose = function(event) {
-                    console.log(`WebSocket connection for item ${index + 1} closed.`);
+                    console.log("WebSocket connection closed.");
                 };
             });
         });

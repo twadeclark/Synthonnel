@@ -29,14 +29,40 @@ class Item(BaseModel):
     providerurl: str
     apikey: str
 
+# @app.websocket("/ws/stream-llm-response")
+# async def stream_llm_response(websocket: WebSocket):
+#     await websocket.accept()
+#     lorem_ipsum = "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.".split()
+#     for word in lorem_ipsum[:20]:
+#         await asyncio.sleep(random.uniform(0.1, 0.5))  # Random delay between 100ms and 500ms
+#         await websocket.send_text(word)
+#     await websocket.close()
 @app.websocket("/ws/stream-llm-response")
 async def stream_llm_response(websocket: WebSocket):
     await websocket.accept()
-    lorem_ipsum = "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.".split()
-    for word in lorem_ipsum[:20]:
+    # Wait for message with prompt and parameters
+    data = await websocket.receive_text()
+    itemData = json.loads(data)  # Parse the received JSON string
+
+    dump_text = ""
+    for key, value in itemData.items():
+        dump_text += f"{key}: {value}\n"
+
+    txtTemp = dump_text + "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua."
+    lorem_ipsum = txtTemp.split()
+
+    for word in lorem_ipsum[:len(lorem_ipsum)]:
         await asyncio.sleep(random.uniform(0.1, 0.5))  # Random delay between 100ms and 500ms
         await websocket.send_text(word)
+
+
+    # Simulate echoing back received data with delays
+    # echo_message = json.dumps(itemData)  # Prepare the echo message
+    # await asyncio.sleep(random.uniform(0.1, 0.5))  # Random short delay
+    # await websocket.send_text(echo_message)  # Echo back the data
+
     await websocket.close()
+
 
 # @app.websocket("/ws/stream-responses")
 # async def websocket_endpoint(websocket: WebSocket):
