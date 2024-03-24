@@ -37,10 +37,12 @@ async def stream_llm_response(websocket: WebSocket):
     for key, value in itemData.items():
         dump_text += f"{key}: {value}\n"
 
-    txtTemp = dump_text + "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Faucibus scelerisque eleifend donec pretium. Eget velit aliquet sagittis id consectetur purus ut faucibus pulvinar. Cursus risus at ultrices mi tempus imperdiet. Varius vel pharetra vel turpis nunc eget lorem dolor sed. Quam adipiscing vitae proin sagittis nisl. Enim blandit volutpat maecenas volutpat blandit aliquam etiam. Vivamus arcu felis bibendum ut tristique et egestas quis. Amet volutpat consequat mauris nunc. Ut pharetra sit amet aliquam id diam maecenas ultricies. Nisl vel pretium lectus quam id leo in vitae. At ultrices mi tempus imperdiet."
-    lorem_ipsum = txtTemp.split()
+    lorem = " Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Faucibus scelerisque eleifend donec pretium. Eget velit aliquet sagittis id consectetur purus ut faucibus pulvinar. Cursus risus at ultrices mi tempus imperdiet. Varius vel pharetra vel turpis nunc eget lorem dolor sed. Quam adipiscing vitae proin sagittis nisl. Enim blandit volutpat maecenas volutpat blandit aliquam etiam. Vivamus arcu felis bibendum ut tristique et egestas quis. Amet volutpat consequat mauris nunc. Ut pharetra sit amet aliquam id diam maecenas ultricies. Nisl vel pretium lectus quam id leo in vitae. At ultrices mi tempus imperdiet."
+    temp_text = dump_text + lorem
+    split_text = temp_text.split()
+    split_trunc = split_text[:random.randint( len(dump_text.split()), len(split_text) - 1)]
 
-    for word in lorem_ipsum[:len(lorem_ipsum)]:
+    for word in split_trunc[:len(split_trunc) - 1]:
         await asyncio.sleep(random.uniform(0.01, 0.05))
         await websocket.send_text(word)
 

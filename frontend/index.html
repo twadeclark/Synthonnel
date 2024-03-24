@@ -93,9 +93,6 @@
             display:none
         }
 
-        .handle {
-            cursor: grab;
-        }
         .item {
             display: flex;
             flex-direction: column;
@@ -107,6 +104,7 @@
             width: 100%;
         }
         .itemTitle {
+            cursor: grab;
             font-weight: bold;
             margin-bottom: 4px;
             text-align: center;
@@ -163,8 +161,8 @@
     <script src="dragula.min.js"></script>
     <script>
         var drake = dragula([document.getElementById('drag-elements')], {
-                moves: function (el, container, handle) {
-                    return handle.classList.contains('handle');
+                moves: function (el, container, itemTitle) {
+                    return itemTitle.classList.contains('itemTitle');
                 }
             });
 
@@ -309,21 +307,35 @@
                 container.innerHTML = '';
                 
                 items.forEach(item => {
-                    const div = document.createElement('div');
-                    div.className = 'item';
-                    div.setAttribute('data-provider', item.provider);
-                    div.setAttribute('data-model', item.model);
-                    div.setAttribute('data-parameters', item.parameters);
-                    div.setAttribute('data-providerurl', item.providerurl);
-                    div.setAttribute('data-apikey', item.apikey);
+                    // const div = document.createElement('div');
+                    // div.className = 'item';
+                    // div.setAttribute('data-provider', item.provider);
+                    // div.setAttribute('data-model', item.model);
+                    // div.setAttribute('data-parameters', item.parameters);
+                    // div.setAttribute('data-providerurl', item.providerurl);
+                    // div.setAttribute('data-apikey', item.apikey);
 
-                    div.innerHTML = `<div class="itemTitle handle">${item.provider}</div><div class="response"></div>`;
+                    // div.innerHTML = `<div class="itemTitle handle">${item.provider}</div><div class="response"></div>`;
                     
-                    container.appendChild(div);
+                    container.appendChild(createItemElement(item));
                 });
             } catch (error) {
                 console.error('Failed to fetch items:', error);
             }
+        }
+
+        function createItemElement(item) {
+            const div = document.createElement('div');
+            div.className = 'item';
+            div.setAttribute('data-provider', item.provider);
+            div.setAttribute('data-model', item.model);
+            div.setAttribute('data-parameters', item.parameters);
+            div.setAttribute('data-providerurl', item.providerurl);
+            div.setAttribute('data-apikey', item.apikey);
+
+            div.innerHTML = `<div class="itemTitle handle">${item.provider}</div><div class="response"></div>`;
+
+            return div;
         }
 
         document.addEventListener('DOMContentLoaded', function () {
@@ -357,10 +369,13 @@
             }
 
             const items = Array.from(document.querySelectorAll('.item'));
+            responseContainer_height = document.getElementById('drag-elements').scrollHeight;
+            // responseContainer_height = document.getElementById('drag-elements').height;
 
             items.forEach((item) => {
                 const responseContainer = item.querySelector('.response');
-                responseContainer.innerHTML += '<div class="response-prompt">PROMPT: ' + prompt + '</div> ';
+                // responseContainer.innerHTML += '<div class="response-prompt" >PROMPT: ' + prompt + '</div> ';
+                responseContainer.innerHTML += '<div class="response-prompt" style="top: ' + responseContainer_height + 'px; ">PROMPT: ' + prompt + '</div> ';
                 const ws = new WebSocket(`ws://localhost:8000/ws/stream-llm-response`);
 
                 ws.onopen = function(event) {
