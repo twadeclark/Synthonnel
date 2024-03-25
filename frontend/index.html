@@ -85,12 +85,12 @@
             z-index: 1;
         }
         .table-container {
-            position: absolute; /* or 'fixed', depending on your layout needs */
+            position: absolute;
             top: 0;
             left: 0;
             right: 0;
-            bottom: 60px; /* Adjust this value based on the height of your textarea */
-            overflow-y: auto; /* Allows scrolling within the container */
+            bottom: 60px;
+            overflow-y: auto;
             padding: 10px;
             table-layout: fixed;
             word-break: break-word;
@@ -107,7 +107,7 @@
     </style>
 </head>
 <body>
-    <div class="table-container">
+    <div class="table-container" id="table-container">
         <table id="promptTable">
             <thead>
                 <tr id="headerRow">
@@ -174,8 +174,16 @@
                     ws.send(JSON.stringify(itemData));
                 };
 
+                const tableContainer = document.getElementById("table-container")
+
                 ws.onmessage = function(event) {
+                    const isAtBottom = tableContainer.scrollHeight - tableContainer.clientHeight <= tableContainer.scrollTop + 1
+
                     newCell.innerHTML += event.data + ' ';
+
+                    if (isAtBottom) {
+                        tableContainer.scrollTop = tableContainer.scrollHeight - tableContainer.clientHeight
+                    }
                 };
 
                 ws.onerror = function(event) {
@@ -195,21 +203,26 @@
                     const headerRow = document.getElementById('headerRow');
 
                     data.forEach(item => {
-                        const th = document.createElement('th');
-                        th.className = 'headerElement';
-                        th.textContent = item.provider;
-
-                        th.setAttribute('data-provider', item.provider);
-                        th.setAttribute('data-model', item.model);
-                        th.setAttribute('data-parameters', item.parameters);
-                        th.setAttribute('data-providerurl', item.providerUrl);
-                        th.setAttribute('data-apikey', item.apiKey);
-
+                        const th = addColumn(item);
                         headerRow.appendChild(th);
                     });
                 })
                 .catch(error => console.error('Error loading table header data:', error));
         });
+
+        function addColumn(item) {
+            const th = document.createElement('th');
+            th.className = 'headerElement';
+            th.textContent = item.provider;
+
+            th.setAttribute('data-provider', item.provider);
+            th.setAttribute('data-model', item.model);
+            th.setAttribute('data-parameters', item.parameters);
+            th.setAttribute('data-providerurl', item.providerUrl);
+            th.setAttribute('data-apikey', item.apiKey);
+
+            return th;
+        }
 
         document.getElementById('addItemBtn').onclick = function() {
             if (document.getElementById('addItemFormHider').style.display == 'block') {
@@ -220,45 +233,32 @@
         };
 
         document.getElementById('confirmAddItem').onclick = async function() {
-            const newItemProvider = document.getElementById('newItemProvider').value.trim();
-            const newItemModel = document.getElementById('newItemModel').value.trim();
-            const newItemParameters = document.getElementById('newItemParameters').value.trim();
-            const newItemProviderUrl = document.getElementById('newItemProviderUrl').value.trim();
-            const newItemApiKey = document.getElementById('newItemApiKey').value.trim();
-            
-            if (newItemProvider && newItemModel && newItemProviderUrl && newItemApiKey) {
-                const newItemHTML = `
-                    <div class="item" 
-                        data-provider="${newItemProvider}" 
-                        data-model="${newItemModel}" 
-                        data-parameters="${newItemParameters}" 
-                        data-providerurl="${newItemProviderUrl}" 
-                        data-apikey="${newItemApiKey}">
-                        <div class="itemTitle handle">${newItemProvider}</div>
-                        <div class="response"></div>
-                    </div>
-                `;
+            const item = {
+                provider: document.getElementById('newItemProvider').value.trim(),
+                model: document.getElementById('newItemModel').value.trim(),
+                parameters: document.getElementById('newItemParameters').value.trim(),
+                providerUrl: document.getElementById('newItemProviderUrl').value.trim(),
+                apiKey: document.getElementById('newItemApiKey').value.trim()
+            };
 
-                document.getElementById('drag-elements').insertAdjacentHTML('beforeend', newItemHTML);
-
-                // Reset form
-                // document.getElementById('newItemTitle').value = '';
-                // document.getElementById('newItemProvider').value = '';
-                // document.getElementById('newItemModel').value = '';
-                // document.getElementById('newItemTemperature').value = '';
-                // document.getElementById('addItemForm').style.display = 'none';
+            if (item.provider && item.model && item.providerUrl && item.apiKey) {
+                const headerRow = document.getElementById('headerRow');
+                const th = addColumn(item);
+                headerRow.appendChild(th);
 
                 saveItems();
             }
         };
 
         async function saveItems() {
-            const items = Array.from(document.querySelectorAll('#drag-elements .item')).map(div => ({
-                provider: div.dataset.provider,
-                model: div.dataset.model,
-                parameters: div.dataset.parameters,
-                providerurl: div.dataset.providerurl,
-                apikey: div.dataset.apikey,
+            const headerCells = document.querySelectorAll('#promptTable thead th');
+
+            const items = Array.from(headerCells).map(th => ({
+                provider: th.getAttribute('data-provider'),
+                model: th.getAttribute('data-model'),
+                parameters: th.getAttribute('data-parameters'),
+                providerurl: th.getAttribute('data-providerurl'),
+                apikey: th.getAttribute('data-apikey'),
             }));
 
             fetch('http://localhost:8000/save-items', {
@@ -267,21 +267,15 @@
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify(items),
-            });
-        }
-
-        function createItemElement(item) {
-            const div = document.createElement('div');
-            div.className = 'item';
-            div.setAttribute('data-provider', item.provider);
-            div.setAttribute('data-model', item.model);
-            div.setAttribute('data-parameters', item.parameters);
-            div.setAttribute('data-providerurl', item.providerurl);
-            div.setAttribute('data-apikey', item.apikey);
-
-            div.innerHTML = `<div class="itemTitle handle">${item.provider}</div><div class="response"></div>`;
-
-            return div;
+            })
+            .then(response => {
+                if (response.ok) {
+                    console.log("Items saved successfully.");
+                } else {
+                    console.error("Failed to save items.");
+                }
+            })
+            .catch(error => console.error('Error:', error));
         }
 
         document.addEventListener('DOMContentLoaded', function () {
