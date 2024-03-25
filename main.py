@@ -43,8 +43,11 @@ async def stream_llm_response(websocket: WebSocket):
     split_text = temp_text.split()
     split_trunc = split_text[:random.randint( len(dump_text.split()), len(split_text) - 1)]
 
+    base_int = random.uniform(0.01, 0.1)
+    await asyncio.sleep(base_int + random.uniform(0.5, 2.0))
+
     for word in split_trunc[:len(split_trunc) - 1]:
-        await asyncio.sleep(random.uniform(0.01, 0.05))
+        await asyncio.sleep(base_int + random.uniform(0.01, 0.1))
         await websocket.send_text(word)
 
     await websocket.close()
