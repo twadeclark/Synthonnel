@@ -5,13 +5,23 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Synthonnel</title>
     <style>
+        :root {
+            --backgroundColor: #F0F0F0;
+            --textColor: #0F0F0F;
+            --emphasisBackgroundColor: #FFFFFF;
+            --borderColor: #C0C0C0;
+        }
         body {
             font-family: Arial, sans-serif;
             margin: 0;
             padding: 0;
-            background-color: #F0F0F0;
-            color: #0F0F0F;
+            background-color: var(--backgroundColor);
+            color: var(--textColor);
             line-height: 160%;
+        }
+
+        #addItemFormHider {
+            display:none
         }
         #addItemForm {
             border-radius: 8px;
@@ -19,34 +29,40 @@
             position: fixed; 
             left: 20px; 
             bottom: 80px; 
-            background: white; 
+            background: var(--emphasisBackgroundColor); 
             padding: 20px; 
-            border: 1px solid #ccc; 
+            border: 1px solid var(--borderColor); 
             display: grid; 
             gap: 20px;
         }
 
-        #trashcan {
+        #settingsFormHider {
+            display:none
+        }
+        #settingsForm {
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
             position: fixed; 
             left: 20px; 
-            bottom: 16px; 
-            font-size: 24px;
+            top: 80px; 
+            background: var(--emphasisBackgroundColor); 
+            padding: 20px; 
+            border: 1px solid var(--borderColor); 
+            gap: 20px;
         }
-        #trashcan.highlight {
-            background-color: #f88;
-            transition: background-color 0.3s;
-        }
-        
+
         #settingsBtn {
             cursor: pointer;
             position: fixed; 
             left: 30px; 
             bottom: 10px; 
             font-size: 24px; 
-            border: 1px solid #ccc;
+            border: 1px solid var(--borderColor);
             border-radius: 8px;
             height: 44px;
             width: 44px;
+            background-color: var(--backgroundColor);
+            color: var(--textColor);
         }
         #addItemBtn {
             cursor: pointer;
@@ -54,10 +70,12 @@
             left: 104px; 
             bottom: 10px; 
             font-size: 24px; 
-            border: 1px solid #ccc;
+            border: 1px solid var(--borderColor);
             border-radius: 8px;
             height: 44px;
             width: 44px;
+            background-color: var(--backgroundColor);
+            color: var(--textColor);
         }
 
         #userPrompt {
@@ -70,13 +88,15 @@
             resize: none;
             position: fixed;
             bottom: 10px;
-            border: 1px solid #ccc;
+            border: 1px solid var(--borderColor);
             border-radius: 8px;
             font-size: 120%;
             padding-top: 12px;
             padding-bottom: 0px;
             padding-right: 18px;
             padding-left: 18px;
+            background-color: var(--backgroundColor);
+            color: var(--textColor);
         }
 
         #submitPrompt {
@@ -86,14 +106,12 @@
             font-size: 24px; 
             border: none;
             opacity: 0.3;
-            border: 1px solid #ccc;
+            border: 1px solid var(--borderColor);
             border-radius: 8px;
             height: 44px;
             width: 44px;
-        }
-
-        #addItemFormHider {
-            display:none
+            background-color: var(--backgroundColor);
+            color: var(--textColor);
         }
 
         #promptTable {
@@ -104,14 +122,14 @@
         }
         td {
             padding: 12px;
-            border: 1px solid #ccc;
+            border: 1px solid var(--borderColor);
             border-radius: 8px;
         }
         .prompt-row {
             font-style: italic;
             column-span: all;
             background-color: lightgray;
-            background-image: linear-gradient(#F0F0F0, white, #F0F0F0);
+            background-image: linear-gradient(var(--backgroundColor), var(--emphasisBackgroundColor), var(--backgroundColor));
             text-align: center;
             padding-left: 174px;
             padding-right: 174px;
@@ -119,7 +137,7 @@
         #promptTable thead th {
             position: sticky;
             top: 0;
-            background-color: white;
+            background-color: var(--emphasisBackgroundColor);
             z-index: 1;
         }
         .table-container {
@@ -135,26 +153,78 @@
         .headerElement {
             padding: 8px;
             width: 2%;
-            border-bottom: 1px solid #000;
+            border-bottom: 1px solid var(--borderColor);
         }
         #headerRow {
             text-align: center;
         }
         .response-row {
             vertical-align: top;
-            background-color: white;
+            background-color: var(--emphasisBackgroundColor);
         }
 
         #message {
             position: absolute;
-            top: calc(100% - 200px);
-            width: 25%;
+            top: 50%;
+            width: 15%;
             left: 50%;
             background-color: white;
             color: darkred;
             padding: 10px;
             opacity: 0;
             transition: opacity 1s ease-in-out;
+        }
+
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 60px;
+            height: 34px;
+            top: -8px;
+        }
+        .switch input { 
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #F0F0F0;
+            -webkit-transition: .4s;
+            transition: .4s;
+        }
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 26px;
+            width: 26px;
+            left: 4px;
+            bottom: 4px;
+            background-color: #888888;
+            -webkit-transition: .4s;
+            transition: .4s;
+        }
+        input:checked + .slider {
+            background-color: #606060;
+        }
+        input:focus + .slider {
+            box-shadow: 0 0 1px gray;
+        }
+        input:checked + .slider:before {
+            -webkit-transform: translateX(26px);
+            -ms-transform: translateX(26px);
+            transform: translateX(26px);
+        }
+        .slider.round {
+            border-radius: 34px;
+        }
+        .slider.round:before {
+            border-radius: 50%;
         }
 
     </style>
@@ -181,6 +251,27 @@
             <input type="text" id="newItemProviderUrl" placeholder="ProviderUrl">
             <input type="text" id="newItemApiKey" placeholder="ApiKey">
             <button id="confirmAddItem">Add</button>
+        </div>
+    </div>
+
+    <div id="settingsFormHider">
+        <div id="settingsForm">
+            <div style="text-align: center;">
+                <label style="font-size: 24px;">🌞</label>
+                <label class="switch">
+                    <input type="checkbox" id="darkMode">
+                    <span class="slider round"></span>
+                </label>
+                <label style="font-size: 24px;">🌛</label>
+            </div>
+
+            <hr>
+            <input type="checkbox" id="model" name="model"> <label for="model">Model</label> <br>
+            <input type="checkbox" id="provider" name="provider"> <label for="provider">Provider</label> <br>
+            <input type="checkbox" id="parameters" name="parameters"> <label for="parameters">Parameters</label> <br>
+            <input type="checkbox" id="providerUrl" name="providerUrl"> <label for="providerUrl">Provider Url</label> <br>
+            <hr>
+            <button id="startNewChat">New Chat</button>
         </div>
     </div>
 
@@ -307,6 +398,29 @@
                 document.getElementById('addItemFormHider').style.display = 'none'
             } else {
                 document.getElementById('addItemFormHider').style.display = 'block';
+            }
+        };
+
+        document.getElementById('settingsBtn').onclick = function() {
+            if (document.getElementById('settingsFormHider').style.display == 'block') {
+                document.getElementById('settingsFormHider').style.display = 'none'
+            } else {
+                document.getElementById('settingsFormHider').style.display = 'block';
+            }
+        };
+
+        document.getElementById('darkMode').onchange = function() {
+            const body = document.body;
+            if (document.getElementById('darkMode').checked) {
+                document.documentElement.style.setProperty('--backgroundColor', '#2F2F2F');
+                document.documentElement.style.setProperty('--textColor', '#F0F0F0');
+                document.documentElement.style.setProperty('--emphasisBackgroundColor', '#000000');
+                document.documentElement.style.setProperty('--borderColor', '#606060');
+            } else {
+                document.documentElement.style.setProperty('--backgroundColor', '#F0F0F0');
+                document.documentElement.style.setProperty('--textColor', '#0F0F0F');
+                document.documentElement.style.setProperty('--emphasisBackgroundColor', '#FFFFFF');
+                document.documentElement.style.setProperty('--borderColor', '#C0C0C0');
             }
         };
 
