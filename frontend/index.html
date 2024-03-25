@@ -11,6 +11,7 @@
             padding: 0;
             background-color: #F0F0F0;
             color: #0F0F0F;
+            line-height: 160%;
         }
         #addItemForm {
             border-radius: 8px;
@@ -60,22 +61,27 @@
         }
 
         #userPrompt {
+            left: 174px;
+            right: 174px;
             overflow-y: hidden;
-            width: calc(100% - 300px);
             margin: 0 auto;
-            min-height: 34px;
+            min-height: 1px;
             height: auto;
             resize: none;
             position: fixed;
-            left: 174px;
             bottom: 10px;
             border: 1px solid #ccc;
             border-radius: 8px;
+            font-size: 120%;
+            padding-top: 12px;
+            padding-bottom: 0px;
+            padding-right: 18px;
+            padding-left: 18px;
         }
 
         #submitPrompt {
             position: fixed; 
-            right: 30px; 
+            right: 104px; 
             bottom: 10px; 
             font-size: 24px; 
             border: none;
@@ -92,16 +98,23 @@
 
         #promptTable {
             width: 100%;
-            border-spacing: 20px;
+            border-spacing: 10px;
             border-collapse: separate;
             vertical-align: top;
         }
-        #promptTable th, #promptTable td {
-            padding: 8px;
+        td {
+            padding: 12px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
         }
         .prompt-row {
             font-style: italic;
             column-span: all;
+            background-color: lightgray;
+            background-image: linear-gradient(#F0F0F0, white, #F0F0F0);
+            text-align: center;
+            padding-left: 174px;
+            padding-right: 174px;
         }
         #promptTable thead th {
             position: sticky;
@@ -120,6 +133,7 @@
             word-break: break-word;
         }
         .headerElement {
+            padding: 8px;
             width: 2%;
             border-bottom: 1px solid #000;
         }
@@ -170,7 +184,7 @@
         </div>
     </div>
 
-    <textarea id="userPrompt" placeholder="Enter your message here..."></textarea>
+    <textarea id="userPrompt" rows="1" placeholder="Enter your message here..."></textarea>
     <button id="submitPrompt" title="Send Message">🠉</button>
 
     <div id="message">Disappearing message</div>
