@@ -5,6 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Synthonnel</title>
     <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #F0F0F0;
+            color: #0F0F0F;
+        }
         #addItemForm {
             border-radius: 5px;
             box-shadow: 0 2px 5px rgba(0,0,0,0.2);
@@ -56,20 +63,22 @@
             bottom: 16px; 
             font-size: 24px; 
             border: none;
+            opacity: 0.3;
         }
 
         #addItemFormHider {
             display:none
         }
 
-
         #promptTable {
             width: 100%;
-            border-collapse: collapse;
+            border-spacing: 20px;
+            border-collapse: separate;
             vertical-align: top;
+            border: none;
         }
         #promptTable, #promptTable th, #promptTable td {
-            border: 1px solid;
+            border: none;
         }
         #promptTable th, #promptTable td {
             padding: 8px;
@@ -103,7 +112,21 @@
         }
         .response-row {
             vertical-align: top;
+            background-color: white;
         }
+
+        #message {
+            position: absolute;
+            top: calc(100% - 200px);
+            width: 25%;
+            left: 50%;
+            background-color: white;
+            color: darkred;
+            padding: 10px;
+            opacity: 0;
+            transition: opacity 1s ease-in-out;
+        }
+
     </style>
 </head>
 <body>
@@ -118,9 +141,9 @@
         </table>
     </div>
     
-    <button id="addItemBtn">+</button>
-    <textarea id="userPrompt" placeholder="Enter your prompt here..."></textarea>
-    <button id="submitPrompt">🠉</button>
+    <button id="addItemBtn" title="Add New Model">+</button>
+    <textarea id="userPrompt" placeholder="Enter your message here..."></textarea>
+    <button id="submitPrompt" title="Send Message">🠉</button>
 
     <div id="addItemFormHider" style="display:none">
         <div id="addItemForm">
@@ -132,8 +155,27 @@
             <button id="confirmAddItem">Add</button>
         </div>
     </div>
+
+    <div id="message">Disappearing message</div>
+
     <script>
+        function showMessage(message) {
+            const messageElement = document.getElementById('message');
+            messageElement.innerText = message;
+            messageElement.style.opacity = '1';
+
+            setTimeout(() => {
+                messageElement.style.opacity = '0';
+            }, 3000);
+        }
+
+        document.getElementById('userPrompt').addEventListener('input', function(event) {
+            const textAreaElement = document.getElementById('userPrompt');
+            document.getElementById('submitPrompt').style.opacity = textAreaElement.value.trim().length == 0 ? '0.3' : '1';
+        });
+
         document.getElementById('submitPrompt').addEventListener('click', function() {
+            document.getElementById('submitPrompt').style.opacity = '0.3';
             const textAreaElement = document.getElementById('userPrompt');
             const prompt = textAreaElement.value.trim();
 
@@ -148,6 +190,8 @@
             const table = document.querySelector('#promptTable');
             const headerRow = table.rows[0];
             const headerCells = headerRow.cells;
+            const tableContainer = document.getElementById("table-container")
+            const isAtBottom = tableContainer.scrollHeight - tableContainer.clientHeight <= tableContainer.scrollTop + 1;
 
             const promptRow = table.insertRow(-1);
             const promptCell = promptRow.insertCell(0);
@@ -157,6 +201,10 @@
 
             const newRow = table.insertRow(-1);
             newRow.className = 'response-row';
+            
+            if (isAtBottom) {
+                tableContainer.scrollTop = tableContainer.scrollHeight - tableContainer.clientHeight
+            }
 
             Array.from(headerCells).forEach((item, index) => {
                 const newCell = newRow.insertCell(index);
@@ -168,16 +216,14 @@
                         provider: item.getAttribute('data-provider'),
                         model: item.getAttribute('data-model'),
                         parameters: item.getAttribute('data-parameters'),
-                        providerUrl: item.getAttribute('data-providerurl'),
-                        apiKey: item.getAttribute('data-apikey')
+                        providerUrl: item.getAttribute('data-providerUrl'),
+                        apiKey: item.getAttribute('data-apiKey')
                     };
                     ws.send(JSON.stringify(itemData));
                 };
 
-                const tableContainer = document.getElementById("table-container")
-
                 ws.onmessage = function(event) {
-                    const isAtBottom = tableContainer.scrollHeight - tableContainer.clientHeight <= tableContainer.scrollTop + 1
+                    const isAtBottom = tableContainer.scrollHeight - tableContainer.clientHeight <= tableContainer.scrollTop + 1;
 
                     newCell.innerHTML += event.data + ' ';
 
@@ -188,6 +234,7 @@
 
                 ws.onerror = function(event) {
                     console.error("WebSocket error observed:", event);
+                    showMessage("WebSocket error observed:", event);
                 };
 
                 ws.onclose = function(event) {
@@ -218,8 +265,8 @@
             th.setAttribute('data-provider', item.provider);
             th.setAttribute('data-model', item.model);
             th.setAttribute('data-parameters', item.parameters);
-            th.setAttribute('data-providerurl', item.providerUrl);
-            th.setAttribute('data-apikey', item.apiKey);
+            th.setAttribute('data-providerUrl', item.providerUrl);
+            th.setAttribute('data-apiKey', item.apiKey);
 
             return th;
         }
@@ -242,11 +289,29 @@
             };
 
             if (item.provider && item.model && item.providerUrl && item.apiKey) {
+                // check if the item already exists in the table header before adding it again 
+                const headerCells = document.querySelectorAll('#promptTable thead th');
+                const itemExists = Array.from(headerCells).some(th => 
+                    th.getAttribute('data-provider') === item.provider &&
+                    th.getAttribute('data-model') === item.model &&
+                    th.getAttribute('data-parameters') === item.parameters &&
+                    th.getAttribute('data-providerUrl') === item.providerUrl &&
+                    th.getAttribute('data-apiKey') === item.apiKey
+                );
+
+                if (itemExists) {
+                    showMessage("Duplicate erntry.");
+                    return;
+                }
+
                 const headerRow = document.getElementById('headerRow');
                 const th = addColumn(item);
                 headerRow.appendChild(th);
 
                 saveItems();
+                document.getElementById('addItemFormHider').style.display = 'none'
+            } else {
+                showMessage("All fields are required.");
             }
         };
 
@@ -257,8 +322,8 @@
                 provider: th.getAttribute('data-provider'),
                 model: th.getAttribute('data-model'),
                 parameters: th.getAttribute('data-parameters'),
-                providerurl: th.getAttribute('data-providerurl'),
-                apikey: th.getAttribute('data-apikey'),
+                providerUrl: th.getAttribute('data-providerUrl'),
+                apiKey: th.getAttribute('data-apiKey'),
             }));
 
             fetch('http://localhost:8000/save-items', {
@@ -273,6 +338,7 @@
                     console.log("Items saved successfully.");
                 } else {
                     console.error("Failed to save items.");
+                    showMessage("Failed to save items.");
                 }
             })
             .catch(error => console.error('Error:', error));

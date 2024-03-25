@@ -24,8 +24,8 @@ class Item(BaseModel):
     provider: str
     model: str
     parameters: str
-    providerurl: str
-    apikey: str
+    providerUrl: str
+    apiKey: str
 
 @app.websocket("/ws/stream-llm-response")
 async def stream_llm_response(websocket: WebSocket):
