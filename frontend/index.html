@@ -4,38 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Synthonnel</title>
-    <link rel="stylesheet" href="dragula.min.css" />
     <style>
-        #drag-elements {
-            display: flex;
-            gap: 10px;
-        }
-        #drag-elements div {
-            background-color: #f0f0f0;
-            justify-content: center;
-            position: relative;
-        }
-        .gu-mirror {
-            cursor: grabbing !important;
-            list-style: none;
-            margin: 0;
-            padding: 0;
-            z-index: 9999;
-            opacity: 0.8;
-        }
-        .gu-hide {
-            display: none !important;
-        }
-        .gu-unselectable {
-            -webkit-user-select: none !important;
-            -moz-user-select: none !important;
-            -ms-user-select: none !important;
-            user-select: none !important;
-        }
-        .gu-transit {
-            opacity: 0.2;
-        }
-
         #addItemForm {
             border-radius: 5px;
             box-shadow: 0 2px 5px rgba(0,0,0,0.2);
@@ -93,40 +62,29 @@
             display:none
         }
 
-        .item {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-            padding: 0px;
-            border: 1px solid #ccc;
-            margin-bottom: 10px;
-            flex-grow: 1;
+
+        #promptTable {
             width: 100%;
+            border-collapse: collapse;
+            vertical-align: top;
         }
-        .itemTitle {
-            cursor: grab;
-            font-weight: bold;
-            margin-bottom: 4px;
-            text-align: center;
-            border-bottom: 1px solid #ccc;
-            width: 100%;
-            padding-top: 5px;
-            padding-bottom: 5px;
+        #promptTable, #promptTable th, #promptTable td {
+            border: 1px solid;
         }
-        .response {
-            flex-grow: 1;
-            border: none;
-            text-align: left;
-            word-wrap: break-word;
-            word-break: break-word;
-            flex-direction: column;
+        #promptTable th, #promptTable td {
+            padding: 8px;
         }
-        .response-prompt {
+        .prompt-row {
             font-style: italic;
-            border: 1px solid #ccc;
-            padding: 5px;
+            column-span: all;
         }
-        .items-container {
+        #promptTable thead th {
+            position: sticky;
+            top: 0;
+            background-color: white;
+            z-index: 1;
+        }
+        .table-container {
             position: absolute; /* or 'fixed', depending on your layout needs */
             top: 0;
             left: 0;
@@ -134,16 +92,32 @@
             bottom: 60px; /* Adjust this value based on the height of your textarea */
             overflow-y: auto; /* Allows scrolling within the container */
             padding: 10px;
+            table-layout: fixed;
+            word-break: break-word;
         }
-
+        .headerElement {
+            width: 2%;
+        }
+        #headerRow {
+            text-align: center;
+        }
+        .response-row {
+            vertical-align: top;
+        }
     </style>
 </head>
 <body>
-    <div class="items-container">
-        <div id="drag-elements"></div>
+    <div class="table-container">
+        <table id="promptTable">
+            <thead>
+                <tr id="headerRow">
+                </tr>
+            </thead>
+            <tbody>
+            </tbody>
+        </table>
     </div>
-
-    <div id="trashcan">🗑️</div>
+    
     <button id="addItemBtn">+</button>
     <textarea id="userPrompt" placeholder="Enter your prompt here..."></textarea>
     <button id="submitPrompt">🠉</button>
@@ -158,79 +132,84 @@
             <button id="confirmAddItem">Add</button>
         </div>
     </div>
-    <script src="dragula.min.js"></script>
     <script>
-        var drake = dragula([document.getElementById('drag-elements')], {
-                moves: function (el, container, itemTitle) {
-                    return itemTitle.classList.contains('itemTitle');
-                }
+        document.getElementById('submitPrompt').addEventListener('click', function() {
+            const textAreaElement = document.getElementById('userPrompt');
+            const prompt = textAreaElement.value.trim();
+
+            textAreaElement.value = '';
+            textAreaElement.style.height = 'auto';
+            textAreaElement.style.height = `${textAreaElement.scrollHeight}px`;
+
+            if (!prompt) {
+                return;
+            }
+
+            const table = document.querySelector('#promptTable');
+            const headerRow = table.rows[0];
+            const headerCells = headerRow.cells;
+
+            const promptRow = table.insertRow(-1);
+            const promptCell = promptRow.insertCell(0);
+            promptCell.className = 'prompt-row';
+            promptCell.colSpan = headerCells.length;
+            promptCell.innerHTML = "PROMPT: " + prompt;
+
+            const newRow = table.insertRow(-1);
+            newRow.className = 'response-row';
+
+            Array.from(headerCells).forEach((item, index) => {
+                const newCell = newRow.insertCell(index);
+                const ws = new WebSocket(`ws://localhost:8000/ws/stream-llm-response`);
+
+                ws.onopen = function(event) {
+                    const itemData = {
+                        prompt: prompt,
+                        provider: item.getAttribute('data-provider'),
+                        model: item.getAttribute('data-model'),
+                        parameters: item.getAttribute('data-parameters'),
+                        providerUrl: item.getAttribute('data-providerurl'),
+                        apiKey: item.getAttribute('data-apikey')
+                    };
+                    ws.send(JSON.stringify(itemData));
+                };
+
+                ws.onmessage = function(event) {
+                    newCell.innerHTML += event.data + ' ';
+                };
+
+                ws.onerror = function(event) {
+                    console.error("WebSocket error observed:", event);
+                };
+
+                ws.onclose = function(event) {
+                    console.log("WebSocket connection closed for", item.getAttribute('data-provider'));
+                };
             });
-
-        let droppedOnTrashcan = false;
-
-        drake.on('drop', (el, target) => {
-            if (!droppedOnTrashcan && target) {
-                saveItems();
-            }
-            droppedOnTrashcan = false;
         });
 
-        drake.on('dragend', (el) => {
-            const trashcan = document.getElementById('trashcan');
-            const trashRect = trashcan.getBoundingClientRect();
-            const elRect = el.getBoundingClientRect();
+        document.addEventListener('DOMContentLoaded', function() {
+            fetch('http://localhost:8000/get-items')
+                .then(response => response.json())
+                .then(data => {
+                    const headerRow = document.getElementById('headerRow');
 
-            const overlaps = !(elRect.right < trashRect.left || 
-                                elRect.left > trashRect.right || 
-                                elRect.bottom < trashRect.top || 
-                                elRect.top > trashRect.bottom);
+                    data.forEach(item => {
+                        const th = document.createElement('th');
+                        th.className = 'headerElement';
+                        th.textContent = item.provider;
 
-            if (overlaps) {
-                droppedOnTrashcan = true;
-                el.parentNode.removeChild(el);
-            }
+                        th.setAttribute('data-provider', item.provider);
+                        th.setAttribute('data-model', item.model);
+                        th.setAttribute('data-parameters', item.parameters);
+                        th.setAttribute('data-providerurl', item.providerUrl);
+                        th.setAttribute('data-apikey', item.apiKey);
+
+                        headerRow.appendChild(th);
+                    });
+                })
+                .catch(error => console.error('Error loading table header data:', error));
         });
-
-        drake.on('drag', function(el, source) {
-            document.body.classList.add('gu-grabbing');
-        });
-
-        drake.on('dragend', function(el) {
-            document.body.classList.remove('gu-grabbing');
-        });
-
-        let isOverTrashcan = false;
-
-        drake.on('drag', (el, source) => {
-            document.addEventListener('mousemove', onMouseMove);
-        });
-
-        drake.on('dragend', (el) => {
-            document.removeEventListener('mousemove', onMouseMove);
-            const trashcan = document.getElementById('trashcan');
-            trashcan.classList.remove('highlight');
-            
-            if (isOverTrashcan) {
-                el.parentNode.removeChild(el);
-                isOverTrashcan = false;
-                saveItems();
-            }
-        });
-
-        function onMouseMove(event) {
-            const trashcan = document.getElementById('trashcan');
-            const trashRect = trashcan.getBoundingClientRect();
-            const isMouseOverTrashcan = event.clientX >= trashRect.left && event.clientX <= trashRect.right &&
-                                        event.clientY >= trashRect.top && event.clientY <= trashRect.bottom;
-            
-            if (isMouseOverTrashcan && !isOverTrashcan) {
-                trashcan.classList.add('highlight');
-                isOverTrashcan = true;
-            } else if (!isMouseOverTrashcan && isOverTrashcan) {
-                trashcan.classList.remove('highlight');
-                isOverTrashcan = false;
-            }
-        }
 
         document.getElementById('addItemBtn').onclick = function() {
             if (document.getElementById('addItemFormHider').style.display == 'block') {
@@ -291,39 +270,6 @@
             });
         }
 
-        document.addEventListener('DOMContentLoaded', (event) => {
-            fetchItemsAndPopulateUI();
-        });
-
-        async function fetchItemsAndPopulateUI() {
-            try {
-                const response = await fetch('http://localhost:8000/get-items');
-                if (!response.ok) {
-                    throw new Error('Network response was not ok');
-                }
-                const items = await response.json();
-                
-                const container = document.getElementById('drag-elements');
-                container.innerHTML = '';
-                
-                items.forEach(item => {
-                    // const div = document.createElement('div');
-                    // div.className = 'item';
-                    // div.setAttribute('data-provider', item.provider);
-                    // div.setAttribute('data-model', item.model);
-                    // div.setAttribute('data-parameters', item.parameters);
-                    // div.setAttribute('data-providerurl', item.providerurl);
-                    // div.setAttribute('data-apikey', item.apikey);
-
-                    // div.innerHTML = `<div class="itemTitle handle">${item.provider}</div><div class="response"></div>`;
-                    
-                    container.appendChild(createItemElement(item));
-                });
-            } catch (error) {
-                console.error('Failed to fetch items:', error);
-            }
-        }
-
         function createItemElement(item) {
             const div = document.createElement('div');
             div.className = 'item';
@@ -351,58 +297,6 @@
             });
 
             autoGrowTextArea(textarea);
-        });
-
-        document.getElementById('submitPrompt').addEventListener('click', function() {
-            textAreaElement = document.getElementById('userPrompt');
-
-            const prompt = textAreaElement.value.trim();
-
-            foo = textAreaElement.scrollHeight;
-
-            textAreaElement.value = '';
-            textAreaElement.style.height = 'auto';
-            textAreaElement.style.height = `${textAreaElement.scrollHeight}px`;
-            
-            if (!prompt) {
-                return;
-            }
-
-            const items = Array.from(document.querySelectorAll('.item'));
-            responseContainer_height = document.getElementById('drag-elements').scrollHeight;
-            // responseContainer_height = document.getElementById('drag-elements').height;
-
-            items.forEach((item) => {
-                const responseContainer = item.querySelector('.response');
-                // responseContainer.innerHTML += '<div class="response-prompt" >PROMPT: ' + prompt + '</div> ';
-                responseContainer.innerHTML += '<div class="response-prompt" style="top: ' + responseContainer_height + 'px; ">PROMPT: ' + prompt + '</div> ';
-                const ws = new WebSocket(`ws://localhost:8000/ws/stream-llm-response`);
-
-                ws.onopen = function(event) {
-                    const itemData = {
-                        prompt: prompt,
-                        provider: item.dataset.provider,
-                        model: item.dataset.model,
-                        parameters: item.dataset.parameters,
-                        providerUrl: item.dataset.providerurl,
-                        apiKey: item.dataset.apikey
-                    };
-                    ws.send(JSON.stringify(itemData));
-                };
-
-                ws.onmessage = function(event) {
-                    const responseContainer = item.querySelector('.response');
-                    responseContainer.innerHTML += event.data + ' ';
-                };
-
-                ws.onerror = function(event) {
-                    console.error("WebSocket error observed:", event);
-                };
-
-                ws.onclose = function(event) {
-                    console.log("WebSocket connection closed.");
-                };
-            });
         });
 
     </script>
