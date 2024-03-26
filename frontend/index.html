@@ -19,7 +19,58 @@
             color: var(--textColor);
             line-height: 160%;
         }
+        *{
+            transition: background-color 0.5s ease-in-out;
+        }
 
+        .button {
+            cursor: pointer;
+            font-size: 24px;
+            border: 1px solid var(--borderColor);
+            border-radius: 8px;
+            height: 44px;
+            width: 44px;
+            background-color: var(--backgroundColor);
+            color: var(--textColor);
+        }
+
+        .small-text-wide-button {
+            cursor: pointer;
+            font-size: 80%;
+            border: 1px solid var(--borderColor);
+            border-radius: 8px;
+            height: 44px;
+            width: 100%;
+            background-color: var(--backgroundColor);
+            color: var(--textColor);
+        }
+
+        /* #removeItemBtn {
+            position: fixed; 
+            left: 30px; 
+            bottom: 10px; 
+        }
+        #removeItemFormHider {
+            display:none
+        }
+        #removeItemForm {
+            left: 20px;
+            bottom: 80px; 
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            position: fixed; 
+            background: var(--emphasisBackgroundColor); 
+            padding: 20px; 
+            border: 1px solid var(--borderColor); 
+            display: grid; 
+            gap: 20px;
+        } */
+
+        #addItemBtn {
+            position: fixed; 
+            left: 104px; 
+            bottom: 10px; 
+        }
         #addItemFormHider {
             display:none
         }
@@ -34,54 +85,6 @@
             border: 1px solid var(--borderColor); 
             display: grid; 
             gap: 20px;
-        }
-
-        #settingsFormHider {
-            display:none
-        }
-        #settingsForm {
-            border-radius: 8px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-            position: fixed; 
-            left: 20px;
-            bottom: 80px; 
-            background: var(--emphasisBackgroundColor); 
-            padding: 20px; 
-            border: 1px solid var(--borderColor); 
-            gap: 20px;
-        }
-        .class1 {
-            display: block;
-        }
-        .class2, .class3, .class4 {
-            display: none;
-        }
-        
-        #settingsBtn {
-            cursor: pointer;
-            position: fixed; 
-            left: 30px; 
-            bottom: 10px; 
-            font-size: 24px; 
-            border: 1px solid var(--borderColor);
-            border-radius: 8px;
-            height: 44px;
-            width: 44px;
-            background-color: var(--backgroundColor);
-            color: var(--textColor);
-        }
-        #addItemBtn {
-            cursor: pointer;
-            position: fixed; 
-            left: 104px; 
-            bottom: 10px; 
-            font-size: 24px; 
-            border: 1px solid var(--borderColor);
-            border-radius: 8px;
-            height: 44px;
-            width: 44px;
-            background-color: var(--backgroundColor);
-            color: var(--textColor);
         }
 
         #userPrompt {
@@ -109,17 +112,48 @@
             position: fixed; 
             right: 104px; 
             bottom: 10px; 
-            font-size: 24px; 
-            border: none;
             opacity: 0.3;
-            border: 1px solid var(--borderColor);
-            border-radius: 8px;
-            height: 44px;
-            width: 44px;
-            background-color: var(--backgroundColor);
-            color: var(--textColor);
         }
 
+        #settingsBtn {
+            position: fixed; 
+            right: 30px; 
+            bottom: 10px; 
+        }
+        #settingsFormHider {
+            display:none
+        }
+        #settingsForm {
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            position: fixed; 
+            right: 20px;
+            bottom: 80px; 
+            background: var(--emphasisBackgroundColor); 
+            padding: 20px; 
+            border: 1px solid var(--borderColor); 
+            gap: 20px;
+        }
+
+        #message {
+            position: absolute;
+            left: 240px;
+            bottom: 80px; 
+            background-color: white;
+            color: darkred;
+            padding: 10px;
+            opacity: 0;
+            transition: opacity 1s ease-in-out;
+            border: 1px solid var(--borderColor);
+            border-radius: 8px;
+        }
+
+        .class1 {
+            display: block;
+        }
+        .class2, .class3, .class4 {
+            display: none;
+        }
         #promptTable {
             width: 100%;
             border-spacing: 10px;
@@ -133,8 +167,6 @@
         }
         .prompt-row {
             font-style: italic;
-            column-span: all;
-            background-color: lightgray;
             background-image: linear-gradient(var(--backgroundColor), var(--emphasisBackgroundColor), var(--backgroundColor));
             text-align: center;
             padding-left: 174px;
@@ -167,18 +199,6 @@
         .response-row {
             vertical-align: top;
             background-color: var(--emphasisBackgroundColor);
-        }
-
-        #message {
-            position: absolute;
-            top: 50%;
-            width: 15%;
-            left: 50%;
-            background-color: white;
-            color: darkred;
-            padding: 10px;
-            opacity: 0;
-            transition: opacity 1s ease-in-out;
         }
 
         .switch {
@@ -247,7 +267,30 @@
         </table>
     </div>
 
-    <button id="settingsBtn" title="Settings">☰</button>
+    <!-- <button id="removeItemBtn" class="button" title="Remove Model">x</button>
+    <div id="removeItemFormHider">
+        <div id="removeItemForm">
+            <button id="removeItem" class="button small-text-wide-button">Remove</button>
+        </div>
+    </div> -->
+
+    <button id="addItemBtn" class="button" title="Add New Model">+</button>
+    <div id="addItemFormHider">
+        <div id="addItemForm">
+            <input type="text" id="newItemProvider" placeholder="Provider">
+            <input type="text" id="newItemModel" placeholder="Model">
+            <textarea id="newItemParameters" placeholder="Parameters" rows="4" style="resize: vertical;"></textarea>
+            <input type="text" id="newItemProviderUrl" placeholder="ProviderUrl">
+            <input type="text" id="newItemApiKey" placeholder="ApiKey">
+            <button id="confirmAddItem" class="button small-text-wide-button">Add Model</button>
+        </div>
+    </div>
+
+    <textarea id="userPrompt" rows="1" placeholder="Enter your message here..."></textarea>
+
+    <button id="submitPrompt" class="button" title="Send Message">🠉</button>
+
+    <button id="settingsBtn" class="button" title="Settings">☰</button>
     <div id="settingsFormHider">
         <div id="settingsForm">
             <div style="text-align: center;">
@@ -256,7 +299,7 @@
                     <input type="checkbox" id="darkMode">
                     <span class="slider round"></span>
                 </label>
-                <label style="font-size: 24px;">🌛</label>
+                <label style="font-size: 24px;" for="darkMode">🌛</label>
             </div>
             <hr>
             <input type="checkbox" id="check1" checked> <label for="check1">Model</label> <br>
@@ -264,24 +307,9 @@
             <input type="checkbox" id="check3"> <label for="check3">Parameters</label> <br>
             <input type="checkbox" id="check4"> <label for="check4">Provider Url</label> <br>
             <hr>
-            <button id="startNewChat">New Chat</button>
+            <button id="startNewChat" class="button small-text-wide-button">New Chat</button>
         </div>
     </div>
-
-    <button id="addItemBtn" title="Add New Model">+</button>
-    <div id="addItemFormHider">
-        <div id="addItemForm">
-            <input type="text" id="newItemProvider" placeholder="Provider">
-            <input type="text" id="newItemModel" placeholder="Model">
-            <textarea id="newItemParameters" placeholder="Parameters" rows="4" style="resize: vertical;"></textarea>
-            <input type="text" id="newItemProviderUrl" placeholder="ProviderUrl">
-            <input type="text" id="newItemApiKey" placeholder="ApiKey">
-            <button id="confirmAddItem">Add</button>
-        </div>
-    </div>
-
-    <textarea id="userPrompt" rows="1" placeholder="Enter your message here..."></textarea>
-    <button id="submitPrompt" title="Send Message">🠉</button>
 
     <div id="message">Disappearing message</div>
 
@@ -323,7 +351,8 @@
             const promptRow = table.insertRow(-1);
             const promptCell = promptRow.insertCell(0);
             promptCell.className = 'prompt-row';
-            promptCell.colSpan = headerCells.length;
+            // promptCell.colSpan = headerCells.length;
+            promptCell.colSpan = '100';
             promptCell.innerHTML = "PROMPT: " + prompt;
 
             const newRow = table.insertRow(-1);
@@ -425,8 +454,19 @@
             } else {
                 document.getElementById('addItemFormHider').style.display = 'block';
                 document.getElementById('settingsFormHider').style.display = 'none'
+                document.getElementById('removeItemFormHider').style.display = 'none'
             }
         };
+
+        // document.getElementById('removeItemBtn').onclick = function() {
+        //     if (document.getElementById('removeItemFormHider').style.display == 'block') {
+        //         document.getElementById('removeItemFormHider').style.display = 'none'
+        //     } else {
+        //         document.getElementById('removeItemFormHider').style.display = 'block';
+        //         document.getElementById('settingsFormHider').style.display = 'none'
+        //         document.getElementById('addItemFormHider').style.display = 'none'
+        //     }
+        // };
 
         document.getElementById('settingsBtn').onclick = function() {
             if (document.getElementById('settingsFormHider').style.display == 'block') {
@@ -434,6 +474,7 @@
             } else {
                 document.getElementById('settingsFormHider').style.display = 'block';
                 document.getElementById('addItemFormHider').style.display = 'none'
+                document.getElementById('removeItemFormHider').style.display = 'none'
             }
         };
 
@@ -462,7 +503,6 @@
             };
 
             if (item.provider && item.model && item.providerUrl && item.apiKey) {
-                // check if the item already exists in the table header before adding it again 
                 const headerCells = document.querySelectorAll('#promptTable thead th');
                 const itemExists = Array.from(headerCells).some(th => 
                     th.getAttribute('data-provider') === item.provider &&
