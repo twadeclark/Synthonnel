@@ -151,8 +151,27 @@
         .class1 {
             display: block;
         }
-        .class2, .class3, .class4 {
+        .class2 {
             display: none;
+        }
+        .class3 {
+            display: none;
+            font-weight: normal;
+            font-size: small;
+            font-family: 'Courier New', Courier, monospace;
+            line-height: 100%;
+            text-align: left;
+            white-space: pre-line;
+            margin-top: 6px;
+        }
+        .class4 {
+            display: none;
+            font-weight: normal;
+            font-size: small;
+            font-family: 'Courier New', Courier, monospace;
+            line-height: 100%;
+            text-align: left;
+            margin-top: 6px;
         }
         #promptTable {
             width: 100%;
@@ -195,6 +214,7 @@
         }
         #headerRow {
             text-align: center;
+            vertical-align: top;
         }
         .response-row {
             vertical-align: top;
@@ -253,6 +273,55 @@
             border-radius: 50%;
         }
 
+        .dropbtn {
+            color: var(--textColor);
+            background-color: var(--emphasisBackgroundColor);
+            border: none;
+            cursor: pointer;
+        }
+        .dropdown {
+            color: var(--textColor);
+            background-color: var(--emphasisBackgroundColor);
+            position: absolute;
+            display: inline-block;
+            top: 0px;
+            right: 0px;
+        }
+        .dropdown-content {
+            color: var(--textColor);
+            background-color: var(--emphasisBackgroundColor);
+            display: none;
+            position: absolute;
+            width: 160px;
+            box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+            z-index: 1;
+            right: 0px;
+            border: 1px solid var(--borderColor);
+        }
+        .dropdown-content a {
+            color: var(--textColor);
+            background-color: var(--emphasisBackgroundColor);
+            text-decoration: none;
+            font-weight: normal;
+            display: block;
+            border: 1px solid var(--borderColor);
+        }
+        .dropdown-content a:hover {
+            background-color: var(--backgroundColor);
+        }
+        .dropdown:hover .dropdown-content {
+            display: block;
+        }
+        .dropdown:hover .dropbtn {
+            background-color: var(--borderColor);
+        }
+        .dropdown-content a:nth-child(2), .dropdown-content a:nth-child(3) {
+            display: inline-block;
+            width: 40px;
+            text-align: center;
+            margin: 4px;
+        }
+
     </style>
 </head>
 <body>
@@ -277,10 +346,10 @@
     <button id="addItemBtn" class="button" title="Add New Model">+</button>
     <div id="addItemFormHider">
         <div id="addItemForm">
-            <input type="text" id="newItemProvider" placeholder="Provider">
             <input type="text" id="newItemModel" placeholder="Model">
-            <textarea id="newItemParameters" placeholder="Parameters" rows="4" style="resize: vertical;"></textarea>
+            <input type="text" id="newItemProvider" placeholder="Provider">
             <input type="text" id="newItemProviderUrl" placeholder="ProviderUrl">
+            <textarea id="newItemParameters" placeholder="Parameters" rows="4" style="resize: vertical;"></textarea>
             <input type="text" id="newItemApiKey" placeholder="ApiKey">
             <button id="confirmAddItem" class="button small-text-wide-button">Add Model</button>
         </div>
@@ -304,8 +373,8 @@
             <hr>
             <input type="checkbox" id="check1" checked> <label for="check1">Model</label> <br>
             <input type="checkbox" id="check2"> <label for="check2">Provider</label> <br>
-            <input type="checkbox" id="check3"> <label for="check3">Parameters</label> <br>
             <input type="checkbox" id="check4"> <label for="check4">Provider Url</label> <br>
+            <input type="checkbox" id="check3"> <label for="check3">Parameters</label> <br>
             <hr>
             <button id="startNewChat" class="button small-text-wide-button">New Chat</button>
         </div>
@@ -314,6 +383,44 @@
     <div id="message">Disappearing message</div>
 
     <script>
+
+        const menuContainers = document.querySelectorAll(".menu-container");
+
+        menuContainers.forEach(container => {
+            const menuIcon = container.querySelector(".menu-icon");
+            const menu = container.querySelector(".menu");
+
+            menuIcon.addEventListener("click", function() {
+                menu.classList.toggle("show");
+            });
+        });
+
+        function deleteColumn(indexToRemove) {
+            if (!confirm("Confirm remove model?")) {
+                return;
+            }
+
+            var row = document.getElementById("headerRow");
+            row.deleteCell(indexToRemove);
+            saveItems();
+
+            rowLen = document.getElementById("headerRow").cells.length;
+            for (let i = rowLen - 1; i >= 0; i--) {
+                row.deleteCell(i);
+            }
+
+            loadModels();
+        }
+
+        function function2() {
+            alert("Option 2 selected!");
+        }
+
+        function function3() {
+            alert("Option 3 selected!");
+        }
+
+
         function showMessage(message) {
             const messageElement = document.getElementById('message');
             messageElement.innerText = message;
@@ -400,17 +507,7 @@
         });
 
         document.addEventListener('DOMContentLoaded', function() {
-            fetch('http://localhost:8000/get-items')
-                .then(response => response.json())
-                .then(data => {
-                    const headerRow = document.getElementById('headerRow');
-
-                    data.forEach(item => {
-                        const th = addColumn(item);
-                        headerRow.appendChild(th);
-                    });
-                })
-                .catch(error => console.error('Error loading table header data:', error));
+            loadModels();
 
             function toggleVisibility(checkboxId, className) {
                 const checkbox = document.getElementById(checkboxId);
@@ -428,15 +525,41 @@
             toggleVisibility('check4', 'class4');
         });
 
-        function addColumn(item) {
+        function loadModels() {
+            fetch('http://localhost:8000/get-items')
+                .then(response => response.json())
+                .then(data => {
+                    const headerRow = document.getElementById('headerRow');
+
+                    data.forEach((item, index) => {
+                        const th = addColumn(item, index);
+                        headerRow.appendChild(th);
+                    });
+                })
+                .catch(error => console.error('Error loading table header data:', error));
+        }
+
+
+
+        function addColumn(item, index) {
             const th = document.createElement('th');
             th.className = 'headerElement';
             th.textContent = item.provider;
             th.innerHTML = `
-            <div class="class1">${item.model}</div>
-            <div class="class2">${item.provider}</div>
-            <div class="class3">${item.parameters}</div>
-            <div class="class4">${item.providerUrl}</div>
+                <div class="dropdown">
+                    <button class="dropbtn">☰</button>
+                    <div class="dropdown-content">
+                        <a href="#" onclick="deleteColumn(${index})">Delete</a>
+                        <a href="#">⇦</a>
+                        <a href="#">⇨</a>
+                    </div>
+                </div>
+
+
+                <div class="class1">${item.model}</div>
+                <div class="class2">${item.provider}</div>
+                <div class="class4">${item.providerUrl}</div>
+                <div class="class3">${item.parameters}</div>
             `;
 
             th.setAttribute('data-provider', item.provider);
@@ -518,7 +641,7 @@
                 }
 
                 const headerRow = document.getElementById('headerRow');
-                const th = addColumn(item);
+                const th = addColumn(item, headerRow.cells.length);
                 headerRow.appendChild(th);
 
                 saveItems();
@@ -528,7 +651,7 @@
             }
         };
 
-        async function saveItems() {
+        async function saveItems(deleteColumnIndex = null, moveColumnLeft = null, moveColumnRight = null) {
             const headerCells = document.querySelectorAll('#promptTable thead th');
 
             const items = Array.from(headerCells).map(th => ({
