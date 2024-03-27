@@ -255,59 +255,66 @@
             border-radius: 50%;
         }
 
-        .dropbtn {
-            color: var(--textColor);
-            background-color: var(--emphasisBackgroundColor);
-            border: none;
-            cursor: pointer;
-        }
-        .dropdown {
-            color: var(--textColor);
-            position: absolute;
-            display: inline-block;
-            top: -5px;
-            left: -2px;
-            padding: 2px;
-        }
         .dropdown-content {
             color: var(--textColor);
             background-color: var(--emphasisBackgroundColor);
-            display: none;
+            display: block;
             position: absolute;
             width: 160px;
             box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
             z-index: 1;
-            border: 1px solid var(--borderColor);
             padding: 10px;
+            border: 1px solid var(--borderColor);
+            border-radius: 8px;
+            top: 40px;
         }
         .dropdown-content a {
             color: var(--textColor);
             background-color: var(--emphasisBackgroundColor);
             text-decoration: none;
             font-weight: normal;
-            display: block;
+            padding-left: 6px;
+            padding-right: 6px;
+            display: inline-block;
             border: 1px solid var(--borderColor);
         }
         .dropdown-content a:hover {
             background-color: var(--backgroundColor);
         }
-        .dropdown:hover .dropdown-content {
-            display: block;
-        }
-        .dropdown:hover .dropbtn {
-            background-color: var(--borderColor);
-        }
-        .dropdown-content a:nth-child(1), .dropdown-content a:nth-child(2) {
+        .dropdown-content-narrow {
             display: inline-block;
             width: 40px;
             text-align: center;
-            margin: 4px;
+            margin-bottom: 10px;
         }
         .dropdown-content-delete {
             display: initial;
         }
         .dropdown-content-pause {
             display: none;
+        }
+
+        details {
+            padding: 0;
+        }
+        summary {
+            font-weight: bold;
+            margin: 0;
+            padding: 0;
+            height: 24px;
+            width: 24px;
+            position: absolute;
+        }
+        details[open] {
+            padding: 0;
+        }
+        details[open] summary {
+            padding: 0;
+        }
+
+        a {
+            border: 1px solid var(--borderColor);
+            border-radius: 8px;
         }
 
     </style>
@@ -394,11 +401,9 @@
 
             if (cellIndex === 0) {
                 targetRow.appendChild(cellToMove);
-            } else if (cellIndex < lastCellIndex) {
+            } else {
                 const previousCell = cells[cellIndex - 1];
                 targetRow.insertBefore(cellToMove, previousCell);
-            } else {
-                console.log("Invalid cell index or cell already at the last position.");
             }
 
             saveAndRefresh();
@@ -411,19 +416,10 @@
             const lastCellIndex = cells.length - 1;
 
             if (cellIndex === lastCellIndex) {
-                // Cell is already last, move to the front
                 targetRow.insertBefore(cellToMove, targetRow.firstChild);
-            } else if (cellIndex < lastCellIndex) {
-                // Handle cases where cell is not the last one
-                const nextCell = cells[cellIndex + 1];
-                if (nextCell) {
-                targetRow.insertBefore(nextCell, cellToMove);
-                } else {
-                // Cell is already the last one after moving others (edge case)
-                targetRow.appendChild(cellToMove);
-                }
             } else {
-                console.log("Invalid cell index or cell already at the last position.");
+                const nextCell = cells[cellIndex + 1];
+                    targetRow.insertBefore(nextCell, cellToMove);
             }
 
             saveAndRefresh();
@@ -435,11 +431,9 @@
             var row = document.getElementById("headerRow");
             rowLen = row.cells.length;
 
-            for (let i = rowLen - 1; i >= 0; i--) {
-                row.deleteCell(i);
-            }
+            while (row.cells.length) row.deleteCell(row.cells.length - 1);
 
-            loadModels();
+            setTimeout(() => { loadModels(); }, 1);
         }
 
         function showMessage(message) {
@@ -569,29 +563,26 @@
                 .catch(error => console.error('Error loading table header data:', error));
         }
 
-
-
         function addColumn(item, index) {
             const th = document.createElement('th');
             th.className = 'headerElement';
             th.textContent = item.provider;
             th.innerHTML = `
-                <div class="dropdown">
-                    <button class="dropbtn">☰</button>
+                <details name="menu">
+                    <summary></summary>
                     <div class="dropdown-content-delete">
                         <div class="dropdown-content">
-                            <a href="#" onclick="moveColumnLeft(${index})">⇦</a>
-                            <a href="#" onclick="moveColumnRight(${index})">⇨</a>
+                            <a href="#" class="dropdown-content-narrow" onclick="moveColumnLeft(${index})">⇦</a>
+                            <a href="#" class="dropdown-content-narrow" onclick="moveColumnRight(${index})">⇨</a>
                             <a href="#" onclick="deleteColumn(${index})">Remove</a>
                         </div>
                     </div>
                     <div class="dropdown-content-pause">
                         <div class="dropdown-content">
-                            <a href="#">Pause</a>
+                            <a onclick="" href="#">Pause</a>
                         </div>
                     </div>
-                </div>
-
+                </details>
 
                 <div class="class1">${item.model}</div>
                 <div class="class2">${item.provider}</div>

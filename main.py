@@ -61,10 +61,7 @@ def save_items(items: List[Item]):
 
 @app.get("/get-items")
 def get_items():
-    if os.path.exists(json_file_path) and os.path.getsize(json_file_path) > 0:
-        with open(json_file_path, 'r', encoding='utf-8') as file:
-            return json.load(file)
-    else:
-        return []
+    with open(json_file_path, 'r', encoding='utf-8') as file:
+        return json.load(file)
 
 app.mount("/frontend", StaticFiles(directory="frontend"), name="frontend")
