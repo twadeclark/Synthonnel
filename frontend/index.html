@@ -34,6 +34,17 @@
             color: var(--textColor);
         }
 
+        .button-wide {
+            cursor: pointer;
+            font-size: 24px;
+            border: 1px solid var(--borderColor);
+            border-radius: 8px;
+            height: 44px;
+            width: 100%;
+            background-color: var(--backgroundColor);
+            color: var(--textColor);
+        }
+
         .small-text-wide-button {
             cursor: pointer;
             font-size: 80%;
@@ -260,23 +271,30 @@
             background-color: var(--emphasisBackgroundColor);
             display: block;
             position: absolute;
-            width: 160px;
             box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
-            z-index: 1;
             padding: 10px;
             border: 1px solid var(--borderColor);
             border-radius: 8px;
             top: 40px;
+        }
+        .dropdown-content button {
+            margin-top: 4px;
+            margin-bottom: 4px;
         }
         .dropdown-content a {
             color: var(--textColor);
             background-color: var(--emphasisBackgroundColor);
             text-decoration: none;
             font-weight: normal;
-            padding-left: 6px;
-            padding-right: 6px;
             display: inline-block;
             border: 1px solid var(--borderColor);
+
+            cursor: pointer;
+            font-size: 24px;
+            border-radius: 8px;
+            height: 44px;
+            width: 44px;
+            padding-top: 10px;
         }
         .dropdown-content a:hover {
             background-color: var(--backgroundColor);
@@ -327,7 +345,6 @@
 
         .red-shadow {
             text-shadow: 0 0 1px #FF0000;
-            font-size: 80%;
         }
 
         .center {
@@ -405,31 +422,33 @@
                 return;
             }
 
-            var row = document.getElementById("headerRow");
-            row.deleteCell(indexToRemove);
+            const table = document.querySelector('#promptTable');
+            const rows = table.rows;
+            for (let i = 0; i < rows.length; i++) {
+                if (rows[i].cells[0].className === 'prompt-row') {
+                    continue
+                }
+
+                rows[i].deleteCell(indexToRemove);
+            }
 
             saveAndRefresh();
         }
 
         function pauseColumn(columnIndex) {
             var row = document.getElementById("headerRow");
-            var pausedVal = row.cells[columnIndex].getAttribute('data-paused');
-            var scale = pausedVal ? 1 : 0.75;
-            row.cells[columnIndex].setAttribute('data-paused', pausedVal ? '' : 'true');
-
-            const table = document.querySelector('table');
-            let rows = table.rows;
-
-            for (let i = 0; i < rows.length; i++) {
-                let cells = rows[i].cells;
-                if (cells.length > columnIndex) {
-                    cells[columnIndex].style.transform = `scale(${scale})`;
-                }
-            }
+            var cell = row.cells[columnIndex];
+            var pausedVal = cell.getAttribute('data-paused');
+            cell.style.transform = `scale(${pausedVal ? 1 : 0.75})`;
+            cell.setAttribute('data-paused', pausedVal ? '' : 'true');
+            cell.setAttribute('title', pausedVal ? '' : 'This model is paused.');
+            cell.style.setProperty('font-style', pausedVal ? '' : 'italic');
+            cell.style.setProperty('font-weight', pausedVal ? '' : 'lighter');
+            cell.style.setProperty('text-decoration-line', pausedVal ? '' : 'line-through');
 
             const detailsElements = document.querySelectorAll('details[open]');
-                detailsElements.forEach(function(detailsElement) {
-                detailsElement.removeAttribute('open');
+                    detailsElements.forEach(function(detailsElement) {
+                    detailsElement.removeAttribute('open');
                 });
         }
         
@@ -546,6 +565,7 @@
                     newCell.innerHTML = '~ paused ~';
                     newCell.style.transform = "scale(0.75)";
                     newCell.className = "center";
+                    newCell.title = "This model was paused for this prompt.";
                 } else {
                     const ws = new WebSocket(`ws://localhost:8000/ws/stream-llm-response`);
 
@@ -623,17 +643,11 @@
             th.innerHTML = `
                 <details name="menu">
                     <summary></summary>
-                    <div class="dropdown-content-delete">
-                        <div class="dropdown-content">
-                            <a href="#" class="dropdown-content-narrow" onclick="moveColumnLeft(${index})">⇦</a>
-                            <a href="#" class="dropdown-content-narrow" onclick="moveColumnRight(${index})">⇨</a>
-                            <a href="#" class="red-shadow" onclick="deleteColumn(${index})">Remove</a>
-                        </div>
-                    </div>
-                    <div class="dropdown-content-pause">
-                        <div class="dropdown-content">
-                            <a class="dropdown-content-plusminus" onclick="pauseColumn(${index})" href="#">⏯️</a>
-                        </div>
+                    <div class="dropdown-content">
+                        <button class="button" onclick="moveColumnLeft(${index})" title="Move Left">⇦</button>
+                        <button class="button" onclick="moveColumnRight(${index})" title="Move Right">⇨</button>
+                        <button class="button-wide" onclick="pauseColumn(${index})" title="Pause / Active">⏯️</button> <br>
+                        <button class="button-wide" onclick="deleteColumn(${index})" title="Delete Model">❌</button>
                     </div>
                 </details>
 
@@ -712,6 +726,21 @@
                 const headerRow = document.getElementById('headerRow');
                 const th = addColumn(item, headerRow.cells.length);
                 headerRow.appendChild(th);
+
+                const table = document.querySelector('#promptTable');
+                const rows = table.rows;
+                for (let i = 1; i < rows.length; i++) {
+                    if (rows[i].cells[0].className === 'prompt-row') {
+                        continue
+                    }
+
+                    const newRow = rows[i];
+                    const newCell = newRow.insertCell(-1);
+                    newCell.innerHTML = '~ null ~';
+                    newCell.style.transform = "scale(0.75)";
+                    newCell.className = "center";
+                    newCell.title = "This model was not yet added for this prompt.";
+                }
 
                 saveItems();
                 document.getElementById('addItemFormHider').style.display = 'none'
