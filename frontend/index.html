@@ -45,31 +45,11 @@
             color: var(--textColor);
         }
 
-        /* #removeItemBtn {
-            position: fixed; 
-            left: 30px; 
-            bottom: 10px; 
-        }
-        #removeItemFormHider {
-            display:none
-        }
-        #removeItemForm {
-            left: 20px;
-            bottom: 80px; 
-            border-radius: 8px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-            position: fixed; 
-            background: var(--emphasisBackgroundColor); 
-            padding: 20px; 
-            border: 1px solid var(--borderColor); 
-            display: grid; 
-            gap: 20px;
-        } */
-
         #addItemBtn {
             position: fixed; 
             left: 104px; 
             bottom: 10px; 
+            background-color: var(--emphasisBackgroundColor);
         }
         #addItemFormHider {
             display:none
@@ -104,7 +84,7 @@
             padding-bottom: 0px;
             padding-right: 18px;
             padding-left: 18px;
-            background-color: var(--backgroundColor);
+            background-color: var(--emphasisBackgroundColor);
             color: var(--textColor);
         }
 
@@ -113,12 +93,14 @@
             right: 104px; 
             bottom: 10px; 
             opacity: 0.3;
+            background-color: var(--emphasisBackgroundColor);
         }
 
         #settingsBtn {
             position: fixed; 
             right: 30px; 
             bottom: 10px; 
+            background-color: var(--emphasisBackgroundColor);
         }
         #settingsFormHider {
             display:none
@@ -281,11 +263,11 @@
         }
         .dropdown {
             color: var(--textColor);
-            background-color: var(--emphasisBackgroundColor);
             position: absolute;
             display: inline-block;
-            top: 0px;
-            right: 0px;
+            top: -5px;
+            left: -2px;
+            padding: 2px;
         }
         .dropdown-content {
             color: var(--textColor);
@@ -295,8 +277,8 @@
             width: 160px;
             box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
             z-index: 1;
-            right: 0px;
             border: 1px solid var(--borderColor);
+            padding: 10px;
         }
         .dropdown-content a {
             color: var(--textColor);
@@ -315,11 +297,17 @@
         .dropdown:hover .dropbtn {
             background-color: var(--borderColor);
         }
-        .dropdown-content a:nth-child(2), .dropdown-content a:nth-child(3) {
+        .dropdown-content a:nth-child(1), .dropdown-content a:nth-child(2) {
             display: inline-block;
             width: 40px;
             text-align: center;
             margin: 4px;
+        }
+        .dropdown-content-delete {
+            display: initial;
+        }
+        .dropdown-content-pause {
+            display: none;
         }
 
     </style>
@@ -335,13 +323,6 @@
             </tbody>
         </table>
     </div>
-
-    <!-- <button id="removeItemBtn" class="button" title="Remove Model">x</button>
-    <div id="removeItemFormHider">
-        <div id="removeItemForm">
-            <button id="removeItem" class="button small-text-wide-button">Remove</button>
-        </div>
-    </div> -->
 
     <button id="addItemBtn" class="button" title="Add New Model">+</button>
     <div id="addItemFormHider">
@@ -383,7 +364,6 @@
     <div id="message">Disappearing message</div>
 
     <script>
-
         const menuContainers = document.querySelectorAll(".menu-container");
 
         menuContainers.forEach(container => {
@@ -402,24 +382,65 @@
 
             var row = document.getElementById("headerRow");
             row.deleteCell(indexToRemove);
+
+            saveAndRefresh();
+        }
+
+        function moveColumnLeft(cellIndex) {
+            var targetRow = document.getElementById("headerRow");
+            const cells = targetRow.cells;
+            const cellToMove = cells[cellIndex];
+            const lastCellIndex = cells.length - 1;
+
+            if (cellIndex === 0) {
+                targetRow.appendChild(cellToMove);
+            } else if (cellIndex < lastCellIndex) {
+                const previousCell = cells[cellIndex - 1];
+                targetRow.insertBefore(cellToMove, previousCell);
+            } else {
+                console.log("Invalid cell index or cell already at the last position.");
+            }
+
+            saveAndRefresh();
+        }
+
+        function moveColumnRight(cellIndex) {
+            var targetRow = document.getElementById("headerRow");
+            const cells = targetRow.cells;
+            const cellToMove = cells[cellIndex];
+            const lastCellIndex = cells.length - 1;
+
+            if (cellIndex === lastCellIndex) {
+                // Cell is already last, move to the front
+                targetRow.insertBefore(cellToMove, targetRow.firstChild);
+            } else if (cellIndex < lastCellIndex) {
+                // Handle cases where cell is not the last one
+                const nextCell = cells[cellIndex + 1];
+                if (nextCell) {
+                targetRow.insertBefore(nextCell, cellToMove);
+                } else {
+                // Cell is already the last one after moving others (edge case)
+                targetRow.appendChild(cellToMove);
+                }
+            } else {
+                console.log("Invalid cell index or cell already at the last position.");
+            }
+
+            saveAndRefresh();
+        }
+
+        function saveAndRefresh() {
             saveItems();
 
-            rowLen = document.getElementById("headerRow").cells.length;
+            var row = document.getElementById("headerRow");
+            rowLen = row.cells.length;
+
             for (let i = rowLen - 1; i >= 0; i--) {
                 row.deleteCell(i);
             }
 
             loadModels();
         }
-
-        function function2() {
-            alert("Option 2 selected!");
-        }
-
-        function function3() {
-            alert("Option 3 selected!");
-        }
-
 
         function showMessage(message) {
             const messageElement = document.getElementById('message');
@@ -449,6 +470,16 @@
                 return;
             }
 
+            const elementsPause = document.querySelectorAll(`.dropdown-content-pause`);
+            elementsPause.forEach(element => {
+                element.style.display = "block";
+            });
+
+            const elementsDelete = document.querySelectorAll(`.dropdown-content-delete`);
+            elementsDelete.forEach(element => {
+                element.style.display = "none";
+            });
+
             const table = document.querySelector('#promptTable');
             const headerRow = table.rows[0];
             const headerCells = headerRow.cells;
@@ -458,7 +489,6 @@
             const promptRow = table.insertRow(-1);
             const promptCell = promptRow.insertCell(0);
             promptCell.className = 'prompt-row';
-            // promptCell.colSpan = headerCells.length;
             promptCell.colSpan = '100';
             promptCell.innerHTML = "PROMPT: " + prompt;
 
@@ -548,10 +578,17 @@
             th.innerHTML = `
                 <div class="dropdown">
                     <button class="dropbtn">☰</button>
-                    <div class="dropdown-content">
-                        <a href="#" onclick="deleteColumn(${index})">Delete</a>
-                        <a href="#">⇦</a>
-                        <a href="#">⇨</a>
+                    <div class="dropdown-content-delete">
+                        <div class="dropdown-content">
+                            <a href="#" onclick="moveColumnLeft(${index})">⇦</a>
+                            <a href="#" onclick="moveColumnRight(${index})">⇨</a>
+                            <a href="#" onclick="deleteColumn(${index})">Remove</a>
+                        </div>
+                    </div>
+                    <div class="dropdown-content-pause">
+                        <div class="dropdown-content">
+                            <a href="#">Pause</a>
+                        </div>
                     </div>
                 </div>
 
@@ -577,19 +614,8 @@
             } else {
                 document.getElementById('addItemFormHider').style.display = 'block';
                 document.getElementById('settingsFormHider').style.display = 'none'
-                document.getElementById('removeItemFormHider').style.display = 'none'
             }
         };
-
-        // document.getElementById('removeItemBtn').onclick = function() {
-        //     if (document.getElementById('removeItemFormHider').style.display == 'block') {
-        //         document.getElementById('removeItemFormHider').style.display = 'none'
-        //     } else {
-        //         document.getElementById('removeItemFormHider').style.display = 'block';
-        //         document.getElementById('settingsFormHider').style.display = 'none'
-        //         document.getElementById('addItemFormHider').style.display = 'none'
-        //     }
-        // };
 
         document.getElementById('settingsBtn').onclick = function() {
             if (document.getElementById('settingsFormHider').style.display == 'block') {
@@ -597,7 +623,6 @@
             } else {
                 document.getElementById('settingsFormHider').style.display = 'block';
                 document.getElementById('addItemFormHider').style.display = 'none'
-                document.getElementById('removeItemFormHider').style.display = 'none'
             }
         };
 
@@ -651,7 +676,7 @@
             }
         };
 
-        async function saveItems(deleteColumnIndex = null, moveColumnLeft = null, moveColumnRight = null) {
+        async function saveItems() {
             const headerCells = document.querySelectorAll('#promptTable thead th');
 
             const items = Array.from(headerCells).map(th => ({
