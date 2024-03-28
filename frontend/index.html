@@ -453,32 +453,48 @@
         }
         
         function moveColumnLeft(cellIndex) {
-            var targetRow = document.getElementById("headerRow");
-            const cells = targetRow.cells;
-            const cellToMove = cells[cellIndex];
-            const lastCellIndex = cells.length - 1;
+            const table = document.querySelector('#promptTable');
+            const rows = table.rows;
 
-            if (cellIndex === 0) {
-                targetRow.appendChild(cellToMove);
-            } else {
-                const previousCell = cells[cellIndex - 1];
-                targetRow.insertBefore(cellToMove, previousCell);
+            for (let i = 0; i < rows.length; i++) {
+                if (rows[i].cells[0].className === 'prompt-row') {
+                    continue
+                }
+
+                var targetRow = table.rows[i];
+                const cells = targetRow.cells;
+                const cellToMove = cells[cellIndex];
+
+                if (cellIndex === 0) {
+                    targetRow.appendChild(cellToMove);
+                } else {
+                    const previousCell = cells[cellIndex - 1];
+                    targetRow.insertBefore(cellToMove, previousCell);
+                }
             }
 
             saveAndRefresh();
         }
 
         function moveColumnRight(cellIndex) {
-            var targetRow = document.getElementById("headerRow");
-            const cells = targetRow.cells;
-            const cellToMove = cells[cellIndex];
-            const lastCellIndex = cells.length - 1;
+            const table = document.querySelector('#promptTable');
+            const rows = table.rows;
 
-            if (cellIndex === lastCellIndex) {
-                targetRow.insertBefore(cellToMove, targetRow.firstChild);
-            } else {
-                const nextCell = cells[cellIndex + 1];
+            for (let i = 0; i < rows.length; i++) {
+                if (rows[i].cells[0].className === 'prompt-row') {
+                    continue
+                }
+
+                var targetRow = table.rows[i];
+                const cells = targetRow.cells;
+                const cellToMove = cells[cellIndex];
+
+                if (cellIndex === cells.length - 1) {
+                    targetRow.insertBefore(cellToMove, targetRow.firstChild);
+                } else {
+                    const nextCell = cells[cellIndex + 1];
                     targetRow.insertBefore(nextCell, cellToMove);
+                }
             }
 
             saveAndRefresh();
@@ -490,9 +506,18 @@
             var row = document.getElementById("headerRow");
             rowLen = row.cells.length;
 
-            while (row.cells.length) row.deleteCell(row.cells.length - 1);
-
-            setTimeout(() => { loadModels(); }, 1);
+            for(index=0; index<rowLen; index++) {
+                var item = row.cells[index];
+                const itemData = {
+                            provider: item.getAttribute('data-provider'),
+                            model: item.getAttribute('data-model'),
+                            parameters: item.getAttribute('data-parameters'),
+                            providerUrl: item.getAttribute('data-providerUrl'),
+                            apiKey: item.getAttribute('data-apiKey')
+                        };
+                item = addColumn(itemData, index);
+                row.cells[index].replaceWith(item);
+            }
         }
 
         function showMessage(message) {
@@ -644,8 +669,8 @@
                 <details name="menu">
                     <summary></summary>
                     <div class="dropdown-content">
-                        <button class="button" onclick="moveColumnLeft(${index})" title="Move Left">⇦</button>
-                        <button class="button" onclick="moveColumnRight(${index})" title="Move Right">⇨</button>
+                        <button class="button" onclick="moveColumnLeft(${index})" title="Move Left">🢀</button>
+                        <button class="button" onclick="moveColumnRight(${index})" title="Move Right">🢂</button>
                         <button class="button-wide" onclick="pauseColumn(${index})" title="Pause / Active">⏯️</button> <br>
                         <button class="button-wide" onclick="deleteColumn(${index})" title="Delete Model">❌</button>
                     </div>
