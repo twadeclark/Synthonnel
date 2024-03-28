@@ -17,7 +17,8 @@
             padding: 0;
             background-color: var(--backgroundColor);
             color: var(--textColor);
-            line-height: 160%;
+            line-height: 28px;
+            font-size: 16px;
         }
         *{
             transition: background-color 0.5s ease-in-out;
@@ -40,7 +41,7 @@
             border: 1px solid var(--borderColor);
             border-radius: 8px;
             height: 44px;
-            width: 100%;
+            width: 104px;
             background-color: var(--backgroundColor);
             color: var(--textColor);
         }
@@ -150,8 +151,8 @@
         .class3 {
             display: none;
             font-weight: normal;
-            font-size: small;
-            font-family: 'Courier New', Courier, monospace;
+            font-size: x-small;
+            font-family: 'Lucida Console', Courier, monospace;
             line-height: 100%;
             text-align: left;
             white-space: pre-line;
@@ -160,8 +161,8 @@
         .class4 {
             display: none;
             font-weight: normal;
-            font-size: small;
-            font-family: 'Courier New', Courier, monospace;
+            font-size: x-small;
+            font-family: 'Lucida Console', Courier, monospace;
             line-height: 100%;
             text-align: left;
             margin-top: 6px;
@@ -204,6 +205,11 @@
             padding: 8px;
             width: 2%;
             border-bottom: 1px solid var(--borderColor);
+            border-bottom-left-radius: 8px;
+            border-bottom-right-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            font-weight:normal;
+            font-size: 18px;
         }
         #headerRow {
             text-align: center;
@@ -276,10 +282,10 @@
             border: 1px solid var(--borderColor);
             border-radius: 8px;
             top: 40px;
+            width: 120px;
         }
         .dropdown-content button {
-            margin-top: 4px;
-            margin-bottom: 4px;
+            margin: 6px;
         }
         .dropdown-content a {
             color: var(--textColor);
