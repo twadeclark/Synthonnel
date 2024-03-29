@@ -397,10 +397,11 @@
 .mask {
     position: relative;
     overflow: hidden;
-    display: block;
+    display: flex;
     width: 60px;
     height: 30px;
     margin: 2px;
+    justify-content: center;
 }
 .semi-circle {
     position: relative;
@@ -409,21 +410,20 @@
     height: 30px;
     background: linear-gradient(to right, green 0%, gray 50%, red 100%);
     border-radius: 50% 50% 50% 50% / 100% 100% 0% 0% ;
-    &::before {
-        content: "";
-        position: absolute;
-        bottom: 0;
-        left: 50%;
-        z-index: 2;
-        display: block;
-        width: 40px;
-        height: 20px;
-        margin-left: -20px;
-        background: var(--emphasisBackgroundColor);
-        border-radius: 50% 50% 50% 50% / 100% 100% 0% 0% ;
-    }      
 }
-.semi-circle--mask {
+.semi-circle-after {
+    content: "";
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    display: block;
+    width: 56px;
+    height: 28px;
+    margin-left: -28px;
+    background: var(--emphasisBackgroundColor);
+    border-radius: 50% 50% 50% 50% / 100% 100% 0% 0% ;
+}
+.semi-circle--mask-BACKUP {
     position: absolute;
     top: 0;
     left: 0;
@@ -431,22 +431,36 @@
     height: 60px;
     background: transparent;
     transform: rotate(90deg) translate3d(0,0,0);
+    transform-origin: center bottom;
+    backface-visibility: hidden;
+    transition: all .3s ease-in-out;
+}
+.semi-circle--mask {
+    position: absolute;
+    top: 18px;
+    left: 2px;
+    width: 60px;
+    height: 28px;
+    background: transparent;
+    transform: rotate(90deg) translate3d(0,0,0);
     transform-origin: center center;
     backface-visibility: hidden;
     transition: all .3s ease-in-out;
-    &::before {
-        content: "";
-        position: absolute;
-        top: 0;
-        left: 0%;
-        z-index: 2;
-        display: block;
-        width: 62px;
-        height: 32px;
-        margin: -1px 0 0 -1px;
-        background: #f2f2f2;
-        border-radius: 50% 50% 50% 50% / 100% 100% 0% 0% ;
-    }      
+    text-align: left;
+    vertical-align: middle;
+}
+.semi-circle--mask-after {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    display: block;
+    width: 64px;
+    height: 34px;
+    transform-origin: center bottom;
+    margin: -2px 0 0 -2px;
+    background: var(--emphasisBackgroundColor);
+    border-radius: 50% 50% 50% 50% / 100% 100% 0% 0% ;
 }
 
 
@@ -456,10 +470,8 @@
     position: absolute;
     display: block;
     width: 64px;
-    left: -1px;
-    top: 10px;
+    top: 14px;
     text-align: center;
-    z-index: 3;
 }
 
 
@@ -705,13 +717,20 @@
                 //     </div>
                 //     `;
 
+
+// <div class="semi-circle"></div>
+// <div class="semi-circle--mask">X</div>
+// <div class="semi-circle--mask-after">O</div>
+// <div class="semi-circle-after"></div>
+
                 newCell.innerHTML = `
                     <div class="speedometer">
-                        <div class="box gauge--3" title="Time to First Token">
+                        <div class="box gauge--3" title="Time to First Token in Seconds">
                             <div class="mask">
                                 <div class="semi-circle"></div>
-                                <div class="semi-circle--mask"></div>
+                                <div class="semi-circle-after"></div>
                             </div>
+                            <div class="semi-circle--mask">🠴</div>
                             <div class="firsttokenValue-adjustment"><span id="firsttokenValue"></span></div>
                         </div>
                         <div class="speedometer-tokspersec" title="Tokens per Second"> <span id="tokspersecValue"></span> <div class="speedometer-tokspersec-needle">↙</div></div>
@@ -767,9 +786,8 @@
                         // var newVal = 20 + Math.floor(pctTime * 150);
                         var newVal = Math.floor(pctTime * 180);
 
-                        newCell.querySelector('.gauge--3 .semi-circle--mask').setAttribute('style', '-webkit-transform: rotate(' + newVal + 'deg);' +
-                                                                                                    '-moz-transform: rotate(' + newVal + 'deg);' +
-                                                                                                    'transform: rotate(' + newVal + 'deg);');
+                        newCell.querySelector('.gauge--3 .semi-circle--mask').setAttribute('style', '-webkit-transform: rotate(' + newVal + 'deg);' + '-moz-transform: rotate(' + newVal + 'deg);' + 'transform: rotate(' + newVal + 'deg);');
+                        // newCell.querySelector('.gauge--3 .semi-circle--mask-after').setAttribute('style', '-webkit-transform: rotate(' + newVal + 'deg);' + '-moz-transform: rotate(' + newVal + 'deg);' + 'transform: rotate(' + newVal + 'deg);');
 
 
 
