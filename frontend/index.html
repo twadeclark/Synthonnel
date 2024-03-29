@@ -457,6 +457,11 @@
             background-size: cover;
 }
 
+.position-switch-lower {
+    margin-top: 5px;
+    top: -3px;
+}
+
     </style>
 </head>
 <body>
@@ -505,6 +510,15 @@
             <input type="checkbox" id="check2"> <label for="check2">Provider</label> <br>
             <input type="checkbox" id="check4"> <label for="check4">Provider Url</label> <br>
             <input type="checkbox" id="check3"> <label for="check3">Parameters</label> <br>
+            <hr>
+            <div style="text-align: center;">
+                <label> Regular </label>
+                <label class="switch position-switch-lower">
+                    <input type="checkbox" id="monospace-responses">
+                    <span class="slider round"></span>
+                </label>
+                <label style="font-family: 'Lucida Console', Courier, monospace;" for="monospace-responses"> Preformatted </label>
+            </div>
             <hr>
             <button id="startNewChat" class="button small-text-wide-button">New Chat</button>
         </div>
@@ -918,6 +932,32 @@
                 document.documentElement.style.setProperty('--borderColor', '#C0C0C0');
             }
         };
+
+        document.getElementById('monospace-responses').onchange = function() {
+            const body = document.body;
+            var elements = document.getElementsByClassName('response-row');
+            if (document.getElementById('monospace-responses').checked) {
+                setClassFont('response-row', 'monospace');
+            } else {
+                setClassFont('response-row', '');
+            }
+        };
+
+        function setClassFont(className, fontFamily) {
+            const stylesheets = document.styleSheets;
+
+            for (let loop = 0; loop < stylesheets.length; loop++) {
+                const sheet = stylesheets[loop].cssRules;
+
+                for (let temp = 0; temp < sheet.length; temp++) {
+                    const rule = sheet[temp];
+                    if (rule.selectorText === `.${className}`) {
+                        rule.style.fontFamily = fontFamily;
+                        return;
+                    }
+                }
+            }
+        }
 
         document.getElementById('confirmAddItem').onclick = async function() {
             const item = {
