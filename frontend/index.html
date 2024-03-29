@@ -364,35 +364,27 @@
             font-size: x-small;
             width: 100%;
             border-bottom: 1px solid var(--borderColor);
-            display: flex; /* Set the container to use flexbox */
+            display: flex;
             position: relative;
         }
-
         .speedometer-firsttoken,
         .speedometer-tokspersec {
-            float: left; /* Make both divs float */
-            width: 50%; /* Set width to 50% for each div */
-            box-sizing: border-box; /* Include padding/border in width */
-            /* Add styling for content and margins as needed */
-            display: inline-block; /* Changed from inline */
+            float: left;
+            width: 50%;
+            box-sizing: border-box;
+            display: inline-block;
         }
-
         .speedometer-firsttoken {
             padding: 0;
         }
-
         .speedometer-tokspersec {
-            text-align: right; /* Align right content to the right */
+            text-align: right;
         }
-
         .speedometer-firsttoken-needle,
         .speedometer-tokspersec-needle {
             font-size: medium;
-            display: inline-block; /* Changed from inline */
+            display: inline-block;
         }
-        
-
-
 
 .mask {
     position: relative;
@@ -423,18 +415,6 @@
     background: var(--emphasisBackgroundColor);
     border-radius: 50% 50% 50% 50% / 100% 100% 0% 0% ;
 }
-.semi-circle--mask-BACKUP {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 60px;
-    height: 60px;
-    background: transparent;
-    transform: rotate(90deg) translate3d(0,0,0);
-    transform-origin: center bottom;
-    backface-visibility: hidden;
-    transition: all .3s ease-in-out;
-}
 .semi-circle--mask {
     position: absolute;
     top: 18px;
@@ -449,22 +429,6 @@
     text-align: left;
     vertical-align: middle;
 }
-.semi-circle--mask-after {
-    content: "";
-    position: absolute;
-    top: 0;
-    left: 0;
-    display: block;
-    width: 64px;
-    height: 34px;
-    transform-origin: center bottom;
-    margin: -2px 0 0 -2px;
-    background: var(--emphasisBackgroundColor);
-    border-radius: 50% 50% 50% 50% / 100% 100% 0% 0% ;
-}
-
-
-
 
 .firsttokenValue-adjustment {
     position: absolute;
@@ -710,18 +674,6 @@
 
             Array.from(headerCells).forEach((item, index) => {
                 const newCell = newRow.insertCell(index);
-                // newCell.innerHTML = `
-                //     <div class="speedometer">
-                //         <div class="speedometer-firsttoken" title="Time to First Token"><div class="speedometer-firsttoken-needle">↑</div> <span id="firsttokenValue"></span> </div>
-                //         <div class="speedometer-tokspersec" title="Tokens per Second"> <span id="tokspersecValue"></span> <div class="speedometer-tokspersec-needle">↙</div></div>
-                //     </div>
-                //     `;
-
-
-// <div class="semi-circle"></div>
-// <div class="semi-circle--mask">X</div>
-// <div class="semi-circle--mask-after">O</div>
-// <div class="semi-circle-after"></div>
 
                 newCell.innerHTML = `
                     <div class="speedometer">
@@ -778,18 +730,11 @@
 
                         tokenCount++;
 
-                        // var newVal = Math.floor((Math.random() * 179) + 1);
-
-
                         var divisor = (maxFirstTokenDuration - minFirstTokenDuration) == 0 ? (1 + maxFirstTokenDuration + minFirstTokenDuration) : (maxFirstTokenDuration - minFirstTokenDuration);
                         var pctTime = (firstTokenDurationMilliseconds - minFirstTokenDuration) / divisor;
-                        // var newVal = 20 + Math.floor(pctTime * 150);
                         var newVal = Math.floor(pctTime * 180);
 
                         newCell.querySelector('.gauge--3 .semi-circle--mask').setAttribute('style', '-webkit-transform: rotate(' + newVal + 'deg);' + '-moz-transform: rotate(' + newVal + 'deg);' + 'transform: rotate(' + newVal + 'deg);');
-                        // newCell.querySelector('.gauge--3 .semi-circle--mask-after').setAttribute('style', '-webkit-transform: rotate(' + newVal + 'deg);' + '-moz-transform: rotate(' + newVal + 'deg);' + 'transform: rotate(' + newVal + 'deg);');
-
-
 
                         if (tokenCount == 1) {
                             firstTokenTime = new Date();
@@ -803,45 +748,6 @@
                             minFirstTokenDuration = Math.min(minFirstTokenDuration, firstTokenDurationMilliseconds);
 
                             firsttokenValue.textContent = `${(firstTokenDurationMilliseconds / 1000).toFixed(2)}`;
-
-
-
-                            // var newVal = Math.floor((Math.random() * 179) + 1);
-                            // newCell.querySelector('.gauge--3 .semi-circle--mask').setAttribute('style', '-webkit-transform: rotate(' + newVal + 'deg);' +
-                            //                                                                             '-moz-transform: rotate(' + newVal + 'deg);' +
-                            //                                                                             'transform: rotate(' + newVal + 'deg);');
-
-                            
-                            // // default values for 270 deg swing
-                            // var firstTokenDurationDegrees = 0
-                            // var arrowColor = "#888888";
-
-                            // const numBefore = finishCount - 1;
-                            // const numAfter = totalModels - finishCount;
-
-                            // if (numBefore == numAfter) { // middle is always gray
-                            //     firstTokenDurationDegrees = 0
-                            //     arrowColor = "#888888";
-                            // } else if (numBefore == 0) { // first place is green
-                            //     firstTokenDurationDegrees = -135
-                            //     arrowColor = "#00FF00";
-                            // } else if (numAfter == 0) { // last place is red
-                            //     firstTokenDurationDegrees = 135
-                            //     arrowColor = "#FF0000";
-                            // } else {
-                            //     if (numBefore < numAfter) {
-                            //         firstTokenDurationDegrees = -65
-                            //         arrowColor = "#44c444";
-                            //     } else {
-                            //         firstTokenDurationDegrees = 65
-                            //         arrowColor = "#c44444";
-                            //     }
-                            // }
-
-                            // firsttokenNeedle.style.transform = `rotate(${firstTokenDurationDegrees}deg)`;
-                            // firsttokenNeedle.style.color = arrowColor;
-
-
                         } else {
                             const now = new Date();
                             const elapsedTime = (now - firstTokenTime) / 1000;
@@ -853,8 +759,6 @@
                             const tokspersecNeedle = newCell.querySelector('.speedometer-tokspersec-needle');
                             tokspersecNeedle.style.transform = `rotate(${tokenCount*2}deg)`;
                         }
-
-
                     };
 
                     ws.onerror = function(event) {
