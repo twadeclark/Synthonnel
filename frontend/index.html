@@ -85,7 +85,6 @@
             overflow-y: hidden;
             margin: 0 auto;
             min-height: 1px;
-            height: auto;
             resize: none;
             position: fixed;
             bottom: 10px;
@@ -368,24 +367,6 @@
             position: relative;
             justify-content: space-between;
         }
-        .speedometer-firsttoken,
-        .speedometer-tokspersec {
-            float: left;
-            width: 50%;
-            box-sizing: border-box;
-            display: inline-block;
-        }
-        .speedometer-firsttoken {
-            padding: 0;
-        }
-        .speedometer-tokspersec {
-            text-align: right;
-        }
-        .speedometer-firsttoken-needle,
-        .speedometer-tokspersec-needle {
-            font-size: medium;
-            display: inline-block;
-        }
 
 .mask {
     position: relative;
@@ -453,7 +434,7 @@
     vertical-align: middle;
 }
 
-.firsttokenValue-adjustment {
+.gaugeValue-adjustment {
     position: absolute;
     display: block;
     width: 64px;
@@ -468,7 +449,13 @@
     float: right;
 }
 
-
+#logoBtn {
+            position: fixed;
+            left: 30px;
+            bottom: 10px;
+            background: url(/images/favicon/logo-bw-44x44.png) no-repeat;
+            background-size: cover;
+}
 
     </style>
 </head>
@@ -483,6 +470,8 @@
             </tbody>
         </table>
     </div>
+
+    <button id="logoBtn" class="button" title="Synthonnel"></button>
 
     <button id="addItemBtn" class="button" title="Add New Model">+</button>
     <div id="addItemFormHider">
@@ -706,9 +695,6 @@
             Array.from(headerCells).forEach((item, index) => {
                 const newCell = newRow.insertCell(index);
 
-
-                // <div class="speedometer-tokspersec" title="Tokens per Second"> <span id="tokspersecValue"></span> <div class="speedometer-tokspersec-needle">↙</div></div>
-
                 newCell.innerHTML = `
                     <div class="speedometer">
                         <div class="float-left">
@@ -718,10 +704,9 @@
                                     <div class="semi-circle-after"></div>
                                     <div class="ttft-gauge-pointer">🠴</div>
                                 </div>
-                                <div class="firsttokenValue-adjustment"><span id="firsttokenValue"></span></div>
+                                <div class="gaugeValue-adjustment"><span id="firsttokenValue"></span></div>
                             </div>
                         </div>
-                        
                         <div class="float-right">
                             <div class="box tokpersec-gauge" title="Tokens per Second">
                                 <div class="mask">
@@ -729,11 +714,9 @@
                                     <div class="semi-circle-after"></div>
                                     <div class="tokpersec-gauge-pointer">🠴</div>
                                 </div>
-                                <div class="firsttokenValue-adjustment"><span id="tokspersecValue"></span></div>
+                                <div class="gaugeValue-adjustment"><span id="tokspersecValue"></span></div>
                             </div>
                         </div>
-
-
                     </div>
                     `;
 
@@ -790,7 +773,6 @@
                             finishCount++;
 
                             const firsttokenValue = newCell.querySelector('#firsttokenValue');
-                            const firsttokenNeedle = newCell.querySelector('.speedometer-firsttoken-needle');
 
                             firstTokenDurationMilliseconds = firstTokenTime - startTime;
                             maxFirstTokenDuration = firstTokenDurationMilliseconds;
@@ -800,18 +782,10 @@
                         } else {
                             const now = new Date();
                             const elapsedTime = (now - firstTokenTime) / 1000;
-                            // const elapsedTime = (now - startTime) / 1000;
                             const tokensPerSecond = tokenCount / elapsedTime;
 
                             newCell.querySelector('#tokspersecValue').textContent = `${(tokensPerSecond).toFixed(2)}`;
 
-                            // const tokspersecNeedle = newCell.querySelector('.speedometer-tokspersec-needle');
-                            // tokspersecNeedle.style.transform = `rotate(${tokenCount*2}deg)`;
-
-                            // aveTokPerSec = (aveTokPerSec + tokensPerSecond) / 2;
-
-                            // maxTokPerSec = Math.max(maxTokPerSec, tokensPerSecond);
-                            // minTokPerSec = Math.min(minTokPerSec, tokensPerSecond);
                             resetTokpersecMinMax();
 
                             var divisor = (maxTokPerSec - minTokPerSec) == 0 ? (1 + maxTokPerSec + minTokPerSec) : (maxTokPerSec - minTokPerSec);
@@ -831,9 +805,6 @@
                         console.log("WebSocket connection closed for", item.getAttribute('data-provider'));
                     };
 
-
-
-
                     function resetTokpersecMinMax() {
                         maxTokPerSec = 0.0;
                         minTokPerSec = 999999.9;
@@ -847,25 +818,7 @@
                                 minTokPerSec = Math.min(minTokPerSec, thisTokensPerSecond);
                             }
                         });
-
-                        // Array.from(newRow.cells).forEach((item, index) => {
-                        //     const tempCell = newRow.cells[index];
-                        //     const thisTokensPerSecond = parseFloat(tempCell.querySelector("#tokspersecValue").innerHTML);
-
-                        //     if (thisTokensPerSecond) {
-                        //         var divisor = (maxTokPerSec - minTokPerSec) == 0 ? (1 + maxTokPerSec + minTokPerSec) : (maxTokPerSec - minTokPerSec);
-                        //         var pctTime = (thisTokensPerSecond - minTokPerSec) / divisor;
-                        //         var newVal = 10 + Math.floor(pctTime * 160);
-
-                        //         tempCell.querySelector('.tokpersec-gauge .tokpersec-gauge-pointer').setAttribute('style', '-webkit-transform: rotate(' + newVal + 'deg);' + '-moz-transform: rotate(' + newVal + 'deg);' + 'transform: rotate(' + newVal + 'deg);');
-                        //     }
-                        // });
-
                     }
-
-
-
-
                 }
             });
         });
