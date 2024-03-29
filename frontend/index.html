@@ -366,6 +366,7 @@
             border-bottom: 1px solid var(--borderColor);
             display: flex;
             position: relative;
+            justify-content: space-between;
         }
         .speedometer-firsttoken,
         .speedometer-tokspersec {
@@ -395,12 +396,20 @@
     margin: 2px;
     justify-content: center;
 }
-.semi-circle {
+.ttft-semi-circle {
     position: relative;
     display: block;
     width: 60px;
     height: 30px;
     background: linear-gradient(to right, green 0%, gray 50%, red 100%);
+    border-radius: 50% 50% 50% 50% / 100% 100% 0% 0% ;
+}
+.tokpersec-semi-circle {
+    position: relative;
+    display: block;
+    width: 60px;
+    height: 30px;
+    background: linear-gradient(to right, red 0%, gray 50%, green 100%);
     border-radius: 50% 50% 50% 50% / 100% 100% 0% 0% ;
 }
 .semi-circle-after {
@@ -415,10 +424,24 @@
     background: var(--emphasisBackgroundColor);
     border-radius: 50% 50% 50% 50% / 100% 100% 0% 0% ;
 }
-.semi-circle--mask {
+.ttft-gauge-pointer {
     position: absolute;
-    top: 18px;
-    left: 2px;
+    top: 16px;
+    left: 0px;
+    width: 60px;
+    height: 28px;
+    background: transparent;
+    transform: rotate(90deg) translate3d(0,0,0);
+    transform-origin: center center;
+    backface-visibility: hidden;
+    transition: all .3s ease-in-out;
+    text-align: left;
+    vertical-align: middle;
+}
+.tokpersec-gauge-pointer {
+    position: absolute;
+    top: 16px;
+    left: 0px;
     width: 60px;
     height: 28px;
     background: transparent;
@@ -438,6 +461,12 @@
     text-align: center;
 }
 
+.float-left {
+    float: left;
+}
+.float-right {
+    float: right;
+}
 
 
 
@@ -671,21 +700,40 @@
             var startTime = new Date();
             var maxFirstTokenDuration = 0;
             var minFirstTokenDuration = 999999;
+            var maxTokPerSec = 0.0;
+            var minTokPerSec = 999999.9;
 
             Array.from(headerCells).forEach((item, index) => {
                 const newCell = newRow.insertCell(index);
 
+
+                // <div class="speedometer-tokspersec" title="Tokens per Second"> <span id="tokspersecValue"></span> <div class="speedometer-tokspersec-needle">↙</div></div>
+
                 newCell.innerHTML = `
                     <div class="speedometer">
-                        <div class="box gauge--3" title="Time to First Token in Seconds">
-                            <div class="mask">
-                                <div class="semi-circle"></div>
-                                <div class="semi-circle-after"></div>
+                        <div class="float-left">
+                            <div class="box ttft-gauge" title="Time to First Token in Seconds">
+                                <div class="mask">
+                                    <div class="ttft-semi-circle"></div>
+                                    <div class="semi-circle-after"></div>
+                                    <div class="ttft-gauge-pointer">🠴</div>
+                                </div>
+                                <div class="firsttokenValue-adjustment"><span id="firsttokenValue"></span></div>
                             </div>
-                            <div class="semi-circle--mask">🠴</div>
-                            <div class="firsttokenValue-adjustment"><span id="firsttokenValue"></span></div>
                         </div>
-                        <div class="speedometer-tokspersec" title="Tokens per Second"> <span id="tokspersecValue"></span> <div class="speedometer-tokspersec-needle">↙</div></div>
+                        
+                        <div class="float-right">
+                            <div class="box tokpersec-gauge" title="Tokens per Second">
+                                <div class="mask">
+                                    <div class="tokpersec-semi-circle"></div>
+                                    <div class="semi-circle-after"></div>
+                                    <div class="tokpersec-gauge-pointer">🠴</div>
+                                </div>
+                                <div class="firsttokenValue-adjustment"><span id="tokspersecValue"></span></div>
+                            </div>
+                        </div>
+
+
                     </div>
                     `;
 
@@ -718,6 +766,8 @@
                     var tokenCount = 0;
                     var firstTokenTime = new Date();
                     var firstTokenDurationMilliseconds = 0;
+                    var aveTokPerSec = 0.0;
+
 
                     ws.onmessage = function(event) {
                         const isAtBottom = tableContainer.scrollHeight - tableContainer.clientHeight <= tableContainer.scrollTop + 50;
@@ -732,9 +782,8 @@
 
                         var divisor = (maxFirstTokenDuration - minFirstTokenDuration) == 0 ? (1 + maxFirstTokenDuration + minFirstTokenDuration) : (maxFirstTokenDuration - minFirstTokenDuration);
                         var pctTime = (firstTokenDurationMilliseconds - minFirstTokenDuration) / divisor;
-                        var newVal = Math.floor(pctTime * 180);
-
-                        newCell.querySelector('.gauge--3 .semi-circle--mask').setAttribute('style', '-webkit-transform: rotate(' + newVal + 'deg);' + '-moz-transform: rotate(' + newVal + 'deg);' + 'transform: rotate(' + newVal + 'deg);');
+                        var newVal = 10 + Math.floor(pctTime * 160);
+                        newCell.querySelector('.ttft-gauge .ttft-gauge-pointer').setAttribute('style', '-webkit-transform: rotate(' + newVal + 'deg);' + '-moz-transform: rotate(' + newVal + 'deg);' + 'transform: rotate(' + newVal + 'deg);');
 
                         if (tokenCount == 1) {
                             firstTokenTime = new Date();
@@ -751,13 +800,25 @@
                         } else {
                             const now = new Date();
                             const elapsedTime = (now - firstTokenTime) / 1000;
+                            // const elapsedTime = (now - startTime) / 1000;
                             const tokensPerSecond = tokenCount / elapsedTime;
 
-                            const tokspersecValue = newCell.querySelector('#tokspersecValue');
-                            tokspersecValue.textContent = `${tokensPerSecond.toFixed(2)} t/s`;
+                            newCell.querySelector('#tokspersecValue').textContent = `${(tokensPerSecond).toFixed(2)}`;
 
-                            const tokspersecNeedle = newCell.querySelector('.speedometer-tokspersec-needle');
-                            tokspersecNeedle.style.transform = `rotate(${tokenCount*2}deg)`;
+                            // const tokspersecNeedle = newCell.querySelector('.speedometer-tokspersec-needle');
+                            // tokspersecNeedle.style.transform = `rotate(${tokenCount*2}deg)`;
+
+                            // aveTokPerSec = (aveTokPerSec + tokensPerSecond) / 2;
+
+                            // maxTokPerSec = Math.max(maxTokPerSec, tokensPerSecond);
+                            // minTokPerSec = Math.min(minTokPerSec, tokensPerSecond);
+                            resetTokpersecMinMax();
+
+                            var divisor = (maxTokPerSec - minTokPerSec) == 0 ? (1 + maxTokPerSec + minTokPerSec) : (maxTokPerSec - minTokPerSec);
+                            var pctTime = (tokensPerSecond - minTokPerSec) / divisor;
+                            var newVal = 10 + Math.floor(pctTime * 160);
+
+                            newCell.querySelector('.tokpersec-gauge .tokpersec-gauge-pointer').setAttribute('style', '-webkit-transform: rotate(' + newVal + 'deg);' + '-moz-transform: rotate(' + newVal + 'deg);' + 'transform: rotate(' + newVal + 'deg);');
                         }
                     };
 
@@ -769,6 +830,42 @@
                     ws.onclose = function(event) {
                         console.log("WebSocket connection closed for", item.getAttribute('data-provider'));
                     };
+
+
+
+
+                    function resetTokpersecMinMax() {
+                        maxTokPerSec = 0.0;
+                        minTokPerSec = 999999.9;
+
+                        Array.from(newRow.cells).forEach((item, index) => {
+                            const tempCell = newRow.cells[index];
+                            const thisTokensPerSecond = parseFloat(tempCell.querySelector("#tokspersecValue").innerHTML);
+
+                            if (thisTokensPerSecond) {
+                                maxTokPerSec = Math.max(maxTokPerSec, thisTokensPerSecond);
+                                minTokPerSec = Math.min(minTokPerSec, thisTokensPerSecond);
+                            }
+                        });
+
+                        // Array.from(newRow.cells).forEach((item, index) => {
+                        //     const tempCell = newRow.cells[index];
+                        //     const thisTokensPerSecond = parseFloat(tempCell.querySelector("#tokspersecValue").innerHTML);
+
+                        //     if (thisTokensPerSecond) {
+                        //         var divisor = (maxTokPerSec - minTokPerSec) == 0 ? (1 + maxTokPerSec + minTokPerSec) : (maxTokPerSec - minTokPerSec);
+                        //         var pctTime = (thisTokensPerSecond - minTokPerSec) / divisor;
+                        //         var newVal = 10 + Math.floor(pctTime * 160);
+
+                        //         tempCell.querySelector('.tokpersec-gauge .tokpersec-gauge-pointer').setAttribute('style', '-webkit-transform: rotate(' + newVal + 'deg);' + '-moz-transform: rotate(' + newVal + 'deg);' + 'transform: rotate(' + newVal + 'deg);');
+                        //     }
+                        // });
+
+                    }
+
+
+
+
                 }
             });
         });
