@@ -358,6 +358,113 @@
             vertical-align: middle;
         }
 
+        .speedometer {
+            padding: 0;
+            margin-top: -8px;
+            font-size: x-small;
+            width: 100%;
+            border-bottom: 1px solid var(--borderColor);
+            display: flex; /* Set the container to use flexbox */
+            position: relative;
+        }
+
+        .speedometer-firsttoken,
+        .speedometer-tokspersec {
+            float: left; /* Make both divs float */
+            width: 50%; /* Set width to 50% for each div */
+            box-sizing: border-box; /* Include padding/border in width */
+            /* Add styling for content and margins as needed */
+            display: inline-block; /* Changed from inline */
+        }
+
+        .speedometer-firsttoken {
+            padding: 0;
+        }
+
+        .speedometer-tokspersec {
+            text-align: right; /* Align right content to the right */
+        }
+
+        .speedometer-firsttoken-needle,
+        .speedometer-tokspersec-needle {
+            font-size: medium;
+            display: inline-block; /* Changed from inline */
+        }
+        
+
+
+
+.mask {
+    position: relative;
+    overflow: hidden;
+    display: block;
+    width: 60px;
+    height: 30px;
+    margin: 2px;
+}
+.semi-circle {
+    position: relative;
+    display: block;
+    width: 60px;
+    height: 30px;
+    background: linear-gradient(to right, green 0%, gray 50%, red 100%);
+    border-radius: 50% 50% 50% 50% / 100% 100% 0% 0% ;
+    &::before {
+        content: "";
+        position: absolute;
+        bottom: 0;
+        left: 50%;
+        z-index: 2;
+        display: block;
+        width: 40px;
+        height: 20px;
+        margin-left: -20px;
+        background: var(--emphasisBackgroundColor);
+        border-radius: 50% 50% 50% 50% / 100% 100% 0% 0% ;
+    }      
+}
+.semi-circle--mask {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 60px;
+    height: 60px;
+    background: transparent;
+    transform: rotate(90deg) translate3d(0,0,0);
+    transform-origin: center center;
+    backface-visibility: hidden;
+    transition: all .3s ease-in-out;
+    &::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0%;
+        z-index: 2;
+        display: block;
+        width: 62px;
+        height: 32px;
+        margin: -1px 0 0 -1px;
+        background: #f2f2f2;
+        border-radius: 50% 50% 50% 50% / 100% 100% 0% 0% ;
+    }      
+}
+
+
+
+
+.firsttokenValue-adjustment {
+    position: absolute;
+    display: block;
+    width: 64px;
+    left: -1px;
+    top: 10px;
+    text-align: center;
+    z-index: 3;
+}
+
+
+
+
     </style>
 </head>
 <body>
@@ -583,8 +690,33 @@
                 tableContainer.scrollTop = tableContainer.scrollHeight - tableContainer.clientHeight
             }
 
+            var finishCount = 0;
+            var totalModels = headerCells.length;
+            var startTime = new Date();
+            var maxFirstTokenDuration = 0;
+            var minFirstTokenDuration = 999999;
+
             Array.from(headerCells).forEach((item, index) => {
                 const newCell = newRow.insertCell(index);
+                // newCell.innerHTML = `
+                //     <div class="speedometer">
+                //         <div class="speedometer-firsttoken" title="Time to First Token"><div class="speedometer-firsttoken-needle">↑</div> <span id="firsttokenValue"></span> </div>
+                //         <div class="speedometer-tokspersec" title="Tokens per Second"> <span id="tokspersecValue"></span> <div class="speedometer-tokspersec-needle">↙</div></div>
+                //     </div>
+                //     `;
+
+                newCell.innerHTML = `
+                    <div class="speedometer">
+                        <div class="box gauge--3" title="Time to First Token">
+                            <div class="mask">
+                                <div class="semi-circle"></div>
+                                <div class="semi-circle--mask"></div>
+                            </div>
+                            <div class="firsttokenValue-adjustment"><span id="firsttokenValue"></span></div>
+                        </div>
+                        <div class="speedometer-tokspersec" title="Tokens per Second"> <span id="tokspersecValue"></span> <div class="speedometer-tokspersec-needle">↙</div></div>
+                    </div>
+                    `;
 
                 if (isAtBottom) {
                     tableContainer.scrollTop = tableContainer.scrollHeight - tableContainer.clientHeight
@@ -612,6 +744,10 @@
                         ws.send(JSON.stringify(itemData));
                     };
 
+                    var tokenCount = 0;
+                    var firstTokenTime = new Date();
+                    var firstTokenDurationMilliseconds = 0;
+
                     ws.onmessage = function(event) {
                         const isAtBottom = tableContainer.scrollHeight - tableContainer.clientHeight <= tableContainer.scrollTop + 50;
 
@@ -620,6 +756,87 @@
                         if (isAtBottom) {
                             tableContainer.scrollTop = tableContainer.scrollHeight - tableContainer.clientHeight
                         }
+
+                        tokenCount++;
+
+                        // var newVal = Math.floor((Math.random() * 179) + 1);
+
+
+                        var divisor = (maxFirstTokenDuration - minFirstTokenDuration) == 0 ? (1 + maxFirstTokenDuration + minFirstTokenDuration) : (maxFirstTokenDuration - minFirstTokenDuration);
+                        var pctTime = (firstTokenDurationMilliseconds - minFirstTokenDuration) / divisor;
+                        // var newVal = 20 + Math.floor(pctTime * 150);
+                        var newVal = Math.floor(pctTime * 180);
+
+                        newCell.querySelector('.gauge--3 .semi-circle--mask').setAttribute('style', '-webkit-transform: rotate(' + newVal + 'deg);' +
+                                                                                                    '-moz-transform: rotate(' + newVal + 'deg);' +
+                                                                                                    'transform: rotate(' + newVal + 'deg);');
+
+
+
+                        if (tokenCount == 1) {
+                            firstTokenTime = new Date();
+                            finishCount++;
+
+                            const firsttokenValue = newCell.querySelector('#firsttokenValue');
+                            const firsttokenNeedle = newCell.querySelector('.speedometer-firsttoken-needle');
+
+                            firstTokenDurationMilliseconds = firstTokenTime - startTime;
+                            maxFirstTokenDuration = firstTokenDurationMilliseconds;
+                            minFirstTokenDuration = Math.min(minFirstTokenDuration, firstTokenDurationMilliseconds);
+
+                            firsttokenValue.textContent = `${(firstTokenDurationMilliseconds / 1000).toFixed(2)}`;
+
+
+
+                            // var newVal = Math.floor((Math.random() * 179) + 1);
+                            // newCell.querySelector('.gauge--3 .semi-circle--mask').setAttribute('style', '-webkit-transform: rotate(' + newVal + 'deg);' +
+                            //                                                                             '-moz-transform: rotate(' + newVal + 'deg);' +
+                            //                                                                             'transform: rotate(' + newVal + 'deg);');
+
+                            
+                            // // default values for 270 deg swing
+                            // var firstTokenDurationDegrees = 0
+                            // var arrowColor = "#888888";
+
+                            // const numBefore = finishCount - 1;
+                            // const numAfter = totalModels - finishCount;
+
+                            // if (numBefore == numAfter) { // middle is always gray
+                            //     firstTokenDurationDegrees = 0
+                            //     arrowColor = "#888888";
+                            // } else if (numBefore == 0) { // first place is green
+                            //     firstTokenDurationDegrees = -135
+                            //     arrowColor = "#00FF00";
+                            // } else if (numAfter == 0) { // last place is red
+                            //     firstTokenDurationDegrees = 135
+                            //     arrowColor = "#FF0000";
+                            // } else {
+                            //     if (numBefore < numAfter) {
+                            //         firstTokenDurationDegrees = -65
+                            //         arrowColor = "#44c444";
+                            //     } else {
+                            //         firstTokenDurationDegrees = 65
+                            //         arrowColor = "#c44444";
+                            //     }
+                            // }
+
+                            // firsttokenNeedle.style.transform = `rotate(${firstTokenDurationDegrees}deg)`;
+                            // firsttokenNeedle.style.color = arrowColor;
+
+
+                        } else {
+                            const now = new Date();
+                            const elapsedTime = (now - firstTokenTime) / 1000;
+                            const tokensPerSecond = tokenCount / elapsedTime;
+
+                            const tokspersecValue = newCell.querySelector('#tokspersecValue');
+                            tokspersecValue.textContent = `${tokensPerSecond.toFixed(2)} t/s`;
+
+                            const tokspersecNeedle = newCell.querySelector('.speedometer-tokspersec-needle');
+                            tokspersecNeedle.style.transform = `rotate(${tokenCount*2}deg)`;
+                        }
+
+
                     };
 
                     ws.onerror = function(event) {
