@@ -450,11 +450,11 @@
 }
 
 #logoBtn {
-            position: fixed;
-            left: 30px;
-            bottom: 10px;
-            background: url(/images/favicon/logo-bw-44x44.png) no-repeat;
-            background-size: cover;
+    position: fixed;
+    left: 30px;
+    bottom: 10px;
+    background: url(/images/favicon/logo-bw-44x44.png) no-repeat;
+    background-size: cover;
 }
 
 .position-switch-lower {
@@ -462,7 +462,28 @@
     top: -3px;
 }
 
-    </style>
+.closebtn {
+    color: darkred;
+    font-weight: bold;
+    float: right;
+    font-size: 22px;
+    line-height: 20px;
+    width: 20px;
+    cursor: pointer;
+    transition: 0.3s;
+    position: absolute;
+    border-left: 1px solid var(--borderColor);
+    border-bottom: 1px solid var(--borderColor);
+    right: 0px;
+    text-align: center;
+    top: 0px;
+    right: 0px;
+}
+.closebtn:hover {
+    color: red;
+}
+
+</style>
 </head>
 <body>
     <div class="table-container" id="table-container">
@@ -481,6 +502,7 @@
     <button id="addItemBtn" class="button" title="Add New Model">+</button>
     <div id="addItemFormHider">
         <div id="addItemForm">
+            <span class="closebtn">&times;</span>
             <input type="text" id="newItemModel" placeholder="Model">
             <input type="text" id="newItemProvider" placeholder="Provider">
             <input type="text" id="newItemProviderUrl" placeholder="ProviderUrl">
@@ -497,6 +519,7 @@
     <button id="settingsBtn" class="button" title="Settings">☰</button>
     <div id="settingsFormHider">
         <div id="settingsForm">
+            <span class="closebtn">&times;</span>
             <div style="text-align: center;">
                 <label style="font-size: 24px;">🌞</label>
                 <label class="switch">
@@ -905,7 +928,6 @@
                 document.getElementById('addItemFormHider').style.display = 'none'
             } else {
                 document.getElementById('addItemFormHider').style.display = 'block';
-                document.getElementById('settingsFormHider').style.display = 'none'
             }
         };
 
@@ -914,7 +936,6 @@
                 document.getElementById('settingsFormHider').style.display = 'none'
             } else {
                 document.getElementById('settingsFormHider').style.display = 'block';
-                document.getElementById('addItemFormHider').style.display = 'none'
             }
         };
 
@@ -1052,6 +1073,15 @@
 
             autoGrowTextArea(textarea);
         });
+
+        var close = document.getElementsByClassName("closebtn");
+
+        for (var loop = 0; loop < close.length; loop++) {
+            close[loop].onclick = function() {
+                var div = this.parentElement.parentElement;
+                div.style.display = "none";
+            }
+        }
 
     </script>
 </body>
