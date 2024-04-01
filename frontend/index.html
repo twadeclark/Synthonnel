@@ -647,7 +647,7 @@ input[type='select'] {
                 rows[i].deleteCell(indexToRemove);
             }
 
-            saveAndRefresh();
+            saveAndRefreshActiveModels();
         }
 
         function pauseColumn(columnIndex) {
@@ -688,7 +688,7 @@ input[type='select'] {
                 }
             }
 
-            saveAndRefresh();
+            saveAndRefreshActiveModels();
         }
 
         function moveColumnRight(cellIndex) {
@@ -712,11 +712,11 @@ input[type='select'] {
                 }
             }
 
-            saveAndRefresh();
+            saveAndRefreshActiveModels();
         }
 
-        function saveAndRefresh() {
-            saveItems();
+        function saveAndRefreshActiveModels() {
+            saveItemsActiveModels();
 
             var row = document.getElementById("headerRow");
             rowLen = row.cells.length;
@@ -1121,11 +1121,11 @@ input[type='select'] {
                 newCell.title = "This model was not yet added for this prompt.";
             }
 
-            saveItems();
+            saveItemsActiveModels();
             document.getElementById('addItemFormHider').style.display = 'none'
         };
 
-        async function saveItems() {
+        async function saveItemsActiveModels() {
             const headerCells = document.querySelectorAll('#promptTable thead th');
 
             const items = Array.from(headerCells).map(th => ({
@@ -1229,6 +1229,25 @@ input[type='select'] {
                     return;
                 }
                 selectElement.remove(selectedIndex);
+
+                const itemDataList = Array.from(selectElement.options).map(option => JSON.parse(option.dataset.itemData));
+
+                fetch('http://localhost:8000/save-items-saved', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(itemDataList),
+                })
+                .then(response => {
+                    if (response.ok) {
+                        console.log("Items saved successfully.");
+                    } else {
+                        console.error("Failed to save items.");
+                        showMessage("Failed to save items.");
+                    }
+                })
+                .catch(error => console.error('Error:', error));
             }
         }
 
