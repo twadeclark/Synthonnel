@@ -12,7 +12,7 @@
             --borderColor: #C0C0C0;
         }
         body {
-            font-family: Arial, sans-serif;
+            font-family: Verdana, Arial, Tahoma, sans-serif;
             margin: 0;
             padding: 0;
             background-color: var(--backgroundColor);
@@ -48,7 +48,7 @@
 
         .small-text-wide-button {
             cursor: pointer;
-            font-size: 80%;
+            font-size: 18px;
             border: 1px solid var(--borderColor);
             border-radius: 8px;
             height: 44px;
@@ -75,8 +75,10 @@
             background: var(--emphasisBackgroundColor); 
             padding: 20px; 
             border: 1px solid var(--borderColor); 
-            display: grid; 
+            display: inline-flex;
             gap: 20px;
+            width: 50%;
+            padding-top: 44px;
         }
 
         #userPrompt {
@@ -130,14 +132,14 @@
 
         #message {
             position: absolute;
-            left: 240px;
-            bottom: 80px; 
+            top: -50px;
+            left: 0px;
             background-color: white;
             color: darkred;
             padding: 10px;
             opacity: 0;
             transition: opacity 1s ease-in-out;
-            border: 1px solid var(--borderColor);
+            border: 1px solid red;
             border-radius: 8px;
         }
 
@@ -217,6 +219,7 @@
         .response-row {
             vertical-align: top;
             background-color: var(--emphasisBackgroundColor);
+            white-space: pre-wrap;
         }
 
         .switch {
@@ -366,6 +369,10 @@
             display: flex;
             position: relative;
             justify-content: space-between;
+            white-space: normal;
+            top: 0;
+            bottom: 0;
+            font-family: Verdana, Arial, Tahoma, sans-serif;
         }
 
 .mask {
@@ -456,6 +463,10 @@
     background: url(/images/favicon/logo-bw-44x44.png) no-repeat;
     background-size: cover;
 }
+#logoBtn:hover {
+    background: url(/images/favicon/logo-color-44x44.png) no-repeat;
+    background-size: cover;
+}
 
 .position-switch-lower {
     margin-top: 5px;
@@ -483,6 +494,41 @@
     color: red;
 }
 
+.addItemForm-left {
+    display: grid; 
+    gap: 20px;
+    width: 50%;
+}
+.addItemForm-right {
+    display: grid; 
+    border-left: 1px solid var(--borderColor);
+    padding-left: 40px;
+    margin-left: 20px;
+    width: 50%;
+}
+input[type='text'] {
+    font-size: 18px;
+}
+input[type='password'] {
+    font-size: 18px;
+}
+input[type='select'] {
+    font-size: 18px;
+}
+.select-class {
+    font-size: 18px;
+    margin-bottom: 20px;
+    height: auto;
+}
+.current-saved-adjustment {
+    padding-left: 20px;
+    margin-top: -12px;
+}
+#newItemParameters {
+    font-size: 18px;
+    resize: vertical;
+}
+
 </style>
 </head>
 <body>
@@ -502,13 +548,61 @@
     <button id="addItemBtn" class="button" title="Add New Model">+</button>
     <div id="addItemFormHider">
         <div id="addItemForm">
-            <span class="closebtn">&times;</span>
-            <input type="text" id="newItemModel" placeholder="Model">
-            <input type="text" id="newItemProvider" placeholder="Provider">
-            <input type="text" id="newItemProviderUrl" placeholder="ProviderUrl">
-            <textarea id="newItemParameters" placeholder="Parameters" rows="4" style="resize: vertical;"></textarea>
-            <input type="text" id="newItemApiKey" placeholder="ApiKey">
-            <button id="confirmAddItem" class="button small-text-wide-button">Add Model</button>
+            <div id="message">Disappearing message</div>
+            <div class="addItemForm-left">
+                <span class="closebtn" onclick="this.parentElement.parentElement.parentElement.style.display = 'none';">&times;</span>
+                <input type="text" id="newItemModel" placeholder="Model" title="Model">
+                <input type="text" id="newItemProvider" placeholder="Provider" title="Provider">
+                <input type="text" id="newItemProviderUrl" placeholder="Provider Url" title="Provider Url">
+                <textarea id="newItemParameters" placeholder="Parameters" rows="4" title="Parameters"></textarea>
+                <input type="password" id="newItemApiKey" placeholder="Api Key" title="Api Key">
+                <button id="confirmAddItem" class="button small-text-wide-button">Add Model</button>
+            </div>
+            <div class="addItemForm-right">
+                <div class="current-saved-adjustment">Current:</div>
+                <select name="modelListActive" class="select-class" size="5">
+                    <option value="item1">Item 1</option>
+                    <option value="item2">Item 2</option>
+                    <option value="item3">Item 3</option>
+                    <option value="item1">Item 1</option>
+                    <option value="item2">Item 2</option>
+                    <option value="item3">Item 3</option>
+                    <option value="item1">Item 1</option>
+                    <option value="item2">Item 2</option>
+                    <option value="item3">Item 3</option>
+                    <option value="item1">Item 1</option>
+                    <option value="item2">Item 2</option>
+                    <option value="item3">Item 3</option>
+                    <option value="item1">Item 1</option>
+                    <option value="item2">Item 2</option>
+                    <option value="item3">Item 3</option>
+                    <!-- Add more options as needed -->
+                </select>
+                <div class="current-saved-adjustment">Saved:</div>
+                <select name="modelListSaved" class="select-class" size="5">
+                    <option value="item1">Item 1</option>
+                    <option value="item2">Item 2</option>
+                    <option value="item3">Item 3</option>
+                    <option value="item1">Item 1</option>
+                    <option value="item2">Item 2</option>
+                    <option value="item3">Item 3</option>
+                    <option value="item1">Item 1</option>
+                    <option value="item2">Item 2</option>
+                    <option value="item3">Item 3</option>
+                    <option value="item1">Item 1</option>
+                    <option value="item2">Item 2</option>
+                    <option value="item3">Item 3</option>
+                    <option value="item1">Item 1</option>
+                    <option value="item2">Item 2</option>
+                    <option value="item3">Item 3</option>
+                    <option value="item1">Item 1</option>
+                    <option value="item2">Item 2</option>
+                    <option value="item3">Item 3</option>
+                    <!-- Add more options as needed -->
+                </select>
+                <button id="deleteFromModelListSaved" class="button small-text-wide-button">Delete</button>
+
+            </div>
         </div>
     </div>
 
@@ -519,7 +613,7 @@
     <button id="settingsBtn" class="button" title="Settings">☰</button>
     <div id="settingsFormHider">
         <div id="settingsForm">
-            <span class="closebtn">&times;</span>
+            <span class="closebtn" onclick="this.parentElement.parentElement.style.display = 'none';">&times;</span>
             <div style="text-align: center;">
                 <label style="font-size: 24px;">🌞</label>
                 <label class="switch">
@@ -540,14 +634,12 @@
                     <input type="checkbox" id="monospace-responses">
                     <span class="slider round"></span>
                 </label>
-                <label style="font-family: 'Lucida Console', Courier, monospace;" for="monospace-responses"> Preformatted </label>
+                <label style="font-family: 'Lucida Console', Courier, monospace;" for="monospace-responses"> Monospace </label>
             </div>
             <hr>
             <button id="startNewChat" class="button small-text-wide-button">New Chat</button>
         </div>
     </div>
-
-    <div id="message">Disappearing message</div>
 
     <script>
         const menuContainers = document.querySelectorAll(".menu-container");
@@ -712,7 +804,7 @@
             const promptCell = promptRow.insertCell(0);
             promptCell.className = 'prompt-row';
             promptCell.colSpan = '100';
-            promptCell.innerHTML = "PROMPT: " + prompt;
+            promptCell.innerHTML = prompt;
 
             const newRow = table.insertRow(-1);
             newRow.className = 'response-row';
@@ -732,8 +824,7 @@
             Array.from(headerCells).forEach((item, index) => {
                 const newCell = newRow.insertCell(index);
 
-                newCell.innerHTML = `
-                    <div class="speedometer">
+                newCell.innerHTML = `<div class="speedometer">
                         <div class="float-left">
                             <div class="box ttft-gauge" title="Time to First Token in Seconds">
                                 <div class="mask">
@@ -754,8 +845,7 @@
                                 <div class="gaugeValue-adjustment"><span id="tokspersecValue"></span></div>
                             </div>
                         </div>
-                    </div>
-                    `;
+                    </div>`;
 
                 if (isAtBottom) {
                     tableContainer.scrollTop = tableContainer.scrollHeight - tableContainer.clientHeight
@@ -792,7 +882,7 @@
                     ws.onmessage = function(event) {
                         const isAtBottom = tableContainer.scrollHeight - tableContainer.clientHeight <= tableContainer.scrollTop + 50;
 
-                        newCell.innerHTML += event.data + ' ';
+                        newCell.innerHTML += event.data;
 
                         if (isAtBottom) {
                             tableContainer.scrollTop = tableContainer.scrollHeight - tableContainer.clientHeight
@@ -1073,15 +1163,6 @@
 
             autoGrowTextArea(textarea);
         });
-
-        var close = document.getElementsByClassName("closebtn");
-
-        for (var loop = 0; loop < close.length; loop++) {
-            close[loop].onclick = function() {
-                var div = this.parentElement.parentElement;
-                div.style.display = "none";
-            }
-        }
 
     </script>
 </body>
