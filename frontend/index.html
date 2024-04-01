@@ -34,7 +34,6 @@
             background-color: var(--backgroundColor);
             color: var(--textColor);
         }
-
         .button-wide {
             cursor: pointer;
             font-size: 24px;
@@ -45,7 +44,6 @@
             background-color: var(--backgroundColor);
             color: var(--textColor);
         }
-
         .small-text-wide-button {
             cursor: pointer;
             font-size: 18px;
@@ -53,6 +51,16 @@
             border-radius: 8px;
             height: 44px;
             width: 100%;
+            background-color: var(--backgroundColor);
+            color: var(--textColor);
+        }
+        .small-text-just-wide-enough-button {
+            cursor: pointer;
+            font-size: 18px;
+            border: 1px solid var(--borderColor);
+            border-radius: 8px;
+            height: 44px;
+            width: fit-content;
             background-color: var(--backgroundColor);
             color: var(--textColor);
         }
@@ -518,7 +526,8 @@ input[type='select'] {
 .select-class {
     font-size: 18px;
     margin-bottom: 20px;
-    height: auto;
+    max-height: 329px;
+    overflow-y: scroll;
 }
 .current-saved-adjustment {
     padding-left: 20px;
@@ -545,7 +554,7 @@ input[type='select'] {
 
     <button id="logoBtn" class="button" title="Synthonnel"></button>
 
-    <button id="addItemBtn" class="button" title="Add New Model">+</button>
+    <button id="addItemBtn" class="button" title="Activate or Delete Models">+</button>
     <div id="addItemFormHider">
         <div id="addItemForm">
             <div id="message">Disappearing message</div>
@@ -554,54 +563,24 @@ input[type='select'] {
                 <input type="text" id="newItemModel" placeholder="Model" title="Model">
                 <input type="text" id="newItemProvider" placeholder="Provider" title="Provider">
                 <input type="text" id="newItemProviderUrl" placeholder="Provider Url" title="Provider Url">
-                <textarea id="newItemParameters" placeholder="Parameters" rows="4" title="Parameters"></textarea>
+                <textarea id="newItemParameters" placeholder="parameters.." rows="4" title="Parameters"></textarea>
                 <input type="password" id="newItemApiKey" placeholder="Api Key" title="Api Key">
-                <button id="confirmAddItem" class="button small-text-wide-button">Add Model</button>
+                <input type="text" id="newItemNote" placeholder="note.." title="Note">
+
+                <div>
+                    <div style="float: left;">
+                        <button id="clearForm" class="button small-text-just-wide-enough-button" onclick="clearAddItemForm();">Clear</button>
+                    </div>
+                    <div style="float: right;">
+                        <button id="confirmAddItem" class="button small-text-just-wide-enough-button">Activate Model</button>
+                    </div>
+                </div>
             </div>
             <div class="addItemForm-right">
-                <div class="current-saved-adjustment">Current:</div>
-                <select name="modelListActive" class="select-class" size="5">
-                    <option value="item1">Item 1</option>
-                    <option value="item2">Item 2</option>
-                    <option value="item3">Item 3</option>
-                    <option value="item1">Item 1</option>
-                    <option value="item2">Item 2</option>
-                    <option value="item3">Item 3</option>
-                    <option value="item1">Item 1</option>
-                    <option value="item2">Item 2</option>
-                    <option value="item3">Item 3</option>
-                    <option value="item1">Item 1</option>
-                    <option value="item2">Item 2</option>
-                    <option value="item3">Item 3</option>
-                    <option value="item1">Item 1</option>
-                    <option value="item2">Item 2</option>
-                    <option value="item3">Item 3</option>
-                    <!-- Add more options as needed -->
-                </select>
-                <div class="current-saved-adjustment">Saved:</div>
-                <select name="modelListSaved" class="select-class" size="5">
-                    <option value="item1">Item 1</option>
-                    <option value="item2">Item 2</option>
-                    <option value="item3">Item 3</option>
-                    <option value="item1">Item 1</option>
-                    <option value="item2">Item 2</option>
-                    <option value="item3">Item 3</option>
-                    <option value="item1">Item 1</option>
-                    <option value="item2">Item 2</option>
-                    <option value="item3">Item 3</option>
-                    <option value="item1">Item 1</option>
-                    <option value="item2">Item 2</option>
-                    <option value="item3">Item 3</option>
-                    <option value="item1">Item 1</option>
-                    <option value="item2">Item 2</option>
-                    <option value="item3">Item 3</option>
-                    <option value="item1">Item 1</option>
-                    <option value="item2">Item 2</option>
-                    <option value="item3">Item 3</option>
-                    <!-- Add more options as needed -->
-                </select>
-                <button id="deleteFromModelListSaved" class="button small-text-wide-button">Delete</button>
-
+                <select name="modelListSaved" id="modelListSaved" class="select-class" size="100"></select>
+                <div style="text-align: right;">
+                    <button id="deleteFromModelListSaved" class="button small-text-just-wide-enough-button" onclick="deleteFromSavedModelsList();">Delete</button>
+                </div>
             </div>
         </div>
     </div>
@@ -629,7 +608,7 @@ input[type='select'] {
             <input type="checkbox" id="check3"> <label for="check3">Parameters</label> <br>
             <hr>
             <div style="text-align: center;">
-                <label> Regular </label>
+                <label> Plain </label>
                 <label class="switch position-switch-lower">
                     <input type="checkbox" id="monospace-responses">
                     <span class="slider round"></span>
@@ -654,7 +633,7 @@ input[type='select'] {
         });
 
         function deleteColumn(indexToRemove) {
-            if (!confirm("Confirm remove model?")) {
+            if (!confirm("Remove Model from Active List?")) {
                 return;
             }
 
@@ -764,6 +743,24 @@ input[type='select'] {
             setTimeout(() => {
                 messageElement.style.opacity = '0';
             }, 3000);
+        }
+
+        function flashElementRed(element) {
+            const messageElement = document.getElementById(element);
+            messageElement.style.backgroundColor = '#FF8888';
+
+            setTimeout(() => {
+                messageElement.style.backgroundColor = 'unset';
+            }, 3000);
+        }
+
+        function flashElementGreen(element) {
+            const messageElement = document.getElementById(element);
+            messageElement.style.backgroundColor = '#88FF88';
+
+            setTimeout(() => {
+                messageElement.style.backgroundColor = 'unset';
+            }, 500);
         }
 
         document.getElementById('userPrompt').addEventListener('input', function(event) {
@@ -970,7 +967,7 @@ input[type='select'] {
         });
 
         function loadModels() {
-            fetch('http://localhost:8000/get-items')
+            fetch('http://localhost:8000/get-items-active')
                 .then(response => response.json())
                 .then(data => {
                     const headerRow = document.getElementById('headerRow');
@@ -1018,6 +1015,7 @@ input[type='select'] {
                 document.getElementById('addItemFormHider').style.display = 'none'
             } else {
                 document.getElementById('addItemFormHider').style.display = 'block';
+                loadSavedModelsList();
             }
         };
 
@@ -1079,45 +1077,52 @@ input[type='select'] {
                 apiKey: document.getElementById('newItemApiKey').value.trim()
             };
 
-            if (item.provider && item.model && item.providerUrl && item.apiKey) {
-                const headerCells = document.querySelectorAll('#promptTable thead th');
-                const itemExists = Array.from(headerCells).some(th => 
-                    th.getAttribute('data-provider') === item.provider &&
-                    th.getAttribute('data-model') === item.model &&
-                    th.getAttribute('data-parameters') === item.parameters &&
-                    th.getAttribute('data-providerUrl') === item.providerUrl &&
-                    th.getAttribute('data-apiKey') === item.apiKey
-                );
+            if (!(item.provider && item.model && item.providerUrl && item.apiKey)) {
+                showMessage("Missing required fields:");
 
-                if (itemExists) {
-                    showMessage("Duplicate erntry.");
-                    return;
-                }
+                if (!item.model) { flashElementRed("newItemModel"); }
+                if (!item.provider) { flashElementRed("newItemProvider"); }
+                if (!item.providerUrl) { flashElementRed("newItemProviderUrl"); }
+                if (!item.apiKey) { flashElementRed("newItemApiKey"); }
 
-                const headerRow = document.getElementById('headerRow');
-                const th = addColumn(item, headerRow.cells.length);
-                headerRow.appendChild(th);
+                return;
+            } 
 
-                const table = document.querySelector('#promptTable');
-                const rows = table.rows;
-                for (let i = 1; i < rows.length; i++) {
-                    if (rows[i].cells[0].className === 'prompt-row') {
-                        continue
-                    }
+            const headerCells = document.querySelectorAll('#promptTable thead th');
+            const itemExists = Array.from(headerCells).some(th => 
+                th.getAttribute('data-provider') === item.provider &&
+                th.getAttribute('data-model') === item.model &&
+                th.getAttribute('data-parameters') === item.parameters &&
+                th.getAttribute('data-providerUrl') === item.providerUrl &&
+                th.getAttribute('data-apiKey') === item.apiKey
+            );
 
-                    const newRow = rows[i];
-                    const newCell = newRow.insertCell(-1);
-                    newCell.innerHTML = '~ null ~';
-                    newCell.style.transform = "scale(0.75)";
-                    newCell.className = "center";
-                    newCell.title = "This model was not yet added for this prompt.";
-                }
-
-                saveItems();
-                document.getElementById('addItemFormHider').style.display = 'none'
-            } else {
-                showMessage("All fields are required.");
+            if (itemExists) {
+                showMessage("This model is already active.");
+                return;
             }
+
+            const headerRow = document.getElementById('headerRow');
+            const th = addColumn(item, headerRow.cells.length);
+            headerRow.appendChild(th);
+
+            const table = document.querySelector('#promptTable');
+            const rows = table.rows;
+            for (let i = 1; i < rows.length; i++) {
+                if (rows[i].cells[0].className === 'prompt-row') {
+                    continue
+                }
+
+                const newRow = rows[i];
+                const newCell = newRow.insertCell(-1);
+                newCell.innerHTML = '~ null ~';
+                newCell.style.transform = "scale(0.75)";
+                newCell.className = "center";
+                newCell.title = "This model was not yet added for this prompt.";
+            }
+
+            saveItems();
+            document.getElementById('addItemFormHider').style.display = 'none'
         };
 
         async function saveItems() {
@@ -1131,7 +1136,7 @@ input[type='select'] {
                 apiKey: th.getAttribute('data-apiKey'),
             }));
 
-            fetch('http://localhost:8000/save-items', {
+            fetch('http://localhost:8000/save-items-active', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -1163,6 +1168,77 @@ input[type='select'] {
 
             autoGrowTextArea(textarea);
         });
+
+        function loadSavedModelsList() {
+            const selectElement = document.getElementById("modelListSaved");
+            selectElement.length = 0;
+
+            fetch('http://localhost:8000/get-items-saved')
+                .then(response => response.json())
+                .then(data => {
+                const itemDataList = [];
+                data.forEach((item, index) => {
+                    const itemData = {
+                    provider: item.provider,
+                    model: item.model,
+                    parameters: item.parameters,
+                    providerUrl: item.providerUrl,
+                    apiKey: item.apiKey
+                    };
+                    itemDataList.push(itemData);
+
+                    const uniqueId = `item-${index}`;
+                    const option = new Option(itemData.model + " / " + itemData.provider, uniqueId);
+                    option.title = `${itemData.model}\n${itemData.provider}\n${itemData.providerUrl}\n${itemData.parameters}\n`;
+                    option.dataset.itemData = JSON.stringify(itemData);
+                    selectElement.appendChild(option);
+                });
+
+                selectElement.addEventListener("change", function() {
+                    const selectedItemId = this.value;
+                    const itemData = JSON.parse(this.querySelector(`[value="${selectedItemId}"]`).dataset.itemData);
+                    optionClicked(itemData);
+                });
+                })
+                .catch(error => console.error('Error loading data:', error));
+        }
+
+        function optionClicked (item) {
+            document.getElementById("newItemModel").value = item.model;
+            document.getElementById("newItemProvider").value = item.provider;
+            document.getElementById("newItemProviderUrl").value = item.providerUrl;
+            document.getElementById("newItemParameters").value = item.parameters;
+            document.getElementById("newItemApiKey").value = item.apiKey;
+
+            const selectElement = document.getElementById("modelListSaved");
+            selectElement.selectElement = null;
+
+            flashElementGreen("newItemModel");
+            flashElementGreen("newItemProvider");
+            flashElementGreen("newItemProviderUrl");
+            flashElementGreen("newItemParameters");
+            flashElementGreen("newItemApiKey");
+        }
+
+        function deleteFromSavedModelsList() {
+            const selectElement = document.getElementById("modelListSaved");
+            const selectedIndex = selectElement.selectedIndex;
+
+            if (selectedIndex !== -1) {
+                if (!confirm("Permanently Delete Model Profile?")) {
+                    return;
+                }
+                selectElement.remove(selectedIndex);
+            }
+        }
+
+        function clearAddItemForm() {
+            document.getElementById("newItemModel").value = '';
+            document.getElementById("newItemProvider").value = '';
+            document.getElementById("newItemProviderUrl").value = '';
+            document.getElementById("newItemParameters").value = '';
+            document.getElementById("newItemApiKey").value = '';
+        }
 
     </script>
 </body>
