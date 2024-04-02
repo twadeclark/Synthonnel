@@ -87,7 +87,7 @@
             gap: 20px;
             width: 50%;
             padding-top: 44px;
-        }
+                    }
 
         #userPrompt {
             left: 174px;
@@ -1121,8 +1121,20 @@ input[type='select'] {
                 newCell.title = "This model was not yet added for this prompt.";
             }
 
+            const selectElement = document.getElementById("modelListSaved");
+            const itemDataString = JSON.stringify(item);
+            const itemSavedExists = Array.from(selectElement.options)
+                          .some(option => option.dataset.itemData === itemDataString);
+
+            if (!itemSavedExists) {
+                const option = new Option(item.model + " / " + item.provider, JSON.stringify(item));
+                option.dataset.itemData = itemDataString;
+                option.title = `${item.model}\n${item.provider}\n${item.providerUrl}\n${item.parameters}\n`;
+                selectElement.appendChild(option);
+                saveSavedModelList();
+            }
+
             saveItemsActiveModels();
-            document.getElementById('addItemFormHider').style.display = 'none'
         };
 
         async function saveItemsActiveModels() {
@@ -1179,11 +1191,11 @@ input[type='select'] {
                 const itemDataList = [];
                 data.forEach((item, index) => {
                     const itemData = {
-                    provider: item.provider,
-                    model: item.model,
-                    parameters: item.parameters,
-                    providerUrl: item.providerUrl,
-                    apiKey: item.apiKey
+                        provider: item.provider,
+                        model: item.model,
+                        parameters: item.parameters,
+                        providerUrl: item.providerUrl,
+                        apiKey: item.apiKey
                     };
                     itemDataList.push(itemData);
 
@@ -1230,25 +1242,32 @@ input[type='select'] {
                 }
                 selectElement.remove(selectedIndex);
 
-                const itemDataList = Array.from(selectElement.options).map(option => JSON.parse(option.dataset.itemData));
-
-                fetch('http://localhost:8000/save-items-saved', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(itemDataList),
-                })
-                .then(response => {
-                    if (response.ok) {
-                        console.log("Items saved successfully.");
-                    } else {
-                        console.error("Failed to save items.");
-                        showMessage("Failed to save items.");
-                    }
-                })
-                .catch(error => console.error('Error:', error));
+                saveSavedModelList();
             }
+        }
+
+        function saveSavedModelList() {
+            const selectElement = document.getElementById("modelListSaved");
+            const itemDataList = Array.from(selectElement.options).map(option => JSON.parse(option.dataset.itemData));
+
+            fetch('http://localhost:8000/save-items-saved', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(itemDataList),
+            })
+            .then(response => {
+                if (response.ok) {
+                    console.log("Items saved successfully.");
+                } else {
+                    console.error("Failed to save items.");
+                    showMessage("Failed to save items.");
+                }
+            })
+            .catch(error => console.error('Error:', error));
+
+            loadSavedModelsList();
         }
 
         function clearAddItemForm() {
