@@ -497,6 +497,10 @@
     color: red;
 }
 
+.addItemForm {
+    -webkit-transition: background-color .35s ease-in-out;
+    transition: background-color .35s ease-in-out;
+}
 .addItemForm-left {
     display: grid; 
     gap: 20px;
@@ -523,6 +527,8 @@ input[type='select'] {
     margin-bottom: 20px;
     max-height: 329px;
     overflow-y: scroll;
+    background-color: var(--emphasisBackgroundColor);
+    color: var(--textColor);
 }
 .current-saved-adjustment {
     padding-left: 20px;
@@ -531,6 +537,12 @@ input[type='select'] {
 #newItemParameters {
     font-size: 18px;
     resize: vertical;
+}
+
+.nightmode-color-changer {
+    background-color: var(--emphasisBackgroundColor);
+    color: var(--textColor);
+    transition: background-color 0.5s ease-in-out;
 }
 
 </style>
@@ -555,12 +567,12 @@ input[type='select'] {
             <div id="message">Disappearing message</div>
             <div class="addItemForm-left">
                 <span class="closebtn" onclick="this.parentElement.parentElement.parentElement.style.display = 'none';">&times;</span>
-                <input type="text" id="newItemModel" placeholder="Model" title="Model">
-                <input type="text" id="newItemProvider" placeholder="Provider" title="Provider">
-                <input type="text" id="newItemProviderUrl" placeholder="Provider Url" title="Provider Url">
-                <textarea id="newItemParameters" placeholder="parameters.." rows="4" title="Parameters"></textarea>
-                <input type="password" id="newItemApiKey" placeholder="Api Key" title="Api Key">
-                <input type="text" id="newItemNote" placeholder="note.." title="Note">
+                <input type="text" id="newItemModel" placeholder="Model" title="Model" class="nightmode-color-changer">
+                <input type="text" id="newItemProvider" placeholder="Provider" title="Provider" class="nightmode-color-changer">
+                <input type="text" id="newItemProviderUrl" placeholder="Provider Url" title="Provider Url" class="nightmode-color-changer">
+                <textarea id="newItemParameters" placeholder="parameters.." rows="4" title="Parameters" class="nightmode-color-changer"></textarea>
+                <input type="password" id="newItemApiKey" placeholder="Api Key" title="Api Key" class="nightmode-color-changer">
+                <input type="text" id="newItemNote" placeholder="note.." title="Note" class="nightmode-color-changer">
 
                 <div>
                     <div style="float: left;">
@@ -572,7 +584,7 @@ input[type='select'] {
                 </div>
             </div>
             <div class="addItemForm-right">
-                <select name="modelListSaved" id="modelListSaved" class="select-class" size="100"></select>
+                <select name="modelListSaved" id="modelListSaved" class="select-class" size="100" title="Recently Used Profiles"></select>
                 <div style="text-align: right;">
                     <button id="deleteFromModelListSaved" class="button small-text-just-wide-enough-button" onclick="deleteFromSavedModelsList();">Delete</button>
                 </div>
@@ -732,7 +744,7 @@ input[type='select'] {
             messageElement.style.backgroundColor = '#FF8888';
 
             setTimeout(() => {
-                messageElement.style.backgroundColor = 'unset';
+                messageElement.style.backgroundColor = 'inherit';
             }, 3000);
         }
 
@@ -741,7 +753,7 @@ input[type='select'] {
             messageElement.style.backgroundColor = '#88FF88';
 
             setTimeout(() => {
-                messageElement.style.backgroundColor = 'unset';
+                messageElement.style.backgroundColor = 'inherit';
             }, 500);
         }
 
