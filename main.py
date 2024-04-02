@@ -1,6 +1,5 @@
 from typing import List
 import json
-import os
 import asyncio
 import random
 from fastapi import FastAPI, WebSocket
@@ -27,6 +26,7 @@ class Item(BaseModel):
     parameters: str
     providerUrl: str
     apiKey: str
+    note: str
 
 @app.websocket("/ws/stream-llm-response")
 async def stream_llm_response(websocket: WebSocket):
@@ -56,14 +56,14 @@ async def stream_llm_response(websocket: WebSocket):
     random.shuffle(dump_text)
     temp_text = ' '.join(dump_text)
 
-    await asyncio.sleep(random.uniform(0.5, 2.0))
+    await asyncio.sleep(random.uniform(0.0, 0.2))
 
-    base_int = random.uniform(0.01, 0.3)
+    base_int = random.uniform(0.0, 0.03)
 
     for i in range(0, len(temp_text), 5):
         chunk = temp_text[i:i+5]
 
-        await asyncio.sleep(base_int * random.uniform(0.01, 0.3))
+        await asyncio.sleep(base_int * random.uniform(0.0, 0.03))
         await websocket.send_text(chunk)
 
     await websocket.close()

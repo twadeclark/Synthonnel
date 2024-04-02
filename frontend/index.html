@@ -19,10 +19,8 @@
             color: var(--textColor);
             line-height: 28px;
             font-size: 16px;
-        }
-        *{
-            transition: background-color 0.5s ease-in-out;
-        }
+            -webkit-transition: all .35s ease-in-out;
+            transition: all .35s ease-in-out;        }
 
         .button {
             cursor: pointer;
@@ -159,6 +157,9 @@
         }
         .class3 {
             display: none;
+        }
+        .class4 {
+            display: none;
             font-weight: normal;
             font-size: x-small;
             font-family: 'Lucida Console', Courier, monospace;
@@ -167,7 +168,7 @@
             white-space: pre-line;
             margin-top: 6px;
         }
-        .class4 {
+        .class5 {
             display: none;
             font-weight: normal;
             font-size: x-small;
@@ -227,7 +228,7 @@
         .response-row {
             vertical-align: top;
             background-color: var(--emphasisBackgroundColor);
-            white-space: pre-wrap;
+            transition: background-color 0.5s ease-in-out;
         }
 
         .switch {
@@ -328,12 +329,6 @@
             text-align: center;
             font-size: 150%;
             padding-top: 12px;
-        }
-        .dropdown-content-delete {
-            display: initial;
-        }
-        .dropdown-content-pause {
-            display: none;
         }
 
         details {
@@ -604,8 +599,9 @@ input[type='select'] {
             <hr>
             <input type="checkbox" id="check1" checked> <label for="check1">Model</label> <br>
             <input type="checkbox" id="check2"> <label for="check2">Provider</label> <br>
+            <input type="checkbox" id="check3"> <label for="check3">Note</label> <br>
             <input type="checkbox" id="check4"> <label for="check4">Provider Url</label> <br>
-            <input type="checkbox" id="check3"> <label for="check3">Parameters</label> <br>
+            <input type="checkbox" id="check5"> <label for="check5">Parameters</label> <br>
             <hr>
             <div style="text-align: center;">
                 <label> Plain </label>
@@ -621,16 +617,6 @@ input[type='select'] {
     </div>
 
     <script>
-        const menuContainers = document.querySelectorAll(".menu-container");
-
-        menuContainers.forEach(container => {
-            const menuIcon = container.querySelector(".menu-icon");
-            const menu = container.querySelector(".menu");
-
-            menuIcon.addEventListener("click", function() {
-                menu.classList.toggle("show");
-            });
-        });
 
         function deleteColumn(indexToRemove) {
             if (!confirm("Remove Model from Active List?")) {
@@ -661,10 +647,7 @@ input[type='select'] {
             cell.style.setProperty('font-weight', pausedVal ? '' : 'lighter');
             cell.style.setProperty('text-decoration-line', pausedVal ? '' : 'line-through');
 
-            const detailsElements = document.querySelectorAll('details[open]');
-                    detailsElements.forEach(function(detailsElement) {
-                    detailsElement.removeAttribute('open');
-                });
+            document.querySelectorAll('details[open]').forEach(detailsElement => detailsElement.removeAttribute('open'));
         }
         
         function moveColumnLeft(cellIndex) {
@@ -683,8 +666,7 @@ input[type='select'] {
                 if (cellIndex === 0) {
                     targetRow.appendChild(cellToMove);
                 } else {
-                    const previousCell = cells[cellIndex - 1];
-                    targetRow.insertBefore(cellToMove, previousCell);
+                    targetRow.insertBefore(cellToMove, cells[cellIndex - 1]);
                 }
             }
 
@@ -707,8 +689,7 @@ input[type='select'] {
                 if (cellIndex === cells.length - 1) {
                     targetRow.insertBefore(cellToMove, targetRow.firstChild);
                 } else {
-                    const nextCell = cells[cellIndex + 1];
-                    targetRow.insertBefore(nextCell, cellToMove);
+                    targetRow.insertBefore(cells[cellIndex + 1], cellToMove);
                 }
             }
 
@@ -728,7 +709,8 @@ input[type='select'] {
                             model: item.getAttribute('data-model'),
                             parameters: item.getAttribute('data-parameters'),
                             providerUrl: item.getAttribute('data-providerUrl'),
-                            apiKey: item.getAttribute('data-apiKey')
+                            apiKey: item.getAttribute('data-apiKey'),
+                            note: item.getAttribute('data-note')
                         };
                 item = addColumn(itemData, index);
                 row.cells[index].replaceWith(item);
@@ -780,16 +762,6 @@ input[type='select'] {
             if (!prompt) {
                 return;
             }
-
-            const elementsPause = document.querySelectorAll(`.dropdown-content-pause`);
-            elementsPause.forEach(element => {
-                element.style.display = "block";
-            });
-
-            const elementsDelete = document.querySelectorAll(`.dropdown-content-delete`);
-            elementsDelete.forEach(element => {
-                element.style.display = "none";
-            });
 
             const table = document.querySelector('#promptTable');
             const headerRow = table.rows[0];
@@ -865,7 +837,8 @@ input[type='select'] {
                             model: item.getAttribute('data-model'),
                             parameters: item.getAttribute('data-parameters'),
                             providerUrl: item.getAttribute('data-providerUrl'),
-                            apiKey: item.getAttribute('data-apiKey')
+                            apiKey: item.getAttribute('data-apiKey'),
+                            note: item.getAttribute('data-note')
                         };
                         ws.send(JSON.stringify(itemData));
                     };
@@ -935,11 +908,14 @@ input[type='select'] {
 
                         Array.from(newRow.cells).forEach((item, index) => {
                             const tempCell = newRow.cells[index];
-                            const thisTokensPerSecond = parseFloat(tempCell.querySelector("#tokspersecValue").innerHTML);
 
-                            if (thisTokensPerSecond) {
-                                maxTokPerSec = Math.max(maxTokPerSec, thisTokensPerSecond);
-                                minTokPerSec = Math.min(minTokPerSec, thisTokensPerSecond);
+                            if (tempCell.querySelector("#tokspersecValue")) {
+                                const thisTokensPerSecond = parseFloat(tempCell.querySelector("#tokspersecValue").innerHTML);
+
+                                if (thisTokensPerSecond) {
+                                    maxTokPerSec = Math.max(maxTokPerSec, thisTokensPerSecond);
+                                    minTokPerSec = Math.min(minTokPerSec, thisTokensPerSecond);
+                                }
                             }
                         });
                     }
@@ -953,10 +929,14 @@ input[type='select'] {
             function toggleVisibility(checkboxId, className) {
                 const checkbox = document.getElementById(checkboxId);
                 checkbox.addEventListener('change', function() {
-                    const elements = document.querySelectorAll(`.${className}`);
-                    elements.forEach(element => {
-                        element.style.display = checkbox.checked ? "block" : "none";
-                    });
+                    const styleSheet = document.createElement("style");
+                    document.head.appendChild(styleSheet);
+
+                    if (checkbox.checked) {
+                        styleSheet.sheet.insertRule(`.${className} { display: block; }`, 0);
+                    } else {
+                        styleSheet.sheet.insertRule(`.${className} { display: none; }`, 0);
+                    }
                 });
             }
 
@@ -964,6 +944,7 @@ input[type='select'] {
             toggleVisibility('check2', 'class2');
             toggleVisibility('check3', 'class3');
             toggleVisibility('check4', 'class4');
+            toggleVisibility('check5', 'class5');
         });
 
         function loadModels() {
@@ -997,8 +978,9 @@ input[type='select'] {
 
                 <div class="class1">${item.model}</div>
                 <div class="class2">${item.provider}</div>
+                <div class="class3">${item.note}</div>
                 <div class="class4">${item.providerUrl}</div>
-                <div class="class3">${item.parameters}</div>
+                <div class="class5">${item.parameters}</div>
             `;
 
             th.setAttribute('data-provider', item.provider);
@@ -1006,6 +988,7 @@ input[type='select'] {
             th.setAttribute('data-parameters', item.parameters);
             th.setAttribute('data-providerUrl', item.providerUrl);
             th.setAttribute('data-apiKey', item.apiKey);
+            th.setAttribute('data-note', item.note);
 
             return th;
         }
@@ -1043,30 +1026,17 @@ input[type='select'] {
         };
 
         document.getElementById('monospace-responses').onchange = function() {
-            const body = document.body;
-            var elements = document.getElementsByClassName('response-row');
+            const styleSheet = document.createElement("style");
+            document.head.appendChild(styleSheet);
+
             if (document.getElementById('monospace-responses').checked) {
-                setClassFont('response-row', 'monospace');
+                styleSheet.sheet.insertRule(`.response-row { white-space: pre-wrap; }`, 0);
+                styleSheet.sheet.insertRule(`.response-row { font-family: monospace; }`, 0);
             } else {
-                setClassFont('response-row', '');
+                styleSheet.sheet.insertRule(`.response-row { white-space: initial; }`, 0);
+                styleSheet.sheet.insertRule(`.response-row { font-family: unset; }`, 0);
             }
         };
-
-        function setClassFont(className, fontFamily) {
-            const stylesheets = document.styleSheets;
-
-            for (let loop = 0; loop < stylesheets.length; loop++) {
-                const sheet = stylesheets[loop].cssRules;
-
-                for (let temp = 0; temp < sheet.length; temp++) {
-                    const rule = sheet[temp];
-                    if (rule.selectorText === `.${className}`) {
-                        rule.style.fontFamily = fontFamily;
-                        return;
-                    }
-                }
-            }
-        }
 
         document.getElementById('confirmAddItem').onclick = async function() {
             const item = {
@@ -1074,7 +1044,8 @@ input[type='select'] {
                 model: document.getElementById('newItemModel').value.trim(),
                 parameters: document.getElementById('newItemParameters').value.trim(),
                 providerUrl: document.getElementById('newItemProviderUrl').value.trim(),
-                apiKey: document.getElementById('newItemApiKey').value.trim()
+                apiKey: document.getElementById('newItemApiKey').value.trim(),
+                note: document.getElementById('newItemNote').value.trim()
             };
 
             if (!(item.provider && item.model && item.providerUrl && item.apiKey)) {
@@ -1094,7 +1065,8 @@ input[type='select'] {
                 th.getAttribute('data-model') === item.model &&
                 th.getAttribute('data-parameters') === item.parameters &&
                 th.getAttribute('data-providerUrl') === item.providerUrl &&
-                th.getAttribute('data-apiKey') === item.apiKey
+                th.getAttribute('data-apiKey') === item.apiKey &&
+                th.getAttribute('data-note') === item.note
             );
 
             if (itemExists) {
@@ -1129,7 +1101,7 @@ input[type='select'] {
             if (!itemSavedExists) {
                 const option = new Option(item.model + " / " + item.provider, JSON.stringify(item));
                 option.dataset.itemData = itemDataString;
-                option.title = `${item.model}\n${item.provider}\n${item.providerUrl}\n${item.parameters}\n`;
+                option.title = `${item.model}\n${item.provider}\n${item.note}\n${item.providerUrl}\n${item.parameters}\n`;
                 selectElement.appendChild(option);
                 saveSavedModelList();
             }
@@ -1146,6 +1118,7 @@ input[type='select'] {
                 parameters: th.getAttribute('data-parameters'),
                 providerUrl: th.getAttribute('data-providerUrl'),
                 apiKey: th.getAttribute('data-apiKey'),
+                note: th.getAttribute('data-note'),
             }));
 
             fetch('http://localhost:8000/save-items-active', {
@@ -1181,9 +1154,11 @@ input[type='select'] {
             autoGrowTextArea(textarea);
         });
 
-        function loadSavedModelsList() {
+        async function loadSavedModelsList() {
+            const loader = ms => new Promise(res => setTimeout(res, ms));
             const selectElement = document.getElementById("modelListSaved");
             selectElement.length = 0;
+            await loader(100);
 
             fetch('http://localhost:8000/get-items-saved')
                 .then(response => response.json())
@@ -1195,13 +1170,14 @@ input[type='select'] {
                         model: item.model,
                         parameters: item.parameters,
                         providerUrl: item.providerUrl,
-                        apiKey: item.apiKey
+                        apiKey: item.apiKey,
+                        note: item.note
                     };
                     itemDataList.push(itemData);
 
                     const uniqueId = `item-${index}`;
                     const option = new Option(itemData.model + " / " + itemData.provider, uniqueId);
-                    option.title = `${itemData.model}\n${itemData.provider}\n${itemData.providerUrl}\n${itemData.parameters}\n`;
+                    option.title = `${itemData.model}\n${itemData.provider}\n${itemData.note}\n${itemData.providerUrl}\n${itemData.parameters}\n`;
                     option.dataset.itemData = JSON.stringify(itemData);
                     selectElement.appendChild(option);
                 });
@@ -1216,20 +1192,20 @@ input[type='select'] {
         }
 
         function optionClicked (item) {
-            document.getElementById("newItemModel").value = item.model;
-            document.getElementById("newItemProvider").value = item.provider;
-            document.getElementById("newItemProviderUrl").value = item.providerUrl;
-            document.getElementById("newItemParameters").value = item.parameters;
-            document.getElementById("newItemApiKey").value = item.apiKey;
+            function setAndFlash(newItemParameter, item_value) {
+                modelWas = document.getElementById(newItemParameter).value;
+                document.getElementById(newItemParameter).value = item_value;
+                if (!(modelWas === item_value)) {
+                    flashElementGreen(newItemParameter);
+                }
+            }
 
-            const selectElement = document.getElementById("modelListSaved");
-            selectElement.selectElement = null;
-
-            flashElementGreen("newItemModel");
-            flashElementGreen("newItemProvider");
-            flashElementGreen("newItemProviderUrl");
-            flashElementGreen("newItemParameters");
-            flashElementGreen("newItemApiKey");
+            setAndFlash("newItemModel", item.model)
+            setAndFlash("newItemProvider", item.provider)
+            setAndFlash("newItemProviderUrl", item.providerUrl)
+            setAndFlash("newItemParameters", item.parameters)
+            setAndFlash("newItemApiKey", item.apiKey)
+            setAndFlash("newItemNote", item.note)
         }
 
         function deleteFromSavedModelsList() {
@@ -1276,6 +1252,7 @@ input[type='select'] {
             document.getElementById("newItemProviderUrl").value = '';
             document.getElementById("newItemParameters").value = '';
             document.getElementById("newItemApiKey").value = '';
+            document.getElementById("newItemNote").value = '';
         }
 
     </script>
