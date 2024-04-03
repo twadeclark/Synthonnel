@@ -529,6 +529,7 @@ input[type='select'] {
     overflow-y: scroll;
     background-color: var(--emphasisBackgroundColor);
     color: var(--textColor);
+    width: 40%;
 }
 .current-saved-adjustment {
     padding-left: 20px;
@@ -543,6 +544,15 @@ input[type='select'] {
     background-color: var(--emphasisBackgroundColor);
     color: var(--textColor);
     transition: background-color 0.5s ease-in-out;
+}
+
+#modelListSaved {
+    position: block;
+    width: 100%;
+}
+#modelListTemplates {
+    display: none;
+    width: 100%;
 }
 
 </style>
@@ -585,8 +595,17 @@ input[type='select'] {
             </div>
             <div class="addItemForm-right">
                 <select name="modelListSaved" id="modelListSaved" class="select-class" size="100" title="Recently Used Profiles"></select>
-                <div style="text-align: right;">
+                <div style="position: absolute; right: 20px; bottom: 20px;">
                     <button id="deleteFromModelListSaved" class="button small-text-just-wide-enough-button" onclick="deleteFromSavedModelsList();">Delete</button>
+                </div>
+                <select name="modelListTemplates" id="modelListTemplates" class="select-class" size="100" title="System Templates Profiles"></select>
+                <div style="text-align: left;">
+                    <label> User </label>
+                    <label class="switch position-switch-lower">
+                        <input type="checkbox" id="view-model-templates">
+                        <span class="slider round"></span>
+                    </label>
+                    <label for="view-model-templates"> System </label>
                 </div>
             </div>
         </div>
@@ -937,6 +956,7 @@ input[type='select'] {
 
         document.addEventListener('DOMContentLoaded', function() {
             loadModels();
+            loadTemplateModelsList();
 
             function toggleVisibility(checkboxId, className) {
                 const checkbox = document.getElementById(checkboxId);
@@ -1007,7 +1027,7 @@ input[type='select'] {
 
         document.getElementById('addItemBtn').onclick = function() {
             if (document.getElementById('addItemFormHider').style.display == 'block') {
-                document.getElementById('addItemFormHider').style.display = 'none'
+                document.getElementById('addItemFormHider').style.display = 'none';
             } else {
                 document.getElementById('addItemFormHider').style.display = 'block';
                 loadSavedModelsList();
@@ -1016,14 +1036,13 @@ input[type='select'] {
 
         document.getElementById('settingsBtn').onclick = function() {
             if (document.getElementById('settingsFormHider').style.display == 'block') {
-                document.getElementById('settingsFormHider').style.display = 'none'
+                document.getElementById('settingsFormHider').style.display = 'none';
             } else {
                 document.getElementById('settingsFormHider').style.display = 'block';
             }
         };
 
         document.getElementById('darkMode').onchange = function() {
-            const body = document.body;
             if (document.getElementById('darkMode').checked) {
                 document.documentElement.style.setProperty('--backgroundColor', '#2F2F2F');
                 document.documentElement.style.setProperty('--textColor', '#F0F0F0');
@@ -1047,6 +1066,25 @@ input[type='select'] {
             } else {
                 styleSheet.sheet.insertRule(`.response-row { white-space: initial; }`, 0);
                 styleSheet.sheet.insertRule(`.response-row { font-family: unset; }`, 0);
+            }
+        };
+
+        document.getElementById('view-model-templates').onchange = function() {
+            if (document.getElementById('view-model-templates').checked) {
+                document.getElementById('modelListSaved').style.display = 'none';
+                document.getElementById('modelListTemplates').style.display = 'block';
+
+                document.querySelector('#deleteFromModelListSaved').disabled = true;
+                document.getElementById('deleteFromModelListSaved').style.opacity = '0.5';
+
+
+            } else {
+                document.getElementById('modelListSaved').style.display = 'block';
+                document.getElementById('modelListTemplates').style.display = 'none';
+
+                document.querySelector('#deleteFromModelListSaved').removeAttribute("disabled");
+                document.getElementById('deleteFromModelListSaved').style.opacity = '';
+
             }
         };
 
@@ -1188,6 +1226,41 @@ input[type='select'] {
                     itemDataList.push(itemData);
 
                     const uniqueId = `item-${index}`;
+                    const option = new Option(itemData.model + " / " + itemData.provider + " / " + itemData.note, uniqueId);
+                    option.title = `${itemData.model}\n${itemData.provider}\n${itemData.note}\n${itemData.providerUrl}\n${itemData.parameters}\n`;
+                    option.dataset.itemData = JSON.stringify(itemData);
+                    selectElement.appendChild(option);
+                });
+
+                selectElement.addEventListener("change", function() {
+                    const selectedItemId = this.value;
+                    const itemData = JSON.parse(this.querySelector(`[value="${selectedItemId}"]`).dataset.itemData);
+                    optionClicked(itemData);
+                });
+                })
+                .catch(error => console.error('Error loading data:', error));
+        }
+
+        async function loadTemplateModelsList() {
+            const selectElement = document.getElementById("modelListTemplates");
+            selectElement.length = 0;
+
+            fetch('http://localhost:8000/get-items-templates')
+                .then(response => response.json())
+                .then(data => {
+                const itemDataList = [];
+                data.forEach((item, index) => {
+                    const itemData = {
+                        provider: item.provider,
+                        model: item.model,
+                        parameters: item.parameters,
+                        providerUrl: item.providerUrl,
+                        apiKey: item.apiKey,
+                        note: item.note
+                    };
+                    itemDataList.push(itemData);
+
+                    const uniqueId = `template-item-${index}`;
                     const option = new Option(itemData.model + " / " + itemData.provider, uniqueId);
                     option.title = `${itemData.model}\n${itemData.provider}\n${itemData.note}\n${itemData.providerUrl}\n${itemData.parameters}\n`;
                     option.dataset.itemData = JSON.stringify(itemData);

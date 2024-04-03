@@ -11,6 +11,7 @@ app = FastAPI()
 
 json_file_path_active = 'items-active.json'
 json_file_path_saved = 'items-saved.json'
+json_file_path_templates = 'items-templates.json'
 
 app.add_middleware(
     CORSMiddleware,
@@ -83,6 +84,11 @@ def save_items_active(items: List[Item]):
 @app.get("/get-items-saved")
 def get_items_saved():
     with open(json_file_path_saved, 'r', encoding='utf-8') as file:
+        return json.load(file)
+
+@app.get("/get-items-templates")
+def get_items_templates():
+    with open(json_file_path_templates, 'r', encoding='utf-8') as file:
         return json.load(file)
 
 @app.post("/save-items-saved")

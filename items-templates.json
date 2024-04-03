@@ -1,0 +1,18 @@
+[
+    {
+        "provider": "LM Studio",
+        "model": "(local model)",
+        "parameters": "temp = 1.0\ntop_k = 1.0\ntop_p = 1.0",
+        "providerUrl": "localhost",
+        "apiKey": "",
+        "note": ""
+    },
+    {
+        "provider": "HuggingFace",
+        "model": "GPT2",
+        "parameters": "temp = 0.7",
+        "providerUrl": "http://api.huggingface.com/GPT2/",
+        "apiKey": "",
+        "note": ""
+    }
+]
