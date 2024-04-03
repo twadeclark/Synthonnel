@@ -1,18 +1,26 @@
 [
     {
-        "provider": "LM Studio",
-        "model": "(local model)",
-        "parameters": "temp = 1.0\ntop_k = 1.0\ntop_p = 1.0",
+        "model": "Lorem Ipsum",
+        "provider": "default",
+        "note": "Random Generator",
         "providerUrl": "localhost",
-        "apiKey": "",
-        "note": ""
+        "parameters": "temp = 1.0\ntop_k = 1.0\ntop_p = 1.0",
+        "apiKey": ""
     },
     {
-        "provider": "HuggingFace",
+        "model": "Local Model",
+        "provider": "LM Studio",
+        "note": "",
+        "providerUrl": "localhost",
+        "parameters": "temp = 1.0\ntop_k = 1.0\ntop_p = 1.0",
+        "apiKey": ""
+    },
+    {
         "model": "GPT2",
-        "parameters": "temp = 0.7",
+        "provider": "Hugging Face",
+        "note": "",
         "providerUrl": "http://api.huggingface.com/GPT2/",
-        "apiKey": "",
-        "note": ""
+        "parameters": "temp = 0.7",
+        "apiKey": ""
     }
 ]

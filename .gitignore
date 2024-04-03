@@ -1,3 +1,5 @@
 venv/
 items.json
 scratch.js
+scratch.py
+__pycache__

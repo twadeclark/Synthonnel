@@ -555,6 +555,10 @@ input[type='select'] {
     width: 100%;
 }
 
+#newItemProvider {
+    font-size: 18px;
+}
+
 </style>
 </head>
 <body>
@@ -578,7 +582,7 @@ input[type='select'] {
             <div class="addItemForm-left">
                 <span class="closebtn" onclick="this.parentElement.parentElement.parentElement.style.display = 'none';">&times;</span>
                 <input type="text" id="newItemModel" placeholder="Model" title="Model" class="nightmode-color-changer">
-                <input type="text" id="newItemProvider" placeholder="Provider" title="Provider" class="nightmode-color-changer">
+                <select name="newItemProvider" id="newItemProvider" placeholder="API Template" title="API Template" class="nightmode-color-changer">
                 <input type="text" id="newItemProviderUrl" placeholder="Provider Url" title="Provider Url" class="nightmode-color-changer">
                 <textarea id="newItemParameters" placeholder="parameters.." rows="4" title="Parameters" class="nightmode-color-changer"></textarea>
                 <input type="password" id="newItemApiKey" placeholder="Api Key" title="Api Key" class="nightmode-color-changer">
@@ -736,13 +740,13 @@ input[type='select'] {
             for(index=0; index<rowLen; index++) {
                 var item = row.cells[index];
                 const itemData = {
-                            provider: item.getAttribute('data-provider'),
-                            model: item.getAttribute('data-model'),
-                            parameters: item.getAttribute('data-parameters'),
-                            providerUrl: item.getAttribute('data-providerUrl'),
-                            apiKey: item.getAttribute('data-apiKey'),
-                            note: item.getAttribute('data-note')
-                        };
+                    model: item.getAttribute('data-model'),
+                    provider: item.getAttribute('data-provider'),
+                    note: item.getAttribute('data-note'),
+                    providerUrl: item.getAttribute('data-providerUrl'),
+                    parameters: item.getAttribute('data-parameters'),
+                    apiKey: item.getAttribute('data-apiKey')
+                };
                 item = addColumn(itemData, index);
                 row.cells[index].replaceWith(item);
             }
@@ -864,12 +868,12 @@ input[type='select'] {
                     ws.onopen = function(event) {
                         const itemData = {
                             prompt: prompt,
-                            provider: item.getAttribute('data-provider'),
                             model: item.getAttribute('data-model'),
-                            parameters: item.getAttribute('data-parameters'),
+                            note: item.getAttribute('data-note'),
+                            provider: item.getAttribute('data-provider'),
                             providerUrl: item.getAttribute('data-providerUrl'),
-                            apiKey: item.getAttribute('data-apiKey'),
-                            note: item.getAttribute('data-note')
+                            parameters: item.getAttribute('data-parameters'),
+                            apiKey: item.getAttribute('data-apiKey')
                         };
                         ws.send(JSON.stringify(itemData));
                     };
@@ -957,6 +961,7 @@ input[type='select'] {
         document.addEventListener('DOMContentLoaded', function() {
             loadModels();
             loadTemplateModelsList();
+            loadAPITemplates();
 
             function toggleVisibility(checkboxId, className) {
                 const checkbox = document.getElementById(checkboxId);
@@ -1015,12 +1020,12 @@ input[type='select'] {
                 <div class="class5">${item.parameters}</div>
             `;
 
-            th.setAttribute('data-provider', item.provider);
             th.setAttribute('data-model', item.model);
-            th.setAttribute('data-parameters', item.parameters);
-            th.setAttribute('data-providerUrl', item.providerUrl);
-            th.setAttribute('data-apiKey', item.apiKey);
+            th.setAttribute('data-provider', item.provider);
             th.setAttribute('data-note', item.note);
+            th.setAttribute('data-providerUrl', item.providerUrl);
+            th.setAttribute('data-parameters', item.parameters);
+            th.setAttribute('data-apiKey', item.apiKey);
 
             return th;
         }
@@ -1090,20 +1095,20 @@ input[type='select'] {
 
         document.getElementById('confirmAddItem').onclick = async function() {
             const item = {
-                provider: document.getElementById('newItemProvider').value.trim(),
                 model: document.getElementById('newItemModel').value.trim(),
-                parameters: document.getElementById('newItemParameters').value.trim(),
+                provider: document.getElementById('newItemProvider').value.trim(),
+                note: document.getElementById('newItemNote').value.trim(),
                 providerUrl: document.getElementById('newItemProviderUrl').value.trim(),
-                apiKey: document.getElementById('newItemApiKey').value.trim(),
-                note: document.getElementById('newItemNote').value.trim()
+                parameters: document.getElementById('newItemParameters').value.trim(),
+                apiKey: document.getElementById('newItemApiKey').value.trim()
             };
 
             if (!(item.provider && item.model && item.providerUrl && item.apiKey)) {
                 showMessage("Missing required fields:");
 
                 if (!item.model) { flashElementRed("newItemModel"); }
-                if (!item.provider) { flashElementRed("newItemProvider"); }
                 if (!item.providerUrl) { flashElementRed("newItemProviderUrl"); }
+                if (!item.provider) { flashElementRed("newItemProvider"); }
                 if (!item.apiKey) { flashElementRed("newItemApiKey"); }
 
                 return;
@@ -1111,12 +1116,12 @@ input[type='select'] {
 
             const headerCells = document.querySelectorAll('#promptTable thead th');
             const itemExists = Array.from(headerCells).some(th => 
-                th.getAttribute('data-provider') === item.provider &&
                 th.getAttribute('data-model') === item.model &&
-                th.getAttribute('data-parameters') === item.parameters &&
+                th.getAttribute('data-provider') === item.provider &&
+                th.getAttribute('data-note') === item.note &&
                 th.getAttribute('data-providerUrl') === item.providerUrl &&
-                th.getAttribute('data-apiKey') === item.apiKey &&
-                th.getAttribute('data-note') === item.note
+                th.getAttribute('data-parameters') === item.parameters &&
+                th.getAttribute('data-apiKey') === item.apiKey
             );
 
             if (itemExists) {
@@ -1213,30 +1218,30 @@ input[type='select'] {
             fetch('http://localhost:8000/get-items-saved')
                 .then(response => response.json())
                 .then(data => {
-                const itemDataList = [];
-                data.forEach((item, index) => {
-                    const itemData = {
-                        provider: item.provider,
-                        model: item.model,
-                        parameters: item.parameters,
-                        providerUrl: item.providerUrl,
-                        apiKey: item.apiKey,
-                        note: item.note
-                    };
-                    itemDataList.push(itemData);
+                    const itemDataList = [];
+                    data.forEach((item, index) => {
+                        const itemData = {
+                            provider: item.provider,
+                            model: item.model,
+                            parameters: item.parameters,
+                            providerUrl: item.providerUrl,
+                            apiKey: item.apiKey,
+                            note: item.note
+                        };
+                        itemDataList.push(itemData);
 
-                    const uniqueId = `item-${index}`;
-                    const option = new Option(itemData.model + " / " + itemData.provider + " / " + itemData.note, uniqueId);
-                    option.title = `${itemData.model}\n${itemData.provider}\n${itemData.note}\n${itemData.providerUrl}\n${itemData.parameters}\n`;
-                    option.dataset.itemData = JSON.stringify(itemData);
-                    selectElement.appendChild(option);
-                });
+                        const uniqueId = `item-${index}`;
+                        const option = new Option(itemData.model + " / " + itemData.provider + " / " + itemData.note, uniqueId);
+                        option.title = `${itemData.model}\n${itemData.provider}\n${itemData.note}\n${itemData.providerUrl}\n${itemData.parameters}\n`;
+                        option.dataset.itemData = JSON.stringify(itemData);
+                        selectElement.appendChild(option);
+                    });
 
-                selectElement.addEventListener("change", function() {
-                    const selectedItemId = this.value;
-                    const itemData = JSON.parse(this.querySelector(`[value="${selectedItemId}"]`).dataset.itemData);
-                    optionClicked(itemData);
-                });
+                    selectElement.addEventListener("change", function() {
+                        const selectedItemId = this.value;
+                        const itemData = JSON.parse(this.querySelector(`[value="${selectedItemId}"]`).dataset.itemData);
+                        optionClicked(itemData);
+                    });
                 })
                 .catch(error => console.error('Error loading data:', error));
         }
@@ -1248,32 +1253,45 @@ input[type='select'] {
             fetch('http://localhost:8000/get-items-templates')
                 .then(response => response.json())
                 .then(data => {
-                const itemDataList = [];
-                data.forEach((item, index) => {
-                    const itemData = {
-                        provider: item.provider,
-                        model: item.model,
-                        parameters: item.parameters,
-                        providerUrl: item.providerUrl,
-                        apiKey: item.apiKey,
-                        note: item.note
-                    };
-                    itemDataList.push(itemData);
+                    const itemDataList = [];
+                    data.forEach((item, index) => {
+                        const itemData = {
+                            provider: item.provider,
+                            model: item.model,
+                            parameters: item.parameters,
+                            providerUrl: item.providerUrl,
+                            apiKey: item.apiKey,
+                            note: item.note
+                        };
+                        itemDataList.push(itemData);
 
-                    const uniqueId = `template-item-${index}`;
-                    const option = new Option(itemData.model + " / " + itemData.provider, uniqueId);
-                    option.title = `${itemData.model}\n${itemData.provider}\n${itemData.note}\n${itemData.providerUrl}\n${itemData.parameters}\n`;
-                    option.dataset.itemData = JSON.stringify(itemData);
-                    selectElement.appendChild(option);
-                });
+                        const uniqueId = `template-item-${index}`;
+                        const option = new Option(itemData.model + " / " + itemData.provider, uniqueId);
+                        option.title = `${itemData.model}\n${itemData.provider}\n${itemData.note}\n${itemData.providerUrl}\n${itemData.parameters}\n`;
+                        option.dataset.itemData = JSON.stringify(itemData);
+                        selectElement.appendChild(option);
+                    });
 
-                selectElement.addEventListener("change", function() {
-                    const selectedItemId = this.value;
-                    const itemData = JSON.parse(this.querySelector(`[value="${selectedItemId}"]`).dataset.itemData);
-                    optionClicked(itemData);
-                });
+                    selectElement.addEventListener("change", function() {
+                        const selectedItemId = this.value;
+                        const itemData = JSON.parse(this.querySelector(`[value="${selectedItemId}"]`).dataset.itemData);
+                        optionClicked(itemData);
+                    });
                 })
                 .catch(error => console.error('Error loading data:', error));
+        }
+
+        async function loadAPITemplates() {
+            const selectElement = document.getElementById("newItemProvider");
+            selectElement.length = 0;
+            const option = new Option("", "");
+            const response = await fetch("http://localhost:8000/get-api-templates");
+            const data = await response.json();
+
+            for (const func of data) {
+                const option = new Option(func.friendly_name, func.id);
+                selectElement.appendChild(option);
+            }
         }
 
         function optionClicked (item) {
