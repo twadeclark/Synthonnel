@@ -1,7 +1,10 @@
+import asyncio
 import json
 import random
+import threading
 from fastapi import WebSocket
 from pydantic import BaseModel
+from openai import OpenAI
 
 
 class FunctionWrapper:
@@ -10,17 +13,58 @@ class FunctionWrapper:
         self.friendly_name = friendly_name
         self.id = id
 
-def add(x, y):
-    return "Not Implemented: add(x, y)" + x + y
+async def lm_studio(websocket, item_data):
+    try:
+        base_url = item_data["providerUrl"]
+        api_key = item_data["apiKey"]
 
-def subtract(x, y):
-    return "Not Implemented: subtract(x, y)" + x + y
+        model = item_data["model"]
+        params_dict = parse_params(item_data["parameters"])
 
-async def default(websocket: WebSocket):
-    await websocket.accept()
-    data = await websocket.receive_text()
-    item_data = json.loads(data)
+        messages = [
+            {"role": "user", "content": item_data["prompt"]},
+        ]
 
+        params = {
+            'messages'          : messages,
+            'model'             : model,
+            'stream'            : True,
+            # Optional Supported OpenAI parameters:
+            'timeout'           : strtofloat(params_dict.get("timeout", 60)),
+            'frequency_penalty' : strtofloat(params_dict.get("frequency_penalty", None)),
+            'logprobs'          : strtobool(params_dict.get("logprobs", None)),
+            'max_tokens'        : strtoint(params_dict.get("max_tokens", None)),
+            'n'                 : strtoint(params_dict.get("n", None)),
+            'presence_penalty'  : strtofloat(params_dict.get("presence_penalty", None)),
+            'seed'              : strtoint(params_dict.get("seed", None)),
+            'stop'              : params_dict.get("stop", None),
+            'temperature'       : strtofloat(params_dict.get("temperature", None)),
+            'top_logprobs'      : strtoint(params_dict.get("top_logprobs", None)),
+            'top_p'             : strtofloat(params_dict.get("top_p", None)),
+            'user'              : params_dict.get("user", None)
+        }
+
+        kwargs = {k: v for k, v in params.items() if v is not None}
+        
+        client = OpenAI(base_url=base_url, api_key=api_key)
+        chat_stream = client.chat.completions.create(**kwargs)
+
+        # pylint: disable=not-an-iterable
+        for chunk in chat_stream:
+            if chunk.choices[0].delta.content:
+                await websocket.send_text(chunk.choices[0].delta.content)
+
+        chat_stream.close()
+        client.close()
+
+        return "lm_studio done."
+    except Exception as e:
+        print(e)
+        await websocket.send_text('\n\n# Big problems. Exception: ' + str(e))
+        return "lm_studio error!"
+
+
+async def default(websocket: WebSocket, item_data):
     dump_text = ""
     for key, value in item_data.items():
         dump_text += f"You sent the key '{key}' and the value is '{value}'.\n"
@@ -54,24 +98,33 @@ async def default(websocket: WebSocket):
     lorem_addendum = ''.join(lorem_out)
     response_text = dump_text + lorem_addendum
 
-    for i in range(0, len(response_text), 5):
-        chunk = response_text[i:i+5]
-        # await asyncio.sleep(0.01) # 0.02 : 33 t/s .  0.01 : 66 t/s . 0.0 : 960 t/s . commented  : 1030 t / s
-        await websocket.send_text(chunk)
+    model_chooser = item_data["model"].lower()
 
-    await websocket.close()
+    if "lightning" in model_chooser:
+        for i in range(0, len(response_text), 5):
+            chunk = response_text[i:i+5]
+            # await asyncio.sleep(0.01) # 0.02 : 33 t/s .  0.01 : 66 t/s . 0.0 : 960 t/s . commented  : 1030 t / s
+            await websocket.send_text(chunk)
+    elif "fast" in model_chooser:
+        for i in range(0, len(response_text), 5):
+            chunk = response_text[i:i+5]
+            await asyncio.sleep(0.0)
+            await websocket.send_text(chunk)
+    else:
+        for i in range(0, len(response_text), 5):
+            chunk = response_text[i:i+5]
+            await asyncio.sleep(0.02)
+            await websocket.send_text(chunk)
 
-    return "default must have worked."
+    return "default done."
 
-def lm_studio(x, y):
-    return "Not Implemented: lm_studio(x, y)" + x + y
+async def huggingface(websocket: WebSocket, item_data):
+    await asyncio.sleep(1)
+    await websocket.send_text("Not Implemented: huggingface")
+    return "Not Implemented: huggingface"
 
-def huggingface(x, y):
-    return "Not Implemented: huggingface(x, y)" + x + y
 
-functions = {
-    "ADD": FunctionWrapper(add, "Add", "ADD"),
-    "SUB": FunctionWrapper(subtract, "Subtract", "SUB"),
+inference_providers = {
     "default": FunctionWrapper(default, "default", "default"),
     "LM Studio": FunctionWrapper(lm_studio, "LM Studio", "LM Studio"),
     "Hugging Face": FunctionWrapper(huggingface, "Hugging Face", "Hugging Face"),
@@ -80,3 +133,40 @@ functions = {
 class FunctionInfo(BaseModel):
     friendly_name: str
     id: str
+
+
+# utility functions
+def parse_params(param_string):
+    params = {}
+    for line in param_string.splitlines():
+        if not line or line.startswith("#"):  # skip empty lines and comments
+            continue
+        key, value = line.strip().split("=", 1)
+        params[key] = value
+    return params
+
+def strtobool(value):
+    if value:
+        value = value.lower()
+        if value in ('y', 'yes', 't', 'true', 'on', '1'):
+            return True
+        elif value in ('n', 'no', 'f', 'false', 'off', '0'):
+            return False
+    return None
+
+def strtoint(value):
+    if value:
+        try:
+            return int(value)
+        except ValueError:
+            return None
+    return None
+
+def strtofloat(value):
+    if value:
+        try:
+            return float(value)
+        except ValueError:
+            return None
+    return None
+

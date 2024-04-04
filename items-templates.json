@@ -1,6 +1,22 @@
 [
     {
-        "model": "Lorem Ipsum",
+        "model": "Lorem Ipsum Lightning",
+        "provider": "default",
+        "note": "Random Generator",
+        "providerUrl": "localhost",
+        "parameters": "temp = 1.0\ntop_k = 1.0\ntop_p = 1.0",
+        "apiKey": ""
+    },
+    {
+        "model": "Lorem Ipsum Fast",
+        "provider": "default",
+        "note": "Random Generator",
+        "providerUrl": "localhost",
+        "parameters": "temp = 1.0\ntop_k = 1.0\ntop_p = 1.0",
+        "apiKey": ""
+    },
+    {
+        "model": "Lorem Ipsum Standard",
         "provider": "default",
         "note": "Random Generator",
         "providerUrl": "localhost",
@@ -11,7 +27,7 @@
         "model": "Local Model",
         "provider": "LM Studio",
         "note": "",
-        "providerUrl": "localhost",
+        "providerUrl": "http://localhost:1234/v1",
         "parameters": "temp = 1.0\ntop_k = 1.0\ntop_p = 1.0",
         "apiKey": ""
     },

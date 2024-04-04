@@ -1,6 +1,6 @@
 from typing import List
 import json
-from fastapi import FastAPI, WebSocket
+from fastapi import BackgroundTasks, FastAPI, WebSocket
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
@@ -31,14 +31,23 @@ class Item(BaseModel):
 app.mount("/frontend", StaticFiles(directory="frontend"), name="frontend")
 
 @app.websocket("/ws/stream-llm-response")
-async def stream_llm_response(websocket: WebSocket):
-    function_id = "default"
-    if function_id in function_wrapper.functions:
-        result = function_wrapper.functions[function_id].func(websocket)  # Call function by ID
-        await result
-        print(f"Result ({function_id}: {result}")
+async def stream_llm_response(websocket: WebSocket, background_tasks: BackgroundTasks):
+    await websocket.accept()
+    data = await websocket.receive_text()
+    item_data = json.loads(data)
+
+    provider = item_data["provider"]
+    model = item_data["model"]
+
+    if provider in function_wrapper.inference_providers:
+        print(f"Inference Attempt. provider: '{provider}' model: '{model}'")
+        await function_wrapper.inference_providers[provider].func(websocket, item_data)
+        print(f"Inference Success. provider: '{provider}' model: '{model}'")
     else:
-        print(f"Function with ID '{function_id}' not found.")
+        print(f"Inference Failure. provider: '{provider}' not found.")
+
+    await websocket.close()
+
 
 
 @app.get("/get-items-active")
@@ -75,6 +84,6 @@ def get_functions():
     functions_info = []
     functions_info.append('')
 
-    for func_wrapper in function_wrapper.functions.values():
+    for func_wrapper in function_wrapper.inference_providers.values():
         functions_info.append(function_wrapper.FunctionInfo(friendly_name=func_wrapper.friendly_name, id=func_wrapper.id))
     return functions_info
