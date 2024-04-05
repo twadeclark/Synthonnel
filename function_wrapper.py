@@ -5,6 +5,7 @@ import threading
 from fastapi import WebSocket
 from pydantic import BaseModel
 from openai import OpenAI
+from openai import AsyncOpenAI
 
 
 class FunctionWrapper:
@@ -45,17 +46,40 @@ async def lm_studio(websocket, item_data):
         }
 
         kwargs = {k: v for k, v in params.items() if v is not None}
-        
-        client = OpenAI(base_url=base_url, api_key=api_key)
-        chat_stream = client.chat.completions.create(**kwargs)
 
-        # pylint: disable=not-an-iterable
-        for chunk in chat_stream:
-            if chunk.choices[0].delta.content:
-                await websocket.send_text(chunk.choices[0].delta.content)
+        client = AsyncOpenAI(base_url=base_url, api_key=api_key)
 
-        chat_stream.close()
-        client.close()
+
+
+
+        async def main():
+            stream = await client.chat.completions.create(**kwargs)
+            #     model="gpt-4",
+            #     messages=[{"role": "user", "content": "Say this is a test"}],
+            #     stream=True,
+            # )
+            async for chunk in stream:
+                print(chunk.choices[0].delta.content or "", end="")
+                content = chunk.choices[0].delta.content
+                if content:
+                    await websocket.send_text(content)
+
+
+        # asyncio.run(main())
+        # loop = asyncio.get_event_loop()
+        # loop.run_until_complete(main())
+        result = await main()
+
+        # chat_stream = client.chat.completions.create(**kwargs)
+
+        # # pylint: disable=not-an-iterable
+        # for chunk in chat_stream:
+        #     content = chunk.choices[0].message.content
+        #     if content:
+        #         await websocket.send_text(content)
+
+        # chat_stream.close()
+        # client.close()
 
         return "lm_studio done."
     except Exception as e:
