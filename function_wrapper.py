@@ -1,10 +1,7 @@
 import asyncio
-import json
 import random
-import threading
 from fastapi import WebSocket
 from pydantic import BaseModel
-from openai import OpenAI
 from openai import AsyncOpenAI
 
 
@@ -49,37 +46,14 @@ async def lm_studio(websocket, item_data):
 
         client = AsyncOpenAI(base_url=base_url, api_key=api_key)
 
-
-
-
-        async def main():
+        async def streamer():
             stream = await client.chat.completions.create(**kwargs)
-            #     model="gpt-4",
-            #     messages=[{"role": "user", "content": "Say this is a test"}],
-            #     stream=True,
-            # )
             async for chunk in stream:
-                print(chunk.choices[0].delta.content or "", end="")
                 content = chunk.choices[0].delta.content
                 if content:
                     await websocket.send_text(content)
 
-
-        # asyncio.run(main())
-        # loop = asyncio.get_event_loop()
-        # loop.run_until_complete(main())
-        result = await main()
-
-        # chat_stream = client.chat.completions.create(**kwargs)
-
-        # # pylint: disable=not-an-iterable
-        # for chunk in chat_stream:
-        #     content = chunk.choices[0].message.content
-        #     if content:
-        #         await websocket.send_text(content)
-
-        # chat_stream.close()
-        # client.close()
+        await streamer()
 
         return "lm_studio done."
     except Exception as e:
@@ -193,4 +167,3 @@ def strtofloat(value):
         except ValueError:
             return None
     return None
-

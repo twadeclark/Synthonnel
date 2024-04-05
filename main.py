@@ -1,6 +1,6 @@
 from typing import List
 import json
-from fastapi import BackgroundTasks, FastAPI, WebSocket
+from fastapi import FastAPI, WebSocket
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
@@ -31,7 +31,7 @@ class Item(BaseModel):
 app.mount("/frontend", StaticFiles(directory="frontend"), name="frontend")
 
 @app.websocket("/ws/stream-llm-response")
-async def stream_llm_response(websocket: WebSocket, background_tasks: BackgroundTasks):
+async def stream_llm_response(websocket: WebSocket):
     await websocket.accept()
     data = await websocket.receive_text()
     item_data = json.loads(data)
