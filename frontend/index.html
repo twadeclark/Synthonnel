@@ -10,6 +10,7 @@
             --textColor: #0F0F0F;
             --emphasisBackgroundColor: #FFFFFF;
             --borderColor: #C0C0C0;
+            --headerRow-height: 1px;
         }
         body {
             font-family: Verdana, Arial, Tahoma, sans-serif;
@@ -85,7 +86,8 @@
             gap: 20px;
             width: 50%;
             padding-top: 44px;
-                    }
+            z-index: 1;
+        }
 
         #userPrompt {
             left: 174px;
@@ -134,6 +136,7 @@
             padding: 20px; 
             border: 1px solid var(--borderColor); 
             gap: 20px;
+            z-index: 1;
         }
 
         #message {
@@ -192,14 +195,30 @@
             font-style: italic;
             background-image: linear-gradient(var(--backgroundColor), var(--emphasisBackgroundColor), var(--backgroundColor));
             text-align: center;
-            padding-left: 174px;
-            padding-right: 174px;
+            position: sticky;
+            top: var(--headerRow-height);
+            z-index: 1;
+            line-height: unset;
+            max-height: 28px;
+            overflow-y: hidden;
+            padding: 0%;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+        .promptCell {
+            padding-left: 10%;
+            padding-right: 10%;
+            padding-top: 12px;
+            padding-bottom: 12px;
+            max-height: 28px;
+        }
+        .promptCell:hover {
+            max-height: unset;
         }
         #promptTable thead th {
             position: sticky;
             top: 0;
             background-color: var(--emphasisBackgroundColor);
-            z-index: 1;
+            z-index: 2;
         }
         .table-container {
             position: absolute;
@@ -637,6 +656,7 @@ input[type='select'] {
             <input type="checkbox" id="check3"> <label for="check3">Note</label> <br>
             <input type="checkbox" id="check4"> <label for="check4">Provider Url</label> <br>
             <input type="checkbox" id="check5"> <label for="check5">Parameters</label> <br>
+            <input type="checkbox" id="sticky-prompt" checked> <label for="sticky-prompt">Sticky Prompt</label> <br>
             <hr>
             <div style="text-align: center;">
                 <label> Plain </label>
@@ -808,7 +828,7 @@ input[type='select'] {
             const promptCell = promptRow.insertCell(0);
             promptCell.className = 'prompt-row';
             promptCell.colSpan = '100';
-            promptCell.innerHTML = prompt;
+            promptCell.innerHTML = "<div class='promptCell'>" + prompt + "</div>";
 
             const newRow = table.insertRow(-1);
             newRow.className = 'response-row';
@@ -1358,6 +1378,34 @@ input[type='select'] {
             document.getElementById("newItemNote").value = '';
         }
 
+        function adjustHeaderRowHeight() {
+            const firstDiv = document.getElementById('headerRow');
+            const firstDivRect = firstDiv.getBoundingClientRect();
+            const secondDivTop = firstDivRect.height;
+            document.documentElement.style.setProperty('--headerRow-height', `${secondDivTop}px`);
+        }
+
+        const headerRowHeightObserver = new ResizeObserver(entries => {
+            for (let entry of entries) {
+                adjustHeaderRowHeight();
+            }
+        });
+
+        headerRowHeightObserver.observe(document.getElementById('headerRow'));
+
+        document.getElementById('sticky-prompt').addEventListener('change', function() {
+            const checkbox = document.getElementById('sticky-prompt');
+
+            if (checkbox.checked) {
+                headerRowHeightObserver.observe(document.getElementById('headerRow'));
+                adjustHeaderRowHeight();
+            } else {
+                headerRowHeightObserver.unobserve(document.getElementById('headerRow'));
+                document.documentElement.style.setProperty('--headerRow-height', `-1000px`);
+            }
+        });
+
+        
     </script>
 </body>
 </html>
