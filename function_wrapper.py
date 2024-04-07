@@ -1,8 +1,11 @@
 import asyncio
+import json
 import random
+import httpx
 from fastapi import WebSocket
 from pydantic import BaseModel
 from openai import AsyncOpenAI
+import requests
 
 
 class FunctionWrapper:
@@ -21,14 +24,75 @@ async def default(websocket: WebSocket, item_data):
 
 
 async def huggingfacefree(websocket: WebSocket, item_data):
-    await asyncio.sleep(0.5)
-    await websocket.send_text("This interface is not implemented.\n")
+    try:
+        base_url = item_data["providerUrl"]
+        api_key = item_data["apiKey"]
+        model = item_data["model"]
+        params_parsed = parse_params(item_data["parameters"])
+        messages = item_data["messages"]
+        headers = {"Authorization": f"Bearer {api_key}"}
+        this_api_endpoint = base_url + model
 
-    for key, value in item_data.items():
-        await asyncio.sleep(0.5)
-        await websocket.send_text(f"You sent the key '{key}' and the value is '{value}'.\n")
+        messages_formatted_as_string = ""
+        for message in messages:
+            messages_formatted_as_string += f'\n\n{message['role']}:\n{message['content']}'
 
-    return "This interface is not implemented."
+        params = {
+            "return_full_text"   : False,
+            # Optional Supported Hugging Face parameters:
+            'max_time'           : strtofloat(params_parsed.get("max_time", 60)),
+            'do_sample'          : strtobool(params_parsed.get("do_sample", 'True')),
+            'top_k'              : strtoint(params_parsed.get("top_k", None)),
+            'top_p'              : strtoint(params_parsed.get("top_p", None)),
+            'temperature'        : strtofloat(params_parsed.get("temperature", None)),
+            'repetition_penalty' : strtofloat(params_parsed.get("repetition_penalty", None)),
+            'max_new_tokens'     : strtoint(params_parsed.get("max_new_tokens", 250)),
+        }
+
+        kwargs = {k: v for k, v in params.items() if v is not None}
+
+        payload = {
+            "inputs"     : messages_formatted_as_string.strip(),
+            "parameters" : kwargs,
+            "options"    :    { "wait_for_model": True,
+                                "use_cache": False,
+                                "stream": True
+                                }
+            }
+
+        async with httpx.AsyncClient() as client:
+            response = await client.post(this_api_endpoint, headers=headers, json=payload, timeout=60)
+        all_chunks = response.text
+
+        data = json.loads(all_chunks)
+
+        target_keys = ['error', 'warning', 'warnings', 'generated_text', 'summary_text']
+        results = find_keys(data, target_keys)
+
+        content = ""
+
+        # big problems:
+        if results.get('error'):
+            content += results['error']
+
+        # small problems:
+        if results.get('warning'):
+            content += results['warning']
+
+        # success stories:
+        if results.get('generated_text'):
+            content += results['generated_text']
+
+        if results.get('summary_text'):
+            content += results['summary_text']
+
+        await websocket.send_text(content)
+
+        return "huggingfacefree done."
+    except Exception as e:
+        print(e)
+        await websocket.send_text('\n\n# Big problems. Exception: ' + str(e))
+        return "huggingfacefree error!"
 
 
 
@@ -39,7 +103,7 @@ async def lm_studio(websocket, item_data):
         api_key = item_data["apiKey"]
 
         model = item_data["model"]
-        params_dict = parse_params(item_data["parameters"])
+        params_parsed = parse_params(item_data["parameters"])
 
         messages = item_data["messages"]
 
@@ -48,18 +112,18 @@ async def lm_studio(websocket, item_data):
             'model'             : model,
             'stream'            : True,
             # Optional Supported OpenAI parameters:
-            'timeout'           : strtofloat(params_dict.get("timeout", 60)),
-            'frequency_penalty' : strtofloat(params_dict.get("frequency_penalty", None)),
-            'logprobs'          : strtobool(params_dict.get("logprobs", None)),
-            'max_tokens'        : strtoint(params_dict.get("max_tokens", None)),
-            'n'                 : strtoint(params_dict.get("n", None)),
-            'presence_penalty'  : strtofloat(params_dict.get("presence_penalty", None)),
-            'seed'              : strtoint(params_dict.get("seed", None)),
-            'stop'              : params_dict.get("stop", None),
-            'temperature'       : strtofloat(params_dict.get("temperature", None)),
-            'top_logprobs'      : strtoint(params_dict.get("top_logprobs", None)),
-            'top_p'             : strtofloat(params_dict.get("top_p", None)),
-            'user'              : params_dict.get("user", None)
+            'timeout'           : strtofloat(params_parsed.get("timeout", 60)),
+            'frequency_penalty' : strtofloat(params_parsed.get("frequency_penalty", None)),
+            'logprobs'          : strtobool(params_parsed.get("logprobs", None)),
+            'max_tokens'        : strtoint(params_parsed.get("max_tokens", None)),
+            'n'                 : strtoint(params_parsed.get("n", None)),
+            'presence_penalty'  : strtofloat(params_parsed.get("presence_penalty", None)),
+            'seed'              : strtoint(params_parsed.get("seed", None)),
+            'stop'              : params_parsed.get("stop", None),
+            'temperature'       : strtofloat(params_parsed.get("temperature", None)),
+            'top_logprobs'      : strtoint(params_parsed.get("top_logprobs", None)),
+            'top_p'             : strtofloat(params_parsed.get("top_p", None)),
+            'user'              : params_parsed.get("user", None)
         }
 
         kwargs = {k: v for k, v in params.items() if v is not None}
@@ -67,11 +131,17 @@ async def lm_studio(websocket, item_data):
         client = AsyncOpenAI(base_url=base_url, api_key=api_key)
 
         async def streamer():
-            stream = await client.chat.completions.create(**kwargs)
-            async for chunk in stream:
-                content = chunk.choices[0].delta.content
-                if content:
-                    await websocket.send_text(content)
+            try:
+                stream = await client.chat.completions.create(**kwargs)
+                async for chunk in stream:
+                    content = chunk.choices[0].delta.content
+                    if content:
+                        await websocket.send_text(content)
+            except Exception as e:
+                print(e)
+                print(e.with_traceback)
+                await websocket.send_text('\n\n# THREAD Big problems. Exception: ' + str(e))
+                await websocket.send_text('\n\n# THREAD Big problems. Exception with_traceback: ' + str(e.with_traceback))
 
         await streamer()
 
@@ -182,3 +252,19 @@ def strtofloat(value):
         except ValueError:
             return None
     return None
+
+def find_keys(json_input, target_keys):
+    results = {}
+
+    def _find_keys_recursive(json_fragment):
+        if isinstance(json_fragment, dict):
+            for key, value in json_fragment.items():
+                if key in target_keys:
+                    results[key] = value
+                _find_keys_recursive(value)
+        elif isinstance(json_fragment, list):
+            for item in json_fragment:
+                _find_keys_recursive(item)
+
+    _find_keys_recursive(json_input)
+    return results
