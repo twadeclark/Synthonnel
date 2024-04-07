@@ -837,7 +837,6 @@ input[type='select'] {
                 tableContainer.scrollTop = tableContainer.scrollHeight - tableContainer.clientHeight
             }
 
-            var finishCount = 0;
             var totalModels = headerCells.length;
             var startTime = new Date();
             var maxFirstTokenDuration = 0;
@@ -869,7 +868,7 @@ input[type='select'] {
                                 <div class="gaugeValue-adjustment"><span id="tokspersecValue"></span></div>
                             </div>
                         </div>
-                    </div>`;
+                    </div><div class="raw-text"></div>`;
 
                 if (isAtBottom) {
                     tableContainer.scrollTop = tableContainer.scrollHeight - tableContainer.clientHeight
@@ -885,9 +884,22 @@ input[type='select'] {
                 } else {
                     const ws = new WebSocket(`ws://localhost:8000/ws/stream-llm-response`);
 
+                    var messages = [];
+                    var tableRows = table.rows;
+
+                    for (var i = 1; i < tableRows.length - 1; i++) {
+                        var row = tableRows[i];
+                        var role = row.cells[0].className === 'prompt-row' ? 'user' : 'assistant';
+                        var content = row.cells[0].className === 'prompt-row' ? row.cells[0].innerText.trim() : row.cells[index].querySelector('.raw-text').textContent.trim();
+
+                        if (content.length > 0) {
+                            messages.push({"role": role, "content": content});
+                        }
+                    }
+
                     ws.onopen = function(event) {
                         const itemData = {
-                            prompt: prompt,
+                            messages: messages,
                             model: item.getAttribute('data-model'),
                             note: item.getAttribute('data-note'),
                             provider: item.getAttribute('data-provider'),
@@ -903,11 +915,10 @@ input[type='select'] {
                     var firstTokenDurationMilliseconds = 0;
                     var aveTokPerSec = 0.0;
 
-
                     ws.onmessage = function(event) {
                         const isAtBottom = tableContainer.scrollHeight - tableContainer.clientHeight <= tableContainer.scrollTop + 50;
 
-                        newCell.innerHTML += event.data;
+                        newCell.querySelector('.raw-text').textContent += event.data;
 
                         if (isAtBottom) {
                             tableContainer.scrollTop = tableContainer.scrollHeight - tableContainer.clientHeight
@@ -922,21 +933,17 @@ input[type='select'] {
 
                         if (tokenCount == 1) {
                             firstTokenTime = new Date();
-                            finishCount++;
-
-                            const firsttokenValue = newCell.querySelector('#firsttokenValue');
-
                             firstTokenDurationMilliseconds = firstTokenTime - startTime;
                             maxFirstTokenDuration = firstTokenDurationMilliseconds;
                             minFirstTokenDuration = Math.min(minFirstTokenDuration, firstTokenDurationMilliseconds);
 
-                            firsttokenValue.textContent = `${(firstTokenDurationMilliseconds / 1000).toFixed(2)}`;
+                            newCell.querySelector('#firsttokenValue').textContent = `${(firstTokenDurationMilliseconds / 1000).toFixed(2)}`;
                         } else {
                             const now = new Date();
                             const elapsedTime = (now - firstTokenTime) / 1000;
                             const tokensPerSecond = tokenCount / elapsedTime;
 
-                            newCell.querySelector('#tokspersecValue').textContent = `${(tokensPerSecond).toFixed(2)}`;
+                            newCell.querySelector('#tokspersecValue').innerText = `${(tokensPerSecond).toFixed(2)}`;
 
                             resetTokpersecMinMax();
 

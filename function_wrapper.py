@@ -11,6 +11,28 @@ class FunctionWrapper:
         self.friendly_name = friendly_name
         self.id = id
 
+async def default(websocket: WebSocket, item_data):
+    await asyncio.sleep(0.5)
+    await websocket.send_text("This interface is not implemented.\n")
+    for key, value in item_data.items():
+        await asyncio.sleep(0.5)
+        await websocket.send_text(f"You sent the key '{key}' and the value is '{value}'.\n")
+    return "This interface is not implemented."
+
+
+async def huggingfacefree(websocket: WebSocket, item_data):
+    await asyncio.sleep(0.5)
+    await websocket.send_text("This interface is not implemented.\n")
+
+    for key, value in item_data.items():
+        await asyncio.sleep(0.5)
+        await websocket.send_text(f"You sent the key '{key}' and the value is '{value}'.\n")
+
+    return "This interface is not implemented."
+
+
+
+
 async def lm_studio(websocket, item_data):
     try:
         base_url = item_data["providerUrl"]
@@ -19,9 +41,7 @@ async def lm_studio(websocket, item_data):
         model = item_data["model"]
         params_dict = parse_params(item_data["parameters"])
 
-        messages = [
-            {"role": "user", "content": item_data["prompt"]},
-        ]
+        messages = item_data["messages"]
 
         params = {
             'messages'          : messages,
@@ -62,7 +82,7 @@ async def lm_studio(websocket, item_data):
         return "lm_studio error!"
 
 
-async def default(websocket: WebSocket, item_data):
+async def internaltesting(websocket: WebSocket, item_data):
     dump_text = ""
     for key, value in item_data.items():
         dump_text += f"You sent the key '{key}' and the value is '{value}'.\n"
@@ -114,18 +134,13 @@ async def default(websocket: WebSocket, item_data):
             await asyncio.sleep(0.02)
             await websocket.send_text(chunk)
 
-    return "default done."
-
-async def huggingface(websocket: WebSocket, item_data):
-    await asyncio.sleep(1)
-    await websocket.send_text("Not Implemented: huggingface")
-    return "Not Implemented: huggingface"
+    return "Internal Testing done."
 
 
 inference_providers = {
-    "default": FunctionWrapper(default, "default", "default"),
+    "Internal Testing": FunctionWrapper(internaltesting, "Internal Testing", "Internal Testing"),
     "LM Studio": FunctionWrapper(lm_studio, "LM Studio", "LM Studio"),
-    "Hugging Face": FunctionWrapper(huggingface, "Hugging Face", "Hugging Face"),
+    "Hugging Face Free": FunctionWrapper(huggingfacefree, "Hugging Face Free", "Hugging Face Free"),
 }
 
 class FunctionInfo(BaseModel):

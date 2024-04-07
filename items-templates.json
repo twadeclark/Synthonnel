@@ -1,42 +1,42 @@
 [
     {
         "model": "Lorem Ipsum Lightning",
-        "provider": "default",
-        "note": "Random Generator",
-        "providerUrl": "localhost",
-        "parameters": "temp = 1.0\ntop_k = 1.0\ntop_p = 1.0",
-        "apiKey": ""
+        "provider": "Internal Testing",
+        "note": "Internal Testing",
+        "providerUrl": "Internal Testing",
+        "parameters": "# Gibberish for Testing.",
+        "apiKey": "none"
     },
     {
         "model": "Lorem Ipsum Fast",
-        "provider": "default",
-        "note": "Random Generator",
-        "providerUrl": "localhost",
-        "parameters": "temp = 1.0\ntop_k = 1.0\ntop_p = 1.0",
-        "apiKey": ""
+        "provider": "Internal Testing",
+        "note": "Internal Testing",
+        "providerUrl": "Internal Testing",
+        "parameters": "# Gibberish for Testing.",
+        "apiKey": "none"
     },
     {
         "model": "Lorem Ipsum Standard",
-        "provider": "default",
-        "note": "Random Generator",
-        "providerUrl": "localhost",
-        "parameters": "temp = 1.0\ntop_k = 1.0\ntop_p = 1.0",
-        "apiKey": ""
+        "provider": "Internal Testing",
+        "note": "Internal Testing",
+        "providerUrl": "Internal Testing",
+        "parameters": "# Gibberish for Testing.",
+        "apiKey": "none"
     },
     {
         "model": "Local Model",
         "provider": "LM Studio",
         "note": "",
         "providerUrl": "http://localhost:1234/v1",
-        "parameters": "temp = 1.0\ntop_k = 1.0\ntop_p = 1.0",
-        "apiKey": ""
+        "parameters": "#timeout           = float\n#frequency_penalty = float\n#logprobs          = bool\n#max_tokens        = int\n#n                 = int\n#presence_penalty  = float\n#seed              = int\n#stop              = text\n#temperature       = float\n#top_logprobs      = int\n#top_p             = float\n#user              = text",
+        "apiKey": "none"
     },
     {
-        "model": "GPT2",
-        "provider": "Hugging Face",
-        "note": "",
-        "providerUrl": "http://api.huggingface.com/GPT2/",
-        "parameters": "temp = 0.7",
+        "model": "",
+        "provider": "Hugging Face Free",
+        "note": "Non-Streaming Serverless Inference API",
+        "providerUrl": "https://api-inference.huggingface.co/models/",
+        "parameters": "max_time            = 60\ndo_sample           = True\n#top_k              = int\n#top_p              = int\n#temperature        = float\n#repetition_penalty = float\n#max_new_tokens     = int",
         "apiKey": ""
     }
 ]
