@@ -5,7 +5,6 @@ import httpx
 from fastapi import WebSocket
 from pydantic import BaseModel
 from openai import AsyncOpenAI
-import requests
 
 
 class FunctionWrapper:
@@ -95,8 +94,6 @@ async def huggingfacefree(websocket: WebSocket, item_data):
         return "huggingfacefree error!"
 
 
-
-
 async def lm_studio(websocket, item_data):
     try:
         base_url = item_data["providerUrl"]
@@ -154,8 +151,8 @@ async def lm_studio(websocket, item_data):
 
 async def internaltesting(websocket: WebSocket, item_data):
     dump_text = ""
-    for key, value in item_data.items():
-        dump_text += f"You sent the key '{key}' and the value is '{value}'.\n"
+    # for key, value in item_data.items():
+    #     dump_text += f"You sent the key '{key}' and the value is '{value}'.\n"
 
     lorem = []
 
@@ -199,9 +196,11 @@ async def internaltesting(websocket: WebSocket, item_data):
             await asyncio.sleep(0.0)
             await websocket.send_text(chunk)
     else:
+        await asyncio.sleep(random.uniform(0.0, 1.0))
+        loop_sleep = random.uniform(0.01, 0.03)
         for i in range(0, len(response_text), 5):
             chunk = response_text[i:i+5]
-            await asyncio.sleep(0.02)
+            await asyncio.sleep(loop_sleep)
             await websocket.send_text(chunk)
 
     return "Internal Testing done."

@@ -395,6 +395,11 @@
             top: 0;
             bottom: 0;
             font-family: Verdana, Arial, Tahoma, sans-serif;
+            text-align: center;
+        }
+        .speedo-status {
+            display: flex;
+            line-height: 12px;
         }
 
 .mask {
@@ -774,7 +779,7 @@ input[type='select'] {
 
         function showMessage(message) {
             const messageElement = document.getElementById('message');
-            messageElement.innerText = message;
+            messageElement.textContent = message;
             messageElement.style.opacity = '1';
 
             setTimeout(() => {
@@ -806,23 +811,21 @@ input[type='select'] {
         });
 
         document.getElementById('submitPrompt').addEventListener('click', function() {
+            const tableContainer = document.getElementById("table-container")
+            const isAtBottom = tableContainer.scrollHeight - tableContainer.clientHeight <= tableContainer.scrollTop + 50;
+
             document.getElementById('submitPrompt').style.opacity = '0.3';
             const textAreaElement = document.getElementById('userPrompt');
             const prompt = textAreaElement.value.trim();
-
             textAreaElement.value = '';
             textAreaElement.style.height = 'auto';
             textAreaElement.style.height = `${textAreaElement.scrollHeight}px`;
 
-            if (!prompt) {
-                return;
-            }
+            if (!prompt) { return;}
 
             const table = document.querySelector('#promptTable');
             const headerRow = table.rows[0];
             const headerCells = headerRow.cells;
-            const tableContainer = document.getElementById("table-container")
-            const isAtBottom = tableContainer.scrollHeight - tableContainer.clientHeight <= tableContainer.scrollTop + 50;
 
             const promptRow = table.insertRow(-1);
             const promptCell = promptRow.insertCell(0);
@@ -830,24 +833,31 @@ input[type='select'] {
             promptCell.colSpan = '100';
             promptCell.innerHTML = "<div class='promptCell'>" + prompt + "</div>";
 
-            const newRow = table.insertRow(-1);
-            newRow.className = 'response-row';
+            const ResponseRow = table.insertRow(-1);
+            ResponseRow.className = 'response-row';
             
-            if (isAtBottom) {
-                tableContainer.scrollTop = tableContainer.scrollHeight - tableContainer.clientHeight
-            }
+            if (isAtBottom) { tableContainer.scrollTop = tableContainer.scrollHeight - tableContainer.clientHeight }
 
-            var totalModels = headerCells.length;
-            var startTime = new Date();
-            var maxFirstTokenDuration = 0;
-            var minFirstTokenDuration = 999999;
-            var maxTokPerSec = 0.0;
-            var minTokPerSec = 999999.9;
+            var StartTime = new Date();
+            var MaxFirstTokenDuration = 0;
+            var MinFirstTokenDuration = 999999;
+            var MaxTokPerSec = 0.0;
+            var MinTokPerSec = 9999.9;
 
             Array.from(headerCells).forEach((item, index) => {
-                const newCell = newRow.insertCell(index);
+                const isAtBottom = tableContainer.scrollHeight - tableContainer.clientHeight <= tableContainer.scrollTop + 50;
 
-                newCell.innerHTML = `<div class="speedometer">
+                const thisResponseCell = ResponseRow.insertCell(index);
+
+                var pausedVal = item.getAttribute('data-paused');
+
+                if (pausedVal) {
+                    thisResponseCell.innerHTML = '~ paused ~';
+                    thisResponseCell.style.transform = "scale(0.75)";
+                    thisResponseCell.className = "center";
+                    thisResponseCell.title = "Model paused duringfor this prompt.";
+                } else {
+                    thisResponseCell.innerHTML = `<div class="speedometer">
                         <div class="float-left">
                             <div class="box ttft-gauge" title="Time to First Token in Seconds">
                                 <div class="mask">
@@ -858,6 +868,7 @@ input[type='select'] {
                                 <div class="gaugeValue-adjustment"><span id="firsttokenValue"></span></div>
                             </div>
                         </div>
+                        <span id="speedo-status" class="speedo-status"></span>
                         <div class="float-right">
                             <div class="box tokpersec-gauge" title="Tokens per Second">
                                 <div class="mask">
@@ -870,32 +881,38 @@ input[type='select'] {
                         </div>
                     </div><div class="raw-text"></div>`;
 
-                if (isAtBottom) {
-                    tableContainer.scrollTop = tableContainer.scrollHeight - tableContainer.clientHeight
-                }
+                    thisResponseCell.querySelector('#speedo-status').innerHTML = `Preparing Request..`;
 
-                var pausedVal = item.getAttribute('data-paused');
-
-                if (pausedVal) {
-                    newCell.innerHTML = '~ paused ~';
-                    newCell.style.transform = "scale(0.75)";
-                    newCell.className = "center";
-                    newCell.title = "This model was paused for this prompt.";
-                } else {
                     const ws = new WebSocket(`ws://localhost:8000/ws/stream-llm-response`);
 
-                    var messages = [];
-                    var tableRows = table.rows;
+                    const tableFresh = document.querySelector('#promptTable');
 
-                    for (var i = 1; i < tableRows.length - 1; i++) {
-                        var row = tableRows[i];
-                        var role = row.cells[0].className === 'prompt-row' ? 'user' : 'assistant';
-                        var content = row.cells[0].className === 'prompt-row' ? row.cells[0].innerText.trim() : row.cells[index].querySelector('.raw-text').textContent.trim();
+                    var messages = [];
+                    for (var i = 1; i < tableFresh.rows.length - 1; i++) {
+                        var rowFresh = tableFresh.rows[i];
+                        var role = '';
+                        var content = '';
+
+                        if ( rowFresh.cells[0].className === 'prompt-row' ) {
+                            role = 'user';
+                            content = rowFresh.cells[0].textContent.trim();
+                        } else {
+                            if ( rowFresh.cells[index].querySelector('.raw-text') ) {
+                                role = 'assistant';
+                                content = rowFresh.cells[index].querySelector('.raw-text').textContent.trim();
+                            }
+                        }
 
                         if (content.length > 0) {
                             messages.push({"role": role, "content": content});
                         }
                     }
+
+                    var tokenCount = 0;
+                    var firstTokenTime = new Date();
+                    var tokensPerSecond = 0;
+                    
+                    if (isAtBottom) { tableContainer.scrollTop = tableContainer.scrollHeight - tableContainer.clientHeight }
 
                     ws.onopen = function(event) {
                         const itemData = {
@@ -908,78 +925,120 @@ input[type='select'] {
                             apiKey: item.getAttribute('data-apiKey')
                         };
                         ws.send(JSON.stringify(itemData));
+
+                        thisResponseCell.querySelector('#speedo-status').innerHTML = `Awaiting Reply..`;
+                        console.log("WebSocket connection opened for", item.getAttribute('data-provider'));
                     };
 
-                    var tokenCount = 0;
-                    var firstTokenTime = new Date();
-                    var firstTokenDurationMilliseconds = 0;
-                    var aveTokPerSec = 0.0;
-
                     ws.onmessage = function(event) {
-                        const isAtBottom = tableContainer.scrollHeight - tableContainer.clientHeight <= tableContainer.scrollTop + 50;
-
-                        newCell.querySelector('.raw-text').textContent += event.data;
-
-                        if (isAtBottom) {
-                            tableContainer.scrollTop = tableContainer.scrollHeight - tableContainer.clientHeight
-                        }
-
                         tokenCount++;
+                        const isAtBottom = tableContainer.scrollHeight - tableContainer.clientHeight <= tableContainer.scrollTop + 50;
+                        thisResponseCell.querySelector('#speedo-status').innerHTML = `Receiving..<br>Tokens: ${tokenCount}`;
 
-                        var divisor = (maxFirstTokenDuration - minFirstTokenDuration) == 0 ? (1 + maxFirstTokenDuration + minFirstTokenDuration) : (maxFirstTokenDuration - minFirstTokenDuration);
-                        var pctTime = (firstTokenDurationMilliseconds - minFirstTokenDuration) / divisor;
-                        var newVal = 10 + Math.floor(pctTime * 160);
-                        newCell.querySelector('.ttft-gauge .ttft-gauge-pointer').setAttribute('style', '-webkit-transform: rotate(' + newVal + 'deg);' + '-moz-transform: rotate(' + newVal + 'deg);' + 'transform: rotate(' + newVal + 'deg);');
+                        thisResponseCell.querySelector('.raw-text').textContent += event.data;
 
                         if (tokenCount == 1) {
                             firstTokenTime = new Date();
-                            firstTokenDurationMilliseconds = firstTokenTime - startTime;
-                            maxFirstTokenDuration = firstTokenDurationMilliseconds;
-                            minFirstTokenDuration = Math.min(minFirstTokenDuration, firstTokenDurationMilliseconds);
+                            var firstTokenDurn = firstTokenTime - StartTime;
+                            thisResponseCell.querySelector('#firsttokenValue').textContent = `${(firstTokenDurn / 1000).toFixed(2)}`;
+                            thisResponseCell.querySelector('#speedo-status').innerHTML = `Received: 1 Token`;
 
-                            newCell.querySelector('#firsttokenValue').textContent = `${(firstTokenDurationMilliseconds / 1000).toFixed(2)}`;
+                            MaxFirstTokenDuration = Math.max(MaxFirstTokenDuration, firstTokenDurn);
+                            MinFirstTokenDuration = Math.min(MinFirstTokenDuration, firstTokenDurn);
+
+                            reDrawTimeFirstTokenPointers();
                         } else {
                             const now = new Date();
                             const elapsedTime = (now - firstTokenTime) / 1000;
-                            const tokensPerSecond = tokenCount / elapsedTime;
+                            tokensPerSecond = tokenCount / elapsedTime;
+                            thisResponseCell.querySelector('#tokspersecValue').textContent = `${(tokensPerSecond).toFixed(2)}`;
+                            thisResponseCell.querySelector('#speedo-status').innerHTML = `Receiving..<br>Tokens: ${tokenCount}<br>Runtime: ${elapsedTime.toFixed(2)}`;
 
-                            newCell.querySelector('#tokspersecValue').innerText = `${(tokensPerSecond).toFixed(2)}`;
+                            MaxTokPerSec = Math.max(MaxTokPerSec, tokensPerSecond);
+                            MinTokPerSec = Math.min(MinTokPerSec, tokensPerSecond);
 
-                            resetTokpersecMinMax();
-
-                            var divisor = (maxTokPerSec - minTokPerSec) == 0 ? (1 + maxTokPerSec + minTokPerSec) : (maxTokPerSec - minTokPerSec);
-                            var pctTime = (tokensPerSecond - minTokPerSec) / divisor;
-                            var newVal = 10 + Math.floor(pctTime * 160);
-
-                            newCell.querySelector('.tokpersec-gauge .tokpersec-gauge-pointer').setAttribute('style', '-webkit-transform: rotate(' + newVal + 'deg);' + '-moz-transform: rotate(' + newVal + 'deg);' + 'transform: rotate(' + newVal + 'deg);');
+                            reDrawTokPerSecPointers();
                         }
+
+                        if (isAtBottom) { tableContainer.scrollTop = tableContainer.scrollHeight - tableContainer.clientHeight }
                     };
 
                     ws.onerror = function(event) {
+                        const isAtBottom = tableContainer.scrollHeight - tableContainer.clientHeight <= tableContainer.scrollTop + 50;
+                        thisResponseCell.querySelector('.raw-text').textContent += event.data;
+                        if (isAtBottom) { tableContainer.scrollTop = tableContainer.scrollHeight - tableContainer.clientHeight }
                         console.error("WebSocket error observed:", event);
-                        showMessage("WebSocket error observed:", event);
                     };
 
                     ws.onclose = function(event) {
+                        nowTime = new Date();
+                        runTime = nowTime - StartTime;
+                        thisResponseCell.querySelector('#speedo-status').innerHTML = `Complete.<br>Tokens: ${tokenCount}<br>Runtime: ${(runTime / 1000).toFixed(2)}`;
+                        resetTokpersecMinMax();
+
                         console.log("WebSocket connection closed for", item.getAttribute('data-provider'));
                     };
 
-                    function resetTokpersecMinMax() {
-                        maxTokPerSec = 0.0;
-                        minTokPerSec = 999999.9;
 
-                        Array.from(newRow.cells).forEach((item, index) => {
-                            const tempCell = newRow.cells[index];
+                    function reDrawTimeFirstTokenPointers() {
+                            Array.from(ResponseRow.cells).forEach((item, index) => {
+                                const tempCell = ResponseRow.cells[index];
+
+                                if (tempCell.querySelector("#tokspersecValue")) {
+                                    var tempFirstTok = parseFloat(tempCell.querySelector("#firsttokenValue").textContent);
+
+                                    if (!isNaN(tempFirstTok)) {
+                                        tempFirstTok *= 1000;
+
+                                        const pctTime = (MaxFirstTokenDuration == MinFirstTokenDuration) 
+                                                        ? 0.5
+                                                        : (tempFirstTok - MinFirstTokenDuration) / (MaxFirstTokenDuration - MinFirstTokenDuration);
+
+                                        const newVal = 10 + Math.floor(pctTime * 160);
+                                        tempCell.querySelector('.ttft-gauge .ttft-gauge-pointer').setAttribute('style', '-webkit-transform: rotate(' + newVal + 'deg);' + '-moz-transform: rotate(' + newVal + 'deg);' + 'transform: rotate(' + newVal + 'deg);');
+                                    }
+                                }
+                            });
+
+                    }
+
+                    function reDrawTokPerSecPointers() {
+                            Array.from(ResponseRow.cells).forEach((item, index) => {
+                                const tempCell = ResponseRow.cells[index];
+
+                                if (tempCell.querySelector("#tokspersecValue")) {
+                                    const tempTokPerSec = parseFloat(tempCell.querySelector("#tokspersecValue").textContent);
+
+                                    if (!isNaN(tempTokPerSec)) {
+                                        var pctTime = (MaxTokPerSec == MinTokPerSec) 
+                                                        ? 0.5
+                                                        : (tempTokPerSec - MinTokPerSec) / (MaxTokPerSec - MinTokPerSec);
+
+                                        var newVal = 10 + Math.floor(pctTime * 160);
+                                        tempCell.querySelector('.tokpersec-gauge .tokpersec-gauge-pointer').setAttribute('style', '-webkit-transform: rotate(' + newVal + 'deg);' + '-moz-transform: rotate(' + newVal + 'deg);' + 'transform: rotate(' + newVal + 'deg);');
+                                    }
+                                }
+                            });
+
+                    }
+
+                    function resetTokpersecMinMax() {
+                        MaxTokPerSec = 0.0;
+                        MinTokPerSec = 9999.9;
+
+                        Array.from(ResponseRow.cells).forEach((item, index) => {
+                            const tempCell = ResponseRow.cells[index];
 
                             if (tempCell.querySelector("#tokspersecValue")) {
-                                const thisTokensPerSecond = parseFloat(tempCell.querySelector("#tokspersecValue").innerHTML);
+                                const thisTokensPerSecond = parseFloat(tempCell.querySelector("#tokspersecValue").textContent);
 
                                 if (thisTokensPerSecond) {
-                                    maxTokPerSec = Math.max(maxTokPerSec, thisTokensPerSecond);
-                                    minTokPerSec = Math.min(minTokPerSec, thisTokensPerSecond);
+                                    MaxTokPerSec = Math.max(MaxTokPerSec, thisTokensPerSecond);
+                                    MinTokPerSec = Math.min(MinTokPerSec, thisTokensPerSecond);
                                 }
                             }
                         });
+
                     }
                 }
             });
