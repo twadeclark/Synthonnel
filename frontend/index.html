@@ -895,6 +895,7 @@ input[type='select'] {
                     </div><div class="raw-text"></div>`;
 
                     thisResponseCell.querySelector('#speedo-status').innerHTML = `Preparing Request..`;
+                    thisResponseCell.style = 'border: 2px solid red;';
 
                     const ws = new WebSocket(`ws://localhost:8000/ws/stream-llm-response`);
 
@@ -989,12 +990,12 @@ input[type='select'] {
                         runTime = nowTime - StartTime;
                         thisResponseCell.querySelector('#speedo-status').innerHTML = `Complete.<br>${tokenCount} t / ${(runTime / 1000).toFixed(2)} s`;
                         thisResponseCell.querySelector('#speedo-status').title = `Complete.\nTokens: ${tokenCount}\nRuntime: ${(runTime / 1000).toFixed(2)}`;
+                        thisResponseCell.style = ``;
                         resetTokpersecMinMax();
-                        
+
                         promptCell.setAttribute("synthonnelCount", parseInt(promptCell.getAttribute("synthonnelCount") - 1));
                         if (parseInt(promptCell.getAttribute("synthonnelCount")) < 1) {
                             promptCell.title = "Complete.\n" + cellsToProcessTotal + " called.\n" + "0 still working.\n";
-
                             promptCellDiv.style.backgroundColor = "lawngreen";
 
                             setTimeout(() => {
