@@ -674,7 +674,7 @@ input[type='select'] {
             </div>
             <hr>
             <!-- <button class="button small-text-wide-button" onclick="saveChatTSV()" title="Tab Separated Values.">TSV Download</button> -->
-            <button class="button small-text-wide-button" onclick="saveChatTable()" title="Simple HTML Table.">Table Download</button>
+            <button class="button small-text-wide-button" onclick="saveChatTable()" title="Simple HTML Table.">Download as Table</button>
         </div>
     </div>
 
@@ -833,7 +833,18 @@ input[type='select'] {
             const promptCell = promptRow.insertCell(0);
             promptCell.className = 'prompt-row';
             promptCell.colSpan = '100';
-            promptCell.innerHTML = "<div class='promptCell'>" + prompt + "</div>";
+
+            const promptCellDiv = document.createElement('div');
+            promptCellDiv.innerHTML = prompt;
+            promptCellDiv.className = 'promptCell';
+            promptCell.appendChild(promptCellDiv);
+
+            const cellsToProcessTotal = Array.from(headerCells).filter(item => !item.getAttribute('data-paused')).length;
+            promptCell.setAttribute("synthonnelTotal", cellsToProcessTotal);
+            promptCell.setAttribute("synthonnelCount", cellsToProcessTotal);
+
+            promptCell.title = "Running.\n" + cellsToProcessTotal + " called.\n" + cellsToProcessTotal + " still working.\n";
+            promptCellDiv.style.backgroundColor = `rgba(255, 0, 0, 0.25)`;
 
             const ResponseRow = table.insertRow(-1);
             ResponseRow.className = 'response-row';
@@ -857,7 +868,7 @@ input[type='select'] {
                     thisResponseCell.innerHTML = '~ paused ~';
                     thisResponseCell.style.transform = "scale(0.75)";
                     thisResponseCell.className = "center";
-                    thisResponseCell.title = "Model paused duringfor this prompt.";
+                    thisResponseCell.title = "Model paused for this prompt.";
                 } else {
                     thisResponseCell.innerHTML = `<div class="speedometer">
                         <div class="float-left">
@@ -979,6 +990,22 @@ input[type='select'] {
                         thisResponseCell.querySelector('#speedo-status').innerHTML = `Complete.<br>${tokenCount} t / ${(runTime / 1000).toFixed(2)} s`;
                         thisResponseCell.querySelector('#speedo-status').title = `Complete.\nTokens: ${tokenCount}\nRuntime: ${(runTime / 1000).toFixed(2)}`;
                         resetTokpersecMinMax();
+                        
+                        promptCell.setAttribute("synthonnelCount", parseInt(promptCell.getAttribute("synthonnelCount") - 1));
+                        if (parseInt(promptCell.getAttribute("synthonnelCount")) < 1) {
+                            promptCell.title = "Complete.\n" + cellsToProcessTotal + " called.\n" + "0 still working.\n";
+
+                            promptCellDiv.style.backgroundColor = "lawngreen";
+
+                            setTimeout(() => {
+                                promptCellDiv.style.transition = "background-color 1s ease-out";
+                                promptCellDiv.style.backgroundColor = 'unset';
+                            }, 10);
+                        } else {
+                            promptCell.title = "Running.\n" + 
+                                promptCell.getAttribute("synthonnelTotal") + " called.\n" + 
+                                promptCell.getAttribute("synthonnelCount") + " still working.\n";
+                        }
 
                         console.log("WebSocket connection closed for", item.getAttribute('data-provider'));
                     };
@@ -1563,7 +1590,7 @@ table {
   border-collapse: collapse;
   font-family: Verdana, Arial, Tahoma, sans-serif;
   padding: 10px;
-  table-layout: fixed; /* Fix column widths for consistency */
+  table-layout: fixed;
   width: fit-content;
 }
 thead {
@@ -1573,7 +1600,6 @@ th {
   border: 1px solid purple;
   padding: 10px;
   text-align: left;
-  min-width: 50px; /* Adjust as needed */
 }
 tbody {
   vertical-align: top;
@@ -1585,7 +1611,7 @@ table td {
   padding: 10px;
 }
 .table-container {
-  overflow-x: auto;  /* Enable horizontal scroll when table expands */
+  overflow-x: auto;
 }        
 
 .small-courier {
@@ -1613,7 +1639,7 @@ table td {
 .sticky {
   position: sticky;
   top: 0;
-  background-color: #f0f0f0; /* Optional: visual distinction for header */
+  background-color: #f0f0f0;
 
 }
 
@@ -1631,8 +1657,6 @@ table td {
             htmlData += `  <th style='width: 100px' class='normal '>Model:</th>\n`;
             for(index=0; index<cellLen; index++) {
                 var item = headerRow.cells[index];
-                // 300 is min. 5 cols and a partial
-                // htmlData += `  <th style='width: 300px'>${item.getAttribute('data-model')}</th>\n`;
                 htmlData += `  <th style='width: ${Math.max(1600 / cellLen, 300)}px'>${item.getAttribute('data-model')}</th>\n`;
             }
             htmlData += "</tr>\n";
@@ -1763,6 +1787,5 @@ table td {
             }
 
     </script>
-<script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js"></script>
 </body>
 </html>
