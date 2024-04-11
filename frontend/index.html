@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Synthonnel</title>
+    <title>Synthonnel Parley</title>
     <style>
         :root {
             --backgroundColor: #F0F0F0;
@@ -584,6 +584,31 @@ input[type='select'] {
     font-size: 18px;
 }
 
+.dropdownModelOptionsSelect {
+  position: relative;
+  display: inline-block;
+}
+#ModelOptionsSelect {
+  padding: 5px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  top: 0px;
+  position: absolute;
+  width: 100%;
+  height: 30px;
+  font-size: 18px;
+}
+#newItemModel {
+  padding: 5px;
+  border: 1px solid #ccc;
+  border-radius: 4px 0px 0px 4px;
+  top: 0px;
+  position: relative;
+  width: calc(100% - 29px);
+  height: 18px;
+}
+
+
 </style>
 </head>
 <body>
@@ -598,7 +623,7 @@ input[type='select'] {
         </table>
     </div>
 
-    <button id="logoBtn" class="button" title="Synthonnel"></button>
+    <button id="logoBtn" class="button" title="Synthonnel Parley"></button>
 
     <button id="addItemBtn" class="button" title="Activate or Delete Models">+</button>
     <div id="addItemFormHider">
@@ -606,7 +631,10 @@ input[type='select'] {
             <div id="message">Disappearing message</div>
             <div class="addItemForm-left">
                 <span class="closebtn" onclick="this.parentElement.parentElement.parentElement.style.display = 'none';">&times;</span>
-                <input type="text" id="newItemModel" placeholder="Model" title="Model" class="nightmode-color-changer">
+                <div class="dropdownModelOptionsSelect">
+                    <select name="ModelOptionsSelect" id="ModelOptionsSelect" placeholder="Model" title="Model" class="nightmode-color-changer">
+                    <input type="text" id="newItemModel" placeholder="Model" title="Model" class="nightmode-color-changer">
+                </div>
                 <select name="newItemProvider" id="newItemProvider" placeholder="API Template" title="API Template" class="nightmode-color-changer">
                 <input type="text" id="newItemProviderUrl" placeholder="Provider Url" title="Provider Url" class="nightmode-color-changer">
                 <textarea id="newItemParameters" placeholder="parameters.." rows="4" title="Parameters" class="nightmode-color-changer"></textarea>
@@ -673,8 +701,8 @@ input[type='select'] {
                 <label style="font-family: 'Lucida Console', Courier, monospace;" for="monospace-responses"> Monospace </label>
             </div>
             <hr>
-            <!-- <button class="button small-text-wide-button" onclick="saveChatTSV()" title="Tab Separated Values.">TSV Download</button> -->
-            <button class="button small-text-wide-button" onclick="saveChatTable()" title="Simple HTML Table.">Download as Table</button>
+            <!-- <button class="button small-text-wide-button" onclick="saveParleyTSV()" title="Tab Separated Values.">TSV Download</button> -->
+            <button class="button small-text-wide-button" onclick="saveParleyable()" title="Simple HTML Table.">Download as Table</button>
         </div>
     </div>
 
@@ -772,7 +800,8 @@ input[type='select'] {
                     note: item.getAttribute('data-note'),
                     providerUrl: item.getAttribute('data-providerUrl'),
                     parameters: item.getAttribute('data-parameters'),
-                    apiKey: item.getAttribute('data-apiKey')
+                    apiKey: item.getAttribute('data-apiKey'),
+                    model_options: item.getAttribute('data-model_options')                    
                 };
                 item = addColumn(itemData, index);
                 row.cells[index].replaceWith(item);
@@ -1080,6 +1109,7 @@ input[type='select'] {
             loadModels();
             loadTemplateModelsList();
             loadAPITemplates();
+            ModelOptionsSelect.disabled = true;
 
             function toggleVisibility(checkboxId, className) {
                 const checkbox = document.getElementById(checkboxId);
@@ -1144,6 +1174,7 @@ input[type='select'] {
             th.setAttribute('data-providerUrl', item.providerUrl);
             th.setAttribute('data-parameters', item.parameters);
             th.setAttribute('data-apiKey', item.apiKey);
+            th.setAttribute('data-model_options', item.model_options);
 
             return th;
         }
@@ -1292,6 +1323,7 @@ input[type='select'] {
                 providerUrl: th.getAttribute('data-providerUrl'),
                 apiKey: th.getAttribute('data-apiKey'),
                 note: th.getAttribute('data-note'),
+                model_options: th.getAttribute('data-model_options'),                
             }));
 
             fetch('http://localhost:8000/save-items-active', {
@@ -1325,6 +1357,11 @@ input[type='select'] {
             });
 
             autoGrowTextArea(textarea);
+
+            document.getElementById("ModelOptionsSelect").addEventListener('change', function () {
+                    document.getElementById('newItemModel').value = document.getElementById("ModelOptionsSelect").value;
+                    document.getElementById("ModelOptionsSelect").value = '';
+                });
         });
 
         async function loadSavedModelsList() {
@@ -1379,7 +1416,8 @@ input[type='select'] {
                             parameters: item.parameters,
                             providerUrl: item.providerUrl,
                             apiKey: item.apiKey,
-                            note: item.note
+                            note: item.note,
+                            model_options: item.model_options
                         };
                         itemDataList.push(itemData);
 
@@ -1412,6 +1450,22 @@ input[type='select'] {
             }
         }
 
+        async function loadModelOptions(model_options) {
+            const selectElement = document.getElementById("ModelOptionsSelect");
+            selectElement.length = 0;
+            selectElement.disabled = !model_options;
+
+            if (model_options) {
+                const option = new Option("", "");
+                selectElement.appendChild(option);
+
+                model_options.forEach((item, index) => {
+                    const option = new Option(item, item);
+                    selectElement.appendChild(option);
+                });
+            }
+        }
+
         function optionClicked (item) {
             function setAndFlash(newItemParameter, item_value) {
                 modelWas = document.getElementById(newItemParameter).value;
@@ -1420,6 +1474,8 @@ input[type='select'] {
                     flashElementGreen(newItemParameter);
                 }
             }
+
+            loadModelOptions(item.model_options);
 
             setAndFlash("newItemModel", item.model)
             setAndFlash("newItemProvider", item.provider)
@@ -1503,7 +1559,7 @@ input[type='select'] {
             }
         });
 
-        function saveChatTSV() {
+        function saveParleyTSV() {
             var table = document.getElementById("promptTable");
             var tsvData = "";
             var headerRow = document.getElementById("headerRow");
@@ -1568,7 +1624,7 @@ input[type='select'] {
             var blob = new Blob([tsvData], { type: "text/csv;charset=utf-8" });
             var link = document.createElement("a");
             link.href = URL.createObjectURL(blob);
-            link.download = "Synthonnel_" + getFormattedDateTimeUnderscores() + ".tsv";
+            link.download = "Synthonnel_Parley_" + getFormattedDateTimeUnderscores() + ".tsv";
             link.style.display = "none";
             document.body.appendChild(link);
             link.click();
@@ -1577,14 +1633,14 @@ input[type='select'] {
 
 
 
-        function saveChatTable() {
+        function saveParleyTable() {
             var table = document.getElementById("promptTable");
             htmlData = "<html>\n";
 
             htmlData += `
 <html>
   <head>
-    <title>Synthonnel Chat ${getFormattedDateTimePolite()}</title>
+    <title>Synthonnel Parley ${getFormattedDateTimePolite()}</title>
     <style>
 
 table {
@@ -1647,7 +1703,7 @@ table td {
     </style>
     </head>
         <table>
-            <caption><p>Synthonnel Chat ${getFormattedDateTimePolite()}<p></caption>
+            <caption><p>Synthonnel Parley ${getFormattedDateTimePolite()}<p></caption>
             <thead>
 `;
 
@@ -1742,7 +1798,7 @@ table td {
             var blob = new Blob([htmlData], { type: "text/html;charset=utf-8" });
             var link = document.createElement("a");
             link.href = URL.createObjectURL(blob);
-            link.download = "Synthonnel_" + getFormattedDateTimeUnderscores() + ".html";
+            link.download = "Synthonnel_Parley_" + getFormattedDateTimeUnderscores() + ".html";
             link.style.display = "none";
             document.body.appendChild(link);
             link.click();
@@ -1750,7 +1806,7 @@ table td {
         }
 
 
-        function saveChatXLSX() {
+        function saveParleyXLSX() {
         }
 
         function escapeForCSV(inVal)

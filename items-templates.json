@@ -1,5 +1,31 @@
 [
     {
+        "model": "",
+        "provider": "OpenAI",
+        "note": "",
+        "providerUrl": "http://localhost:1234/v1",
+        "parameters": "#timeout           = float\n#frequency_penalty = float\n#logprobs          = bool\n#max_tokens        = int\n#n                 = int\n#presence_penalty  = float\n#seed              = int\n#stop              = text\n#temperature       = float\n#top_logprobs      = int\n#top_p             = float\n#user              = text",
+        "apiKey": "none",
+        "model_options": ["gpt-4-turbo", "gpt-4-turbo-2024-04-09", "gpt-4-turbo-preview", "gpt-4-0125-preview", "gpt-4-1106-preview", "gpt-4-vision-preview", "gpt-4-1106-vision-preview", "gpt-4", "gpt-4-0613", "gpt-4-32k", "gpt-4-32k-0613", "gpt-3.5-turbo-0125", "gpt-3.5-turbo", "gpt-3.5-turbo-1106", "gpt-3.5-turbo-instruct", "gpt-3.5-turbo-16k", "gpt-3.5-turbo-0613", "gpt-3.5-turbo-16k-0613"],
+        "system_message": ""
+    },
+    {
+        "model": "Local Model",
+        "provider": "LM Studio",
+        "note": "",
+        "providerUrl": "http://localhost:1234/v1",
+        "parameters": "#timeout           = float\n#frequency_penalty = float\n#logprobs          = bool\n#max_tokens        = int\n#n                 = int\n#presence_penalty  = float\n#seed              = int\n#stop              = text\n#temperature       = float\n#top_logprobs      = int\n#top_p             = float\n#user              = text",
+        "apiKey": "none"
+    },
+    {
+        "model": "",
+        "provider": "Hugging Face Free",
+        "note": "Non-Streaming Serverless Inference API",
+        "providerUrl": "https://api-inference.huggingface.co/models/",
+        "parameters": "max_time            = 60\ndo_sample           = True\n#top_k              = int\n#top_p              = int\n#temperature        = float\n#repetition_penalty = float\n#max_new_tokens     = int",
+        "apiKey": ""
+    },
+    {
         "model": "Lorem Ipsum Lightning",
         "provider": "Internal Testing",
         "note": "Internal Testing",
@@ -22,21 +48,5 @@
         "providerUrl": "Internal Testing",
         "parameters": "# Gibberish for Testing.",
         "apiKey": "none"
-    },
-    {
-        "model": "Local Model",
-        "provider": "LM Studio",
-        "note": "",
-        "providerUrl": "http://localhost:1234/v1",
-        "parameters": "#timeout           = float\n#frequency_penalty = float\n#logprobs          = bool\n#max_tokens        = int\n#n                 = int\n#presence_penalty  = float\n#seed              = int\n#stop              = text\n#temperature       = float\n#top_logprobs      = int\n#top_p             = float\n#user              = text",
-        "apiKey": "none"
-    },
-    {
-        "model": "",
-        "provider": "Hugging Face Free",
-        "note": "Non-Streaming Serverless Inference API",
-        "providerUrl": "https://api-inference.huggingface.co/models/",
-        "parameters": "max_time            = 60\ndo_sample           = True\n#top_k              = int\n#top_p              = int\n#temperature        = float\n#repetition_penalty = float\n#max_new_tokens     = int",
-        "apiKey": ""
     }
 ]

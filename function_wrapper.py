@@ -22,6 +22,61 @@ async def default(websocket: WebSocket, item_data):
     return "This interface is not implemented."
 
 
+async def openai(websocket, item_data):
+    try:
+        base_url = item_data["providerUrl"]
+        api_key = item_data["apiKey"]
+
+        model = item_data["model"]
+        params_parsed = parse_params(item_data["parameters"])
+
+        messages = item_data["messages"]
+
+        params = {
+            'messages'          : messages,
+            'model'             : model,
+            'stream'            : True,
+            # Optional Supported OpenAI parameters:
+            'timeout'           : strtofloat(params_parsed.get("timeout", 60)),
+            'frequency_penalty' : strtofloat(params_parsed.get("frequency_penalty", None)),
+            'logprobs'          : strtobool(params_parsed.get("logprobs", None)),
+            'max_tokens'        : strtoint(params_parsed.get("max_tokens", None)),
+            'n'                 : strtoint(params_parsed.get("n", None)),
+            'presence_penalty'  : strtofloat(params_parsed.get("presence_penalty", None)),
+            'seed'              : strtoint(params_parsed.get("seed", None)),
+            'stop'              : params_parsed.get("stop", None),
+            'temperature'       : strtofloat(params_parsed.get("temperature", None)),
+            'top_logprobs'      : strtoint(params_parsed.get("top_logprobs", None)),
+            'top_p'             : strtofloat(params_parsed.get("top_p", None)),
+            'user'              : params_parsed.get("user", None)
+        }
+
+        kwargs = {k: v for k, v in params.items() if v is not None}
+
+        client = AsyncOpenAI(base_url=base_url, api_key=api_key)
+
+        async def streamer():
+            try:
+                stream = await client.chat.completions.create(**kwargs)
+                async for chunk in stream:
+                    content = chunk.choices[0].delta.content
+                    if content:
+                        await websocket.send_text(content)
+            except Exception as e:
+                print(e)
+                print(e.with_traceback)
+                await websocket.send_text('\n\n# THREAD Big problems. Exception: ' + str(e))
+                await websocket.send_text('\n\n# THREAD Big problems. Exception with_traceback: ' + str(e.with_traceback))
+
+        await streamer()
+
+        return "openai done."
+    except Exception as e:
+        print(e)
+        await websocket.send_text('\n\n# Big problems. Exception: ' + str(e))
+        return "openai error!"
+
+
 async def huggingfacefree(websocket: WebSocket, item_data):
     try:
         base_url = item_data["providerUrl"]
@@ -210,6 +265,7 @@ inference_providers = {
     "Internal Testing": FunctionWrapper(internaltesting, "Internal Testing", "Internal Testing"),
     "LM Studio": FunctionWrapper(lm_studio, "LM Studio", "LM Studio"),
     "Hugging Face Free": FunctionWrapper(huggingfacefree, "Hugging Face Free", "Hugging Face Free"),
+    "OpenAI": FunctionWrapper(openai, "OpenAI", "OpenAI"),
 }
 
 class FunctionInfo(BaseModel):
