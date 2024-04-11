@@ -85,7 +85,6 @@
             border: 1px solid var(--borderColor); 
             display: inline-flex;
             gap: 20px;
-            width: 50%;
             padding-top: 44px;
             z-index: 1;
         }
@@ -522,21 +521,20 @@
     color: red;
 }
 
-.addItemForm {
-    -webkit-transition: background-color .35s ease-in-out;
-    transition: background-color .35s ease-in-out;
-}
 .addItemForm-left {
     display: grid; 
     gap: 20px;
-    width: 50%;
+    width: 225px;
+}
+.vertical-row {
+    position: relative;
+    width: 1px;
+    background-color: var(--borderColor);
 }
 .addItemForm-right {
     display: grid; 
-    border-left: 1px solid var(--borderColor);
-    padding-left: 40px;
-    margin-left: 20px;
-    width: 50%;
+    gap: 20px;
+    min-width: 250px;
 }
 input[type='text'] {
     font-size: 18px;
@@ -549,26 +547,22 @@ input[type='select'] {
 }
 .select-class {
     font-size: 18px;
-    margin-bottom: 20px;
-    max-height: 329px;
+    max-height: 280px;
     overflow-y: scroll;
     background-color: var(--emphasisBackgroundColor);
     color: var(--textColor);
-    width: 40%;
 }
 .current-saved-adjustment {
     padding-left: 20px;
     margin-top: -12px;
 }
-#newItemParameters {
-    font-size: 18px;
-    resize: vertical;
-}
 
 .nightmode-color-changer {
     background-color: var(--emphasisBackgroundColor);
     color: var(--textColor);
+    border: 1px solid var(--borderColor);
     transition: background-color 0.5s ease-in-out;
+    border-radius: 6px;
 }
 
 #modelListSaved {
@@ -582,6 +576,9 @@ input[type='select'] {
 
 #newItemProvider {
     font-size: 18px;
+    width: 225px;
+    border: 0px;
+    text-align: center;
 }
 
 .dropdownModelOptionsSelect {
@@ -590,22 +587,25 @@ input[type='select'] {
 }
 #ModelOptionsSelect {
   padding: 5px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
   top: 0px;
   position: absolute;
   width: 100%;
-  height: 30px;
+  height: 25px;
   font-size: 18px;
 }
 #newItemModel {
   padding: 5px;
-  border: 1px solid #ccc;
-  border-radius: 4px 0px 0px 4px;
-  top: 0px;
+  top: -2px;
   position: relative;
   width: calc(100% - 29px);
-  height: 18px;
+  height: 13px;
+  border-radius: 6px 0px 0px 6px;
+}
+#newItemParameters {
+    resize: vertical;
+    max-height: 350px;
+    min-height: 91px;
+    font-size: 18px;
 }
 
 
@@ -631,16 +631,15 @@ input[type='select'] {
             <div id="message">Disappearing message</div>
             <div class="addItemForm-left">
                 <span class="closebtn" onclick="this.parentElement.parentElement.parentElement.style.display = 'none';">&times;</span>
+                <input readonly type="text" id="newItemProvider" placeholder="API Template" title="API Template" class="nightmode-color-changer"></input>
                 <div class="dropdownModelOptionsSelect">
                     <select name="ModelOptionsSelect" id="ModelOptionsSelect" placeholder="Model" title="Model" class="nightmode-color-changer">
                     <input type="text" id="newItemModel" placeholder="Model" title="Model" class="nightmode-color-changer">
                 </div>
-                <select name="newItemProvider" id="newItemProvider" placeholder="API Template" title="API Template" class="nightmode-color-changer">
                 <input type="text" id="newItemProviderUrl" placeholder="Provider Url" title="Provider Url" class="nightmode-color-changer">
                 <textarea id="newItemParameters" placeholder="parameters.." rows="4" title="Parameters" class="nightmode-color-changer"></textarea>
                 <input type="password" id="newItemApiKey" placeholder="Api Key" title="Api Key" class="nightmode-color-changer">
                 <input type="text" id="newItemNote" placeholder="note.." title="Note" class="nightmode-color-changer">
-
                 <div>
                     <div style="float: left;">
                         <button id="clearForm" class="button small-text-just-wide-enough-button" onclick="clearAddItemForm();">Clear</button>
@@ -650,19 +649,22 @@ input[type='select'] {
                     </div>
                 </div>
             </div>
+            <div class="vertical-row"></div>
             <div class="addItemForm-right">
                 <select name="modelListSaved" id="modelListSaved" class="select-class" size="100" title="Recently Used Profiles"></select>
-                <div style="position: absolute; right: 20px; bottom: 20px;">
-                    <button id="deleteFromModelListSaved" class="button small-text-just-wide-enough-button" onclick="deleteFromSavedModelsList();">Delete</button>
-                </div>
                 <select name="modelListTemplates" id="modelListTemplates" class="select-class" size="100" title="System Templates Profiles"></select>
-                <div style="text-align: left;">
-                    <label> User </label>
-                    <label class="switch position-switch-lower">
-                        <input type="checkbox" id="view-model-templates">
-                        <span class="slider round"></span>
-                    </label>
-                    <label for="view-model-templates"> System </label>
+                <div>
+                    <div style="float: left;">
+                        <label> User </label>
+                        <label class="switch position-switch-lower">
+                            <input type="checkbox" id="view-model-templates">
+                            <span class="slider round"></span>
+                        </label>
+                        <label for="view-model-templates"> System </label>
+                    </div>
+                    <div style="float: right;">
+                        <button id="deleteFromModelListSaved" class="button small-text-just-wide-enough-button" onclick="deleteFromSavedModelsList();">Delete</button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -686,7 +688,7 @@ input[type='select'] {
             </div>
             <hr>
             <input type="checkbox" id="check1" checked> <label for="check1">Model</label> <br>
-            <input type="checkbox" id="check2"> <label for="check2">Provider</label> <br>
+            <input type="checkbox" id="check2"> <label for="check2">API Template</label> <br>
             <input type="checkbox" id="check3"> <label for="check3">Note</label> <br>
             <input type="checkbox" id="check4"> <label for="check4">Provider Url</label> <br>
             <input type="checkbox" id="check5"> <label for="check5">Parameters</label> <br>
@@ -702,7 +704,7 @@ input[type='select'] {
             </div>
             <hr>
             <!-- <button class="button small-text-wide-button" onclick="saveParleyTSV()" title="Tab Separated Values.">TSV Download</button> -->
-            <button class="button small-text-wide-button" onclick="saveParleyable()" title="Simple HTML Table.">Download as Table</button>
+            <button class="button small-text-wide-button" onclick="saveParleyTable()" title="Simple HTML Table.">Download as Table</button>
         </div>
     </div>
 
@@ -1108,7 +1110,6 @@ input[type='select'] {
         document.addEventListener('DOMContentLoaded', function() {
             loadModels();
             loadTemplateModelsList();
-            loadAPITemplates();
             ModelOptionsSelect.disabled = true;
 
             function toggleVisibility(checkboxId, className) {
