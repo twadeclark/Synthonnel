@@ -6,6 +6,7 @@ from fastapi import WebSocket
 from pydantic import BaseModel
 from openai import AsyncOpenAI
 
+SAVE_MOST_RECENT_RESPONSE = False
 
 class FunctionWrapper:
     def __init__(self, func, friendly_name, id):
@@ -56,9 +57,16 @@ async def openai(websocket, item_data):
         client = AsyncOpenAI(base_url=base_url, api_key=api_key)
 
         async def streamer():
+
+            raw_responses_most_recent_dump = ""
+
             try:
                 stream = await client.chat.completions.create(**kwargs)
                 async for chunk in stream:
+
+                    if chunk:
+                        raw_responses_most_recent_dump += str(chunk) + "\n"
+
                     content = chunk.choices[0].delta.content
                     if content:
                         await websocket.send_text(content)
@@ -67,6 +75,10 @@ async def openai(websocket, item_data):
                 print(e.with_traceback)
                 await websocket.send_text('\n\n# THREAD Big problems. Exception: ' + str(e))
                 await websocket.send_text('\n\n# THREAD Big problems. Exception with_traceback: ' + str(e.with_traceback))
+
+            if SAVE_MOST_RECENT_RESPONSE:
+                with open("scratch/raw_responses_most_recent_dump_OpenAI.txt", 'w', encoding='utf-8') as file:
+                    file.write(raw_responses_most_recent_dump)
 
         await streamer()
 
@@ -89,7 +101,9 @@ async def huggingfacefree(websocket: WebSocket, item_data):
 
         messages_formatted_as_string = ""
         for message in messages:
-            messages_formatted_as_string += f'\n\n{message['role']}:\n{message['content']}'
+            role = message['role'].upper
+            content = message['content'].replace('\n',' ')
+            messages_formatted_as_string += f'{role}: {content}\n'
 
         params = {
             "return_full_text"   : False,
@@ -116,6 +130,12 @@ async def huggingfacefree(websocket: WebSocket, item_data):
 
         async with httpx.AsyncClient() as client:
             response = await client.post(this_api_endpoint, headers=headers, json=payload, timeout=60)
+
+        if SAVE_MOST_RECENT_RESPONSE:
+            raw_responses_most_recent_dump = str(response) + "\n"
+            with open("scratch/raw_responses_most_recent_dump_HuggingFaceFree.txt", 'w', encoding='utf-8') as file:
+                file.write(raw_responses_most_recent_dump)
+
         all_chunks = response.text
 
         data = json.loads(all_chunks)
@@ -183,9 +203,16 @@ async def lm_studio(websocket, item_data):
         client = AsyncOpenAI(base_url=base_url, api_key=api_key)
 
         async def streamer():
+
+            raw_responses_most_recent_dump = ""
+
             try:
                 stream = await client.chat.completions.create(**kwargs)
                 async for chunk in stream:
+
+                    if chunk:
+                        raw_responses_most_recent_dump += str(chunk) + "\n"
+
                     content = chunk.choices[0].delta.content
                     if content:
                         await websocket.send_text(content)
@@ -194,6 +221,10 @@ async def lm_studio(websocket, item_data):
                 print(e.with_traceback)
                 await websocket.send_text('\n\n# THREAD Big problems. Exception: ' + str(e))
                 await websocket.send_text('\n\n# THREAD Big problems. Exception with_traceback: ' + str(e.with_traceback))
+
+            if SAVE_MOST_RECENT_RESPONSE:
+                with open("scratch/raw_responses_most_recent_dump_LMStudio.txt", 'w', encoding='utf-8') as file:
+                    file.write(raw_responses_most_recent_dump)
 
         await streamer()
 
@@ -261,6 +292,8 @@ async def internaltesting(websocket: WebSocket, item_data):
     return "Internal Testing done."
 
 
+###############################
+# API Template Client Code List
 inference_providers = {
     "Internal Testing": FunctionWrapper(internaltesting, "Internal Testing", "Internal Testing"),
     "LM Studio": FunctionWrapper(lm_studio, "LM Studio", "LM Studio"),

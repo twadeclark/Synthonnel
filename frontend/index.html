@@ -157,9 +157,13 @@
         }
         .class2 {
             display: none;
+            font-weight: normal;
+            font-size: 16px;
         }
         .class3 {
             display: none;
+            font-weight: normal;
+            font-size: 16px;
         }
         .class4 {
             display: none;
@@ -547,7 +551,7 @@ input[type='select'] {
 }
 .select-class {
     font-size: 18px;
-    max-height: 280px;
+    max-height: 322px;
     overflow-y: scroll;
     background-color: var(--emphasisBackgroundColor);
     color: var(--textColor);
@@ -631,7 +635,7 @@ input[type='select'] {
             <div id="message">Disappearing message</div>
             <div class="addItemForm-left">
                 <span class="closebtn" onclick="this.parentElement.parentElement.parentElement.style.display = 'none';">&times;</span>
-                <input readonly type="text" id="newItemProvider" placeholder="API Template" title="API Template" class="nightmode-color-changer"></input>
+                <input readonly type="text" id="newItemProvider" placeholder="Choose Template" title="API Template" class="nightmode-color-changer"></input>
                 <div class="dropdownModelOptionsSelect">
                     <select name="ModelOptionsSelect" id="ModelOptionsSelect" placeholder="Model" title="Model" class="nightmode-color-changer">
                     <input type="text" id="newItemModel" placeholder="Model" title="Model" class="nightmode-color-changer">
@@ -652,17 +656,17 @@ input[type='select'] {
             <div class="vertical-row"></div>
             <div class="addItemForm-right">
                 <select name="modelListSaved" id="modelListSaved" class="select-class" size="100" title="Recently Used Profiles"></select>
-                <select name="modelListTemplates" id="modelListTemplates" class="select-class" size="100" title="System Templates Profiles"></select>
-                <div>
-                    <div style="float: left;">
-                        <label> User </label>
+                <select name="modelListTemplates" id="modelListTemplates" class="select-class" size="100" title="API Template Profiles"></select>
+                <div style="position: relative;">
+                    <div style="position: absolute;bottom: 2px;left: 0;">
+                        <label> Saved </label>
                         <label class="switch position-switch-lower">
                             <input type="checkbox" id="view-model-templates">
                             <span class="slider round"></span>
                         </label>
-                        <label for="view-model-templates"> System </label>
+                        <label for="view-model-templates"> Templates </label>
                     </div>
-                    <div style="float: right;">
+                    <div style="position: absolute;bottom: 0;right: 0;">
                         <button id="deleteFromModelListSaved" class="button small-text-just-wide-enough-button" onclick="deleteFromSavedModelsList();">Delete</button>
                     </div>
                 </div>
@@ -1230,7 +1234,7 @@ input[type='select'] {
                 document.getElementById('modelListTemplates').style.display = 'block';
 
                 document.querySelector('#deleteFromModelListSaved').disabled = true;
-                document.getElementById('deleteFromModelListSaved').style.opacity = '0.5';
+                document.getElementById('deleteFromModelListSaved').style.opacity = '0.0';
 
 
             } else {
@@ -1265,7 +1269,7 @@ input[type='select'] {
             } 
 
             const headerCells = document.querySelectorAll('#promptTable thead th');
-            const itemExists = Array.from(headerCells).some(th => 
+            const itemIsActive = Array.from(headerCells).some(th => 
                 th.getAttribute('data-model') === item.model &&
                 th.getAttribute('data-provider') === item.provider &&
                 th.getAttribute('data-note') === item.note &&
@@ -1274,7 +1278,7 @@ input[type='select'] {
                 th.getAttribute('data-apiKey') === item.apiKey
             );
 
-            if (itemExists) {
+            if (itemIsActive) {
                 showMessage("This model is already active.");
                 return;
             }
@@ -1300,8 +1304,15 @@ input[type='select'] {
 
             const selectElement = document.getElementById("modelListSaved");
             const itemDataString = JSON.stringify(item);
-            const itemSavedExists = Array.from(selectElement.options)
-                          .some(option => option.dataset.itemData === itemDataString);
+
+            const itemSavedExists = Array.from(selectElement.options).some(opt => 
+                JSON.parse(opt.dataset.itemData)['model'] === item.model &&
+                JSON.parse(opt.dataset.itemData)['provider'] === item.provider &&
+                JSON.parse(opt.dataset.itemData)['note'] === item.note &&
+                JSON.parse(opt.dataset.itemData)['providerUrl'] === item.providerUrl &&
+                JSON.parse(opt.dataset.itemData)['parameters'] === item.parameters &&
+                JSON.parse(opt.dataset.itemData)['apiKey'] === item.apiKey
+            );
 
             if (!itemSavedExists) {
                 const option = new Option(item.model + " / " + item.provider, JSON.stringify(item));
@@ -1423,7 +1434,7 @@ input[type='select'] {
                         itemDataList.push(itemData);
 
                         const uniqueId = `template-item-${index}`;
-                        const option = new Option(itemData.model + " / " + itemData.provider, uniqueId);
+                        const option = new Option(itemData.provider, uniqueId);
                         option.title = `${itemData.model}\n${itemData.provider}\n${itemData.note}\n${itemData.providerUrl}\n${itemData.parameters}\n`;
                         option.dataset.itemData = JSON.stringify(itemData);
                         selectElement.appendChild(option);
@@ -1698,24 +1709,24 @@ table td {
   position: sticky;
   top: 0;
   background-color: #f0f0f0;
-
+  
 }
 
     </style>
     </head>
         <table>
-            <caption><p>Synthonnel Parley ${getFormattedDateTimePolite()}<p></caption>
+            <caption><p>Synthonnel Parley - ${getFormattedDateTimePolite()}<p></caption>
             <thead>
 `;
 
             var headerRow = document.getElementById("headerRow");
             cellLen = headerRow.cells.length;
 
-            htmlData += "<tr class='sticky'>\n";
+            htmlData += "<tr class='sticky '>\n";
             htmlData += `  <th style='width: 100px' class='normal '>Model:</th>\n`;
             for(index=0; index<cellLen; index++) {
                 var item = headerRow.cells[index];
-                htmlData += `  <th style='width: ${Math.max(1600 / cellLen, 300)}px'>${item.getAttribute('data-model')}</th>\n`;
+                htmlData += `  <th style='width: ${Math.max(1600 / cellLen, 300)}px;' class='normal '>${item.getAttribute('data-model')}</th>\n`;
             }
             htmlData += "</tr>\n";
 
@@ -1723,7 +1734,7 @@ table td {
             htmlData += "  <th class='normal '>Provider:</th>\n";
             for(index=0; index<cellLen; index++) {
                 var item = headerRow.cells[index];
-                htmlData += "  <th>" + item.getAttribute('data-provider') + "</th>\n";
+                htmlData += "  <th class='normal '>" + item.getAttribute('data-provider') + "</th>\n";
             }
             htmlData += "</tr>\n";
 
@@ -1731,7 +1742,7 @@ table td {
             htmlData += "  <th class='normal '>Note:</th>\n";
             for(index=0; index<cellLen; index++) {
                 var item = headerRow.cells[index];
-                htmlData += "  <th>" + item.getAttribute('data-note') + "</th>\n";
+                htmlData += "  <th class='normal '>" + item.getAttribute('data-note') + "</th>\n";
             }
             htmlData += "</tr>\n";
 
