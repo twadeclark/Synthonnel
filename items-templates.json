@@ -2,6 +2,16 @@
     {
         "model": "",
         "systemPrompt": "You are a helpful assistant who provides brief answers to user questions.",
+        "provider": "Groq",
+        "note": "",
+        "providerUrl": "https://api.groq.com/openai/v1",
+        "parameters": "max_tokens          = 1024\nmax_time            = 60\ndo_sample           = True\n#top_k              = int\n#top_p              = int\n#temperature        = float\n#repetition_penalty = float",
+        "apiKey": "",
+        "model_options": ["llama2-70b-4096", "mixtral-8x7b-32768", "gemma-7b-it"]
+    },
+    {
+        "model": "",
+        "systemPrompt": "You are a helpful assistant who provides brief answers to user questions.",
         "provider": "Perplexity",
         "note": "",
         "providerUrl": "https://api.perplexity.ai",

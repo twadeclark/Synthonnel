@@ -5,6 +5,7 @@ import httpx
 from fastapi import WebSocket
 from pydantic import BaseModel
 from openai import AsyncOpenAI
+# from groq import Groq
 
 SAVE_MOST_RECENT_RESPONSE = True
 
@@ -30,9 +31,12 @@ async def default(websocket: WebSocket, item_data):
 # Azure - through HuggingFace
 # Google - through HuggingFace
 # Perplexity
+# Groq	        GROQ_API_KEY
 
 
 # TODO:
+# Gemini via endpoint http://localhost:6006/v1
+
 
 # https://pypi.org/project/inference-providers/
 # Provider	    Key
@@ -40,19 +44,15 @@ async def default(websocket: WebSocket, item_data):
 # Anyscale	    ANYSCALE_API_KEY
 # deepinfra	    DEEPINFRA_API_KEY
 # fireworks.ai	FIREWORKS_API_KEY
-# Groq	        GROQ_API_KEY
 # Lepton AI	    LEPTON_API_KEY
 # Mistral AI	MISTRAL_API_KEY
 # Octo AI	    OCTOAI_TOKEN
-# OpenAI	    OPENAI_API_KEY
 # OpenRouter    AI	OPENROUTER_API_KEY
 # together.ai	TOGETHERAI_API_KEY
-# Gemini via endpoint http://localhost:6006/v1
 # https://replicate.com/
 
 # Perplexity
-# https://docs.perplexity.ai/docs/getting-started
-# Telnyx 
+# Telnyx
 # NVIDIA - Descript, WOMBO, and Kuaishou.
 
 # https://meta.discourse.org/t/options-for-using-an-alternative-ai-provider/299790
@@ -89,6 +89,68 @@ async def default(websocket: WebSocket, item_data):
 # VMware by Broadcom
 
 
+async def groqai(websocket, item_data):
+    try:
+        base_url = item_data["providerUrl"]
+        api_key = item_data["apiKey"]
+
+        model = item_data["model"]
+        params_parsed = parse_params(item_data["parameters"])
+
+        messages = item_data["messages"]
+
+        params = {
+            'messages'          : messages,
+            'model'             : model,
+            'stream'            : True,
+            # Optional Supported OpenAI parameters:
+            'timeout'           : strtofloat(params_parsed.get("timeout", 60)),
+            'frequency_penalty' : strtofloat(params_parsed.get("frequency_penalty", None)),
+            'max_tokens'        : strtoint(params_parsed.get("max_tokens", None)),
+            'n'                 : strtoint(params_parsed.get("n", None)),
+            'presence_penalty'  : strtofloat(params_parsed.get("presence_penalty", None)),
+            'seed'              : strtoint(params_parsed.get("seed", None)),
+            'stop'              : params_parsed.get("stop", None),
+            'temperature'       : strtofloat(params_parsed.get("temperature", None)),
+            'top_p'             : strtofloat(params_parsed.get("top_p", None)),
+            'user'              : params_parsed.get("user", None)
+        }
+
+        kwargs = {k: v for k, v in params.items() if v is not None}
+
+        client = AsyncOpenAI(base_url=base_url, api_key=api_key)
+
+        async def streamer():
+
+            raw_responses_most_recent_dump = ""
+
+            try:
+                stream = await client.chat.completions.create(**kwargs)
+                async for chunk in stream:
+
+                    if chunk:
+                        raw_responses_most_recent_dump += str(chunk) + "\n"
+
+                    content = chunk.choices[0].delta.content
+                    if content:
+                        await websocket.send_text(content)
+            except Exception as e:
+                print(e)
+                print(e.with_traceback)
+                await websocket.send_text('\n\n# THREAD Big problems. Exception: ' + str(e))
+                await websocket.send_text('\n\n# THREAD Big problems. Exception with_traceback: ' + str(e.with_traceback))
+
+            if SAVE_MOST_RECENT_RESPONSE:
+                with open("scratch/raw_responses_most_recent_dump_GroqAI.txt", 'w', encoding='utf-8') as file:
+                    file.write(raw_responses_most_recent_dump)
+
+        await streamer()
+
+        return "groqai done."
+    except Exception as e:
+        print(e)
+        await websocket.send_text('\n\n# Big problems. Exception: ' + str(e))
+        return "groqai error!"
 
 
 async def perplexity(websocket, item_data):
@@ -492,7 +554,8 @@ inference_providers = {
     "Hugging Face Free": FunctionWrapper(huggingfacefree, "Hugging Face Free", "Hugging Face Free"),
     "OpenAI": FunctionWrapper(openai, "OpenAI", "OpenAI"),
     "Hugging Face Endpoint": FunctionWrapper(huggingfaceendpoint, "Hugging Face Endpoint", "Hugging Face Endpoint"),
-    "Perplexity": FunctionWrapper(perplexity, "Perplexity", "Perplexity"),    
+    "Perplexity": FunctionWrapper(perplexity, "Perplexity", "Perplexity"),
+    "Groq": FunctionWrapper(groqai, "Groq", "Groq"),
 }
 
 class FunctionInfo(BaseModel):
