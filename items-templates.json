@@ -2,6 +2,16 @@
     {
         "model": "",
         "systemPrompt": "You are a helpful assistant who provides brief answers to user questions.",
+        "provider": "Perplexity",
+        "note": "",
+        "providerUrl": "https://api.perplexity.ai",
+        "parameters": "max_tokens          = 1024\nmax_time            = 60\ndo_sample           = True\n#top_k              = int\n#top_p              = int\n#temperature        = float\n#repetition_penalty = float",
+        "apiKey": "",
+        "model_options": ["sonar-small-chat", "sonar-small-online", "sonar-medium-chat", "sonar-medium-online", "mistral-7b-instruct", "mixtral-8x7b-instruct", "codellama-70b-instruct"]
+    },
+    {
+        "model": "",
+        "systemPrompt": "You are a helpful assistant who provides brief answers to user questions.",
         "provider": "Hugging Face Endpoint",
         "note": "Inference API",
         "providerUrl": "",
@@ -10,7 +20,7 @@
     },
     {
         "model": "",
-        "systemPrompt": "You are a helpful assistant who provides thorough answers to user questions.",
+        "systemPrompt": "You are a helpful assistant who provides brief answers to user questions.",
         "provider": "OpenAI",
         "note": "",
         "providerUrl": "https://api.openai.com/v1/",
@@ -20,7 +30,7 @@
     },
     {
         "model": "(Local Model)",
-        "systemPrompt": "You are an eloquent assistant who specializes in utilizing pretentious vocabulary in your correspondence.",
+        "systemPrompt": "You are a helpful assistant who provides brief answers to user questions.",
         "provider": "LM Studio",
         "note": "",
         "providerUrl": "http://localhost:1234/v1",
@@ -33,7 +43,7 @@
         "provider": "Hugging Face Free",
         "note": "Non-Streaming Serverless Inference API",
         "providerUrl": "https://api-inference.huggingface.co/models/",
-        "parameters": "max_new_tokens      = 1000\nmax_time            = 60\ndo_sample           = True\n#top_k              = int\n#top_p              = int\n#temperature        = float\n#repetition_penalty = float",
+        "parameters": "max_new_tokens      = 1024\nmax_time            = 60\ndo_sample           = True\n#top_k              = int\n#top_p              = int\n#temperature        = float\n#repetition_penalty = float",
         "apiKey": ""
     },
     {
