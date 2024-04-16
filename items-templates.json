@@ -1,16 +1,26 @@
 [
     {
         "model": "",
+        "systemPrompt": "You are a helpful assistant who provides brief answers to user questions.",
+        "provider": "Hugging Face Endpoint",
+        "note": "Inference API",
+        "providerUrl": "",
+        "parameters": "max_tokens          = 1024\nmax_time            = 60\ndo_sample           = True\n#top_k              = int\n#top_p              = int\n#temperature        = float\n#repetition_penalty = float",
+        "apiKey": ""
+    },
+    {
+        "model": "",
+        "systemPrompt": "You are a helpful assistant who provides thorough answers to user questions.",
         "provider": "OpenAI",
         "note": "",
         "providerUrl": "https://api.openai.com/v1/",
-        "parameters": "max_tokens        = 100\ntimeout           = 60\n#frequency_penalty = float\n#logprobs          = bool\n#n                 = int\n#presence_penalty  = float\n#seed              = int\n#stop              = text\n#temperature       = float\n#top_logprobs      = int\n#top_p             = float\n#user              = text",
+        "parameters": "max_tokens         = 1024\ntimeout            = 60\n#frequency_penalty = float\n#logprobs          = bool\n#n                 = int\n#presence_penalty  = float\n#seed              = int\n#stop              = text\n#temperature       = float\n#top_logprobs      = int\n#top_p             = float\n#user              = text",
         "apiKey": "",
-        "model_options": ["gpt-4-turbo", "gpt-4-turbo-2024-04-09", "gpt-4-turbo-preview", "gpt-4-0125-preview", "gpt-4-1106-preview", "gpt-4-vision-preview", "gpt-4-1106-vision-preview", "gpt-4", "gpt-4-0613", "gpt-4-32k", "gpt-4-32k-0613", "gpt-3.5-turbo-0125", "gpt-3.5-turbo", "gpt-3.5-turbo-1106", "gpt-3.5-turbo-instruct", "gpt-3.5-turbo-16k", "gpt-3.5-turbo-0613", "gpt-3.5-turbo-16k-0613"],
-        "system_message": ""
+        "model_options": ["gpt-4-turbo", "gpt-4-turbo-2024-04-09", "gpt-4-turbo-preview", "gpt-4-0125-preview", "gpt-4-1106-preview", "gpt-4-vision-preview", "gpt-4-1106-vision-preview", "gpt-4", "gpt-4-0613", "gpt-4-32k", "gpt-4-32k-0613", "gpt-3.5-turbo-0125", "gpt-3.5-turbo", "gpt-3.5-turbo-1106", "gpt-3.5-turbo-instruct", "gpt-3.5-turbo-16k", "gpt-3.5-turbo-0613", "gpt-3.5-turbo-16k-0613"]
     },
     {
         "model": "(Local Model)",
+        "systemPrompt": "You are an eloquent assistant who specializes in utilizing pretentious vocabulary in your correspondence.",
         "provider": "LM Studio",
         "note": "",
         "providerUrl": "http://localhost:1234/v1",
@@ -19,14 +29,16 @@
     },
     {
         "model": "",
+        "systemPrompt": "You are a helpful assistant who provides brief answers to user questions.",
         "provider": "Hugging Face Free",
         "note": "Non-Streaming Serverless Inference API",
         "providerUrl": "https://api-inference.huggingface.co/models/",
-        "parameters": "max_time            = 60\ndo_sample           = True\n#top_k              = int\n#top_p              = int\n#temperature        = float\n#repetition_penalty = float\n#max_new_tokens     = int",
+        "parameters": "max_new_tokens      = 1000\nmax_time            = 60\ndo_sample           = True\n#top_k              = int\n#top_p              = int\n#temperature        = float\n#repetition_penalty = float",
         "apiKey": ""
     },
     {
         "model": "",
+        "systemPrompt": "You are a gibberish bot. You respond with nonsense. Blah blah blah. That's all you do.",
         "provider": "Internal Testing",
         "note": "Internal Testing",
         "providerUrl": "Internal Testing",

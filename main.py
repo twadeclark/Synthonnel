@@ -22,6 +22,7 @@ app.add_middleware(
 
 class Item(BaseModel):
     model: str
+    systemPrompt: str
     provider: str
     note: str
     providerUrl: str

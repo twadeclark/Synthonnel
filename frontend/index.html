@@ -182,7 +182,19 @@
             font-family: 'Lucida Console', Courier, monospace;
             line-height: 100%;
             text-align: left;
+            white-space: pre-line;
             margin-top: 6px;
+        }
+        .class6 {
+            display: none;
+            font-weight: normal;
+            font-size: 14px;
+            line-height: 100%;
+            border: 1px solid var(--borderColor);
+            border-radius: 8px;
+            margin-top: 6px;
+            background-color: var(--backgroundColor);
+
         }
         #promptTable {
             width: 100%;
@@ -528,7 +540,7 @@
 .addItemForm-left {
     display: grid; 
     gap: 20px;
-    width: 225px;
+    width: 325px;
 }
 .vertical-row {
     position: relative;
@@ -538,7 +550,7 @@
 .addItemForm-right {
     display: grid; 
     gap: 20px;
-    min-width: 250px;
+    min-width: 325px;
 }
 input[type='text'] {
     font-size: 18px;
@@ -580,7 +592,7 @@ input[type='select'] {
 
 #newItemProvider {
     font-size: 18px;
-    width: 225px;
+    width: 100%;
     border: 0px;
     text-align: center;
 }
@@ -609,7 +621,11 @@ input[type='select'] {
     resize: vertical;
     max-height: 350px;
     min-height: 91px;
-    font-size: 18px;
+}
+#newItemSystemPrompt {
+    resize: vertical;
+    max-height: 350px;
+    min-height: 91px;
 }
 
 
@@ -640,6 +656,7 @@ input[type='select'] {
                     <select name="ModelOptionsSelect" id="ModelOptionsSelect" placeholder="Model" title="Model" class="nightmode-color-changer">
                     <input type="text" id="newItemModel" placeholder="Model" title="Model" class="nightmode-color-changer">
                 </div>
+                <textarea id="newItemSystemPrompt" placeholder="system prompt.." rows="4" title="System Prompt" class="nightmode-color-changer"></textarea>
                 <input type="text" id="newItemProviderUrl" placeholder="Provider Url" title="Provider Url" class="nightmode-color-changer">
                 <textarea id="newItemParameters" placeholder="parameters.." rows="4" title="Parameters" class="nightmode-color-changer"></textarea>
                 <input type="password" id="newItemApiKey" placeholder="Api Key" title="Api Key" class="nightmode-color-changer">
@@ -696,8 +713,9 @@ input[type='select'] {
             <input type="checkbox" id="check3"> <label for="check3">Note</label> <br>
             <input type="checkbox" id="check4"> <label for="check4">Provider Url</label> <br>
             <input type="checkbox" id="check5"> <label for="check5">Parameters</label> <br>
-            <input type="checkbox" id="sticky-prompt" checked> <label for="sticky-prompt">Sticky Prompt</label> <br>
+            <input type="checkbox" id="check6"> <label for="check6">System Prompt</label> <br>
             <hr>
+            <input type="checkbox" id="sticky-prompt" checked> <label for="sticky-prompt">Sticky Prompt</label> <br>
             <div style="text-align: center;">
                 <label> Plain </label>
                 <label class="switch position-switch-lower">
@@ -805,6 +823,7 @@ input[type='select'] {
                     provider: item.getAttribute('data-provider'),
                     note: item.getAttribute('data-note'),
                     providerUrl: item.getAttribute('data-providerUrl'),
+                    systemPrompt: item.getAttribute('data-systemPrompt'),
                     parameters: item.getAttribute('data-parameters'),
                     apiKey: item.getAttribute('data-apiKey'),
                     model_options: item.getAttribute('data-model_options')                    
@@ -937,6 +956,11 @@ input[type='select'] {
                     const tableFresh = document.querySelector('#promptTable');
 
                     var messages = [];
+
+                    if (item.getAttribute('data-systemPrompt')) {
+                        messages.push({"role": "system", "content": item.getAttribute('data-systemPrompt').trim()});
+                    }
+
                     for (var i = 1; i < tableFresh.rows.length - 1; i++) {
                         var rowFresh = tableFresh.rows[i];
                         var role = '';
@@ -1135,6 +1159,7 @@ input[type='select'] {
             toggleVisibility('check3', 'class3');
             toggleVisibility('check4', 'class4');
             toggleVisibility('check5', 'class5');
+            toggleVisibility('check6', 'class6');
         });
 
         function loadModels() {
@@ -1155,6 +1180,7 @@ input[type='select'] {
             const th = document.createElement('th');
             th.className = 'headerElement';
             th.textContent = item.provider;
+            th.title = `Model: ${item.model}\nAPI Template: ${item.provider}Note: ${item.note}\nProvider URL: ${item.providerUrl}\nParameters: ${item.parameters}\nSystem Prompt: ${item.systemPrompt}`;
             th.innerHTML = `
                 <details name="menu">
                     <summary></summary>
@@ -1166,17 +1192,19 @@ input[type='select'] {
                     </div>
                 </details>
 
-                <div class="class1">${item.model}</div>
-                <div class="class2">${item.provider}</div>
-                <div class="class3">${item.note}</div>
-                <div class="class4">${item.providerUrl}</div>
-                <div class="class5">${item.parameters}</div>
+                    <div class="class1" title="Model Name">${item.model}</div>
+                    <div class="class2" title="API Template">${item.provider}</div>
+                    <div class="class3" title="Note">${item.note}</div>
+                    <div class="class4" title="Provider URL">${item.providerUrl}</div>
+                    <div class="class5" title="Parameters">${item.parameters}</div>
+                    <div class="class6" title="System Prompt">${item.systemPrompt}</div>
             `;
 
             th.setAttribute('data-model', item.model);
             th.setAttribute('data-provider', item.provider);
             th.setAttribute('data-note', item.note);
             th.setAttribute('data-providerUrl', item.providerUrl);
+            th.setAttribute('data-systemPrompt', item.systemPrompt);
             th.setAttribute('data-parameters', item.parameters);
             th.setAttribute('data-apiKey', item.apiKey);
             th.setAttribute('data-model_options', item.model_options);
@@ -1253,6 +1281,7 @@ input[type='select'] {
                 provider: document.getElementById('newItemProvider').value.trim(),
                 note: document.getElementById('newItemNote').value.trim(),
                 providerUrl: document.getElementById('newItemProviderUrl').value.trim(),
+                systemPrompt: document.getElementById('newItemSystemPrompt').value.trim(),
                 parameters: document.getElementById('newItemParameters').value.trim(),
                 apiKey: document.getElementById('newItemApiKey').value.trim()
             };
@@ -1274,6 +1303,7 @@ input[type='select'] {
                 th.getAttribute('data-provider') === item.provider &&
                 th.getAttribute('data-note') === item.note &&
                 th.getAttribute('data-providerUrl') === item.providerUrl &&
+                th.getAttribute('data-systemPrompt') === item.systemPrompt &&
                 th.getAttribute('data-parameters') === item.parameters &&
                 th.getAttribute('data-apiKey') === item.apiKey
             );
@@ -1310,6 +1340,7 @@ input[type='select'] {
                 JSON.parse(opt.dataset.itemData)['provider'] === item.provider &&
                 JSON.parse(opt.dataset.itemData)['note'] === item.note &&
                 JSON.parse(opt.dataset.itemData)['providerUrl'] === item.providerUrl &&
+                JSON.parse(opt.dataset.itemData)['systemPrompt'] === item.systemPrompt &&
                 JSON.parse(opt.dataset.itemData)['parameters'] === item.parameters &&
                 JSON.parse(opt.dataset.itemData)['apiKey'] === item.apiKey
             );
@@ -1333,6 +1364,7 @@ input[type='select'] {
                 model: th.getAttribute('data-model'),
                 parameters: th.getAttribute('data-parameters'),
                 providerUrl: th.getAttribute('data-providerUrl'),
+                systemPrompt: th.getAttribute('data-systemPrompt'),
                 apiKey: th.getAttribute('data-apiKey'),
                 note: th.getAttribute('data-note'),
                 model_options: th.getAttribute('data-model_options'),                
@@ -1392,6 +1424,7 @@ input[type='select'] {
                             model: item.model,
                             parameters: item.parameters,
                             providerUrl: item.providerUrl,
+                            systemPrompt: item.systemPrompt,
                             apiKey: item.apiKey,
                             note: item.note
                         };
@@ -1427,6 +1460,7 @@ input[type='select'] {
                             model: item.model,
                             parameters: item.parameters,
                             providerUrl: item.providerUrl,
+                            systemPrompt: item.systemPrompt,
                             apiKey: item.apiKey,
                             note: item.note,
                             model_options: item.model_options
@@ -1492,6 +1526,7 @@ input[type='select'] {
             setAndFlash("newItemModel", item.model)
             setAndFlash("newItemProvider", item.provider)
             setAndFlash("newItemProviderUrl", item.providerUrl)
+            setAndFlash("newItemSystemPrompt", item.systemPrompt)            
             setAndFlash("newItemParameters", item.parameters)
             setAndFlash("newItemApiKey", item.apiKey)
             setAndFlash("newItemNote", item.note)
@@ -1539,6 +1574,7 @@ input[type='select'] {
             document.getElementById("newItemModel").value = '';
             document.getElementById("newItemProvider").value = '';
             document.getElementById("newItemProviderUrl").value = '';
+            document.getElementById("newItemSystemPrompt").value = '';            
             document.getElementById("newItemParameters").value = '';
             document.getElementById("newItemApiKey").value = '';
             document.getElementById("newItemNote").value = '';
@@ -1709,7 +1745,7 @@ table td {
   position: sticky;
   top: 0;
   background-color: #f0f0f0;
-  
+
 }
 
     </style>
@@ -1761,6 +1797,15 @@ table td {
                 htmlData += "  <th class='small-courier'>" + item.getAttribute('data-parameters') + "</th>\n";
             }
             htmlData += "</tr>\n";
+
+            htmlData += "<tr>\n";
+            htmlData += "  <th class='normal '>System Prompt:</th>\n";
+            for(index=0; index<cellLen; index++) {
+                var item = headerRow.cells[index];
+                htmlData += "  <th class='normal '>" + item.getAttribute('data-systemPrompt') + "</th>\n";
+            }
+            htmlData += "</tr>\n";
+
             htmlData += "</thead>\n";
             htmlData += "<tbody>\n";
 
