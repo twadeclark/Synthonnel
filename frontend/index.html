@@ -34,6 +34,10 @@
             background-color: var(--backgroundColor);
             color: var(--textColor);
         }
+        .button:hover {
+            transform: scale(1.1);
+            transition: all 0.4s ease;
+        }
         .button-wide {
             cursor: pointer;
             font-size: 24px;
@@ -43,6 +47,10 @@
             width: 104px;
             background-color: var(--backgroundColor);
             color: var(--textColor);
+        }
+        .button-wide:hover {
+            transform: scale(1.1);
+            transition: all 0.4s ease;
         }
         .small-text-wide-button {
             cursor: pointer;
@@ -196,6 +204,7 @@
             background-color: var(--backgroundColor);
         }
         .vote-count-display {
+            cursor: pointer;
             position: absolute;
             right: 0px;
             top: 0px;
@@ -426,24 +435,6 @@
             text-align: center;
             font-size: 150%;
             padding-top: 12px;
-        }
-
-        details {
-            padding: 0;
-        }
-        summary {
-            font-weight: bold;
-            margin: 0;
-            padding: 0;
-            height: 24px;
-            width: 24px;
-            position: absolute;
-        }
-        details[open] {
-            padding: 0;
-        }
-        details[open] summary {
-            padding: 0;
         }
 
         a {
@@ -690,6 +681,32 @@ input[type='select'] {
     min-height: 91px;
 }
 
+.menu {
+    position: absolute;
+    display: inline-block;
+    top: 0px;
+    left: 0px;
+    text-align: left;
+}
+.hamburger {
+    cursor: pointer;
+    padding: 5px;
+    padding-bottom: 15px;
+    display: inline-block;
+}
+.menu:hover {
+    width: 100px;
+}
+.menu-items {
+    display: none;
+}
+.menu-items a {
+    display: block;
+}
+.menu:hover .menu-items {
+    display: block;
+}
+
 
 </style>
 </head>
@@ -823,8 +840,6 @@ input[type='select'] {
             cell.style.setProperty('font-style', pausedVal ? '' : 'italic');
             cell.style.setProperty('font-weight', pausedVal ? '' : 'lighter');
             cell.style.setProperty('text-decoration-line', pausedVal ? '' : 'line-through');
-
-            document.querySelectorAll('details[open]').forEach(detailsElement => detailsElement.removeAttribute('open'));
         }
         
         function moveColumnLeft(cellIndex) {
@@ -1252,22 +1267,22 @@ input[type='select'] {
             th.textContent = item.provider;
             th.title = `Model: ${item.model}\nAPI Template: ${item.provider}\nNote: ${item.note}\nProvider URL: ${item.providerUrl}\nParameters: ${item.parameters}\nSystem Prompt: ${item.systemPrompt}`;
             th.innerHTML = `
-                <details name="menu">
-                    <summary></summary>
-                    <div class="dropdown-content">
+                <div class="menu" title="">
+                    <span class="hamburger">☰</span>
+                    <div class="menu-items dropdown-content">
                         <button class="button" onclick="moveColumnLeft(${index})" title="Move Left">🢀</button>
                         <button class="button" onclick="moveColumnRight(${index})" title="Move Right">🢂</button>
                         <button class="button-wide" onclick="pauseColumn(${index})" title="Pause / Active">⏯️</button> <br>
                         <button class="button-wide" onclick="deleteColumn(${index})" title="Delete Model">❌</button>
                     </div>
-                </details>
+                </div>
 
-                <div class="class1" title="Model Name">${item.model}</div>
-                <div class="class2" title="API Template">${item.provider}</div>
-                <div class="class3" title="Note">${item.note}</div>
-                <div class="class4" title="Provider URL">${item.providerUrl}</div>
-                <div class="class5" title="Parameters">${item.parameters}</div>
-                <div class="class6" title="System Prompt">${item.systemPrompt}</div>
+                <div class="class1" >${item.model}</div>
+                <div class="class2" >${item.provider}</div>
+                <div class="class3" >${item.note}</div>
+                <div class="class4" >${item.providerUrl}</div>
+                <div class="class5" >${item.parameters}</div>
+                <div class="class6" >${item.systemPrompt}</div>
                 <div class="vote-count-display" id="vote-count-display" title="Vote Count">0</div>
             `;
 

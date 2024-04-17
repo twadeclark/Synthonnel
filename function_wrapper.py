@@ -31,12 +31,10 @@ async def default(websocket: WebSocket, item_data):
 # Azure - through HuggingFace
 # Google - through HuggingFace
 # Perplexity
-# Groq	        GROQ_API_KEY
+# Groq
 
 
 # TODO:
-
-
 # Gemini
 # https://www.tencent.com/en-us/
 # IBM
