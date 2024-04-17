@@ -199,15 +199,14 @@
             position: absolute;
             right: 0px;
             top: 0px;
-            height: 14px;
             font-size: small;
             border-left: 1px solid var(--borderColor);
             border-bottom: 1px solid var(--borderColor);
             border-bottom-left-radius: 6px;
-            padding-left: 1px;
-            display: flex;
-            align-items: center;
+            display: block;
             background-color: var(--backgroundColor);
+            padding: 1px;
+            line-height: 15px;
         }
         .vote-arrows {
             position: absolute;
@@ -1229,6 +1228,8 @@ input[type='select'] {
             toggleVisibility('check4', 'class4');
             toggleVisibility('check5', 'class5');
             toggleVisibility('check6', 'class6');
+            toggleVisibility('vote-count-checkbox', 'vote-arrows');
+            toggleVisibility('vote-count-checkbox', 'vote-count-display');
         });
 
         function loadModels() {
@@ -1876,6 +1877,14 @@ table td {
             }
             htmlData += "</tr>\n";
 
+            htmlData += "<tr>\n";
+            htmlData += "  <th class='normal '>Votes:</th>\n";
+            for(index=0; index<cellLen; index++) {
+                var item = headerRow.cells[index];
+                htmlData += "  <th class='small-courier '>" + item.querySelector('#vote-count-display').title + "</th>\n";
+            }
+            htmlData += "</tr>\n";
+
             htmlData += "</thead>\n";
             htmlData += "<tbody>\n";
 
@@ -1899,6 +1908,13 @@ table td {
                             text += " ~ 1st tok: " + table.rows[rowLoop].cells[cellLoop].querySelector('#firsttokenValue').innerHTML + " s \n";
                             text += " ~ " + table.rows[rowLoop].cells[cellLoop].querySelector('#speedo-status').innerHTML.replace('<br>', ' ') + " \n";
                             text += " ~ tok/sec: " + table.rows[rowLoop].cells[cellLoop].querySelector('#tokspersecValue').innerHTML + " \n";
+
+                            if ( table.rows[rowLoop]?.cells[cellLoop]?.querySelector('#upvote')?.className?.includes('upvoted') ) {
+                                text += " ~ upvote: +1";
+                            }
+                            if ( table.rows[rowLoop]?.cells[cellLoop]?.querySelector('#downvote')?.className?.includes('downvoted') ) {
+                                text += " ~ downvote: -1";
+                            }
                         }
                         htmlData += "  <td>" + text + "</td>\n";
                     }
@@ -1943,12 +1959,9 @@ table td {
                 for (let colLoop = 0; colLoop < columnCount; colLoop++) {
                     if ( rows[rowLoop]?.cells[colLoop]?.querySelector('#upvote')?.className?.includes('upvoted') ) {
                         upVotes[colLoop]++;
-                        console.log("upvote! ", rowLoop, colLoop);
                     }
                     if ( rows[rowLoop]?.cells[colLoop]?.querySelector('#downvote')?.className?.includes('downvoted') ) {
                         dnVotes[colLoop]++;
-                        console.log("dnvote! ", rowLoop, colLoop);
-
                     }
                 }
             }
@@ -1958,7 +1971,7 @@ table td {
             for (let colLoop = 0; colLoop < columnCount; colLoop++) {
                 var item = headerRow.cells[colLoop];
                 item.querySelector(".vote-count-display").innerHTML = "" + (upVotes[colLoop] - dnVotes[colLoop] + "");
-                item.querySelector(".vote-count-display").title = `Total Votes: ${upVotes[colLoop] - dnVotes[colLoop]}\nUp Votes: ${upVotes[colLoop]}\nDown Votes: ${dnVotes[colLoop]}\nVote Tally: ${upVotes[colLoop] - dnVotes[colLoop]}`;
+                item.querySelector(".vote-count-display").title = `Total Votes: ${upVotes[colLoop] + dnVotes[colLoop]}\nUp Votes: ${upVotes[colLoop]}\nDown Votes: ${dnVotes[colLoop]}\nVote Tally: ${upVotes[colLoop] - dnVotes[colLoop]}`;
             }
         }
 
