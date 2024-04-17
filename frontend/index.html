@@ -194,8 +194,71 @@
             border-radius: 8px;
             margin-top: 6px;
             background-color: var(--backgroundColor);
-
         }
+        .vote-count-display {
+            position: absolute;
+            right: 0px;
+            top: 0px;
+            height: 14px;
+            font-size: small;
+            border-left: 1px solid var(--borderColor);
+            border-bottom: 1px solid var(--borderColor);
+            border-bottom-left-radius: 6px;
+            padding-left: 1px;
+            display: flex;
+            align-items: center;
+            background-color: var(--backgroundColor);
+        }
+        .vote-arrows {
+            position: absolute;
+            top: -6px;
+            right: -14px;
+            line-height: 12px;
+            font-size: 16px;
+            border-left: 1px solid var(--borderColor);
+            border-bottom: 1px solid var(--borderColor);
+            border-bottom-left-radius: 6px;
+            padding-left: 1px;
+            background-color: var(--backgroundColor);
+            padding-bottom: 3px;
+            cursor: pointer;
+            transition: all 0.4s ease;
+        }
+        .vote-arrow-green {
+            transition: all 0.4s ease;
+        }
+        .vote-arrow-red {
+            transition: all 0.4s ease;
+        }
+        .vote-arrow-green:hover {
+            color: lawngreen;
+            transform: scale(2.5);
+        }
+        .vote-arrow-red:hover {
+            color: red;
+            transform: scale(2.5);
+        }
+        .vote-arrow-green-upvoted {
+            color: lawngreen;
+            transform: scale(1.0, 3);
+            transform-origin: top;
+            background-color: var(--backgroundColor);
+            transition: all 0.4s ease;
+        }
+        .vote-arrow-red-downvoted {
+            color: red;
+            transform: scale(1.0, 3);
+            transform-origin: bottom;
+            background-color: var(--backgroundColor);
+            transition: all 0.4s ease;
+        }
+        .vote-arrow-green-upvoted:hover {
+            transform: scale(2.5, 3);
+        }
+        .vote-arrow-red-downvoted:hover {
+            transform: scale(2.5, 3);
+        }
+
         #promptTable {
             width: 100%;
             border-spacing: 10px;
@@ -716,6 +779,7 @@ input[type='select'] {
             <input type="checkbox" id="check6"> <label for="check6">System Prompt</label> <br>
             <hr>
             <input type="checkbox" id="sticky-prompt" checked> <label for="sticky-prompt">Sticky Prompt</label> <br>
+            <input type="checkbox" id="vote-count-checkbox" checked> <label for="vote-count-checkbox">Vote Count</label> <br>
             <div style="text-align: center;">
                 <label> Plain </label>
                 <label class="switch position-switch-lower">
@@ -945,6 +1009,11 @@ input[type='select'] {
                                 </div>
                                 <div class="gaugeValue-adjustment"><span id="tokspersecValue"></span></div>
                             </div>
+                        </div>
+                        <div class="vote-arrows">
+                            <div id="upvote" class="vote-arrow-green" onclick="if (this.className.includes('upvoted')) {this.className='vote-arrow-green';} else {this.className='vote-arrow-green-upvoted';}; this.parentElement.children.namedItem('downvote').className='vote-arrow-red';countClassInColumns();">🠅</div>
+                            <br>
+                            <div id="downvote" class="vote-arrow-red" onclick="if (this.className.includes('downvoted')) {this.className='vote-arrow-red';} else {this.className='vote-arrow-red-downvoted';}; this.parentElement.children.namedItem('upvote').className='vote-arrow-green';countClassInColumns();">🠇</div>
                         </div>
                     </div><div class="raw-text"></div>`;
 
@@ -1180,7 +1249,7 @@ input[type='select'] {
             const th = document.createElement('th');
             th.className = 'headerElement';
             th.textContent = item.provider;
-            th.title = `Model: ${item.model}\nAPI Template: ${item.provider}Note: ${item.note}\nProvider URL: ${item.providerUrl}\nParameters: ${item.parameters}\nSystem Prompt: ${item.systemPrompt}`;
+            th.title = `Model: ${item.model}\nAPI Template: ${item.provider}\nNote: ${item.note}\nProvider URL: ${item.providerUrl}\nParameters: ${item.parameters}\nSystem Prompt: ${item.systemPrompt}`;
             th.innerHTML = `
                 <details name="menu">
                     <summary></summary>
@@ -1192,12 +1261,13 @@ input[type='select'] {
                     </div>
                 </details>
 
-                    <div class="class1" title="Model Name">${item.model}</div>
-                    <div class="class2" title="API Template">${item.provider}</div>
-                    <div class="class3" title="Note">${item.note}</div>
-                    <div class="class4" title="Provider URL">${item.providerUrl}</div>
-                    <div class="class5" title="Parameters">${item.parameters}</div>
-                    <div class="class6" title="System Prompt">${item.systemPrompt}</div>
+                <div class="class1" title="Model Name">${item.model}</div>
+                <div class="class2" title="API Template">${item.provider}</div>
+                <div class="class3" title="Note">${item.note}</div>
+                <div class="class4" title="Provider URL">${item.providerUrl}</div>
+                <div class="class5" title="Parameters">${item.parameters}</div>
+                <div class="class6" title="System Prompt">${item.systemPrompt}</div>
+                <div class="vote-count-display" id="vote-count-display" title="Vote Count">0</div>
             `;
 
             th.setAttribute('data-model', item.model);
@@ -1862,6 +1932,36 @@ table td {
             document.body.removeChild(link);
         }
 
+        function countClassInColumns() {
+            const table = document.querySelector('#promptTable');
+            const rows = table.rows;
+            const columnCount = rows[0].children.length;
+            const upVotes = Array(columnCount).fill(0);
+            const dnVotes = Array(columnCount).fill(0);
+
+            for (let rowLoop = 1; rowLoop < rows.length; rowLoop++) {
+                for (let colLoop = 0; colLoop < columnCount; colLoop++) {
+                    if ( rows[rowLoop]?.cells[colLoop]?.querySelector('#upvote')?.className?.includes('upvoted') ) {
+                        upVotes[colLoop]++;
+                        console.log("upvote! ", rowLoop, colLoop);
+                    }
+                    if ( rows[rowLoop]?.cells[colLoop]?.querySelector('#downvote')?.className?.includes('downvoted') ) {
+                        dnVotes[colLoop]++;
+                        console.log("dnvote! ", rowLoop, colLoop);
+
+                    }
+                }
+            }
+
+            var headerRow = document.getElementById("headerRow");
+
+            for (let colLoop = 0; colLoop < columnCount; colLoop++) {
+                var item = headerRow.cells[colLoop];
+                item.querySelector(".vote-count-display").innerHTML = "" + (upVotes[colLoop] - dnVotes[colLoop] + "");
+                item.querySelector(".vote-count-display").title = `Total Votes: ${upVotes[colLoop] - dnVotes[colLoop]}\nUp Votes: ${upVotes[colLoop]}\nDown Votes: ${dnVotes[colLoop]}\nVote Tally: ${upVotes[colLoop] - dnVotes[colLoop]}`;
+            }
+        }
+
 
         function saveParleyXLSX() {
         }
@@ -1877,28 +1977,28 @@ table td {
         }
 
         function getFormattedDateTimeUnderscores() {
-                const now = new Date();
-                const day = String(now.getDate()).padStart(2, '0');
-                const month = now.toLocaleString('en-US', { month: 'short' });
-                const year = now.getFullYear();
-                const hours = String(now.getHours()).padStart(2, '0');
-                const minutes = String(now.getMinutes()).padStart(2, '0');
-                const seconds = String(now.getSeconds()).padStart(2, '0');
+            const now = new Date();
+            const day = String(now.getDate()).padStart(2, '0');
+            const month = now.toLocaleString('en-US', { month: 'short' });
+            const year = now.getFullYear();
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            const seconds = String(now.getSeconds()).padStart(2, '0');
 
-                return `${day}${month}${year}_${hours}${minutes}${seconds}`;
-            }
+            return `${day}${month}${year}_${hours}${minutes}${seconds}`;
+        }
 
         function getFormattedDateTimePolite() {
-                const now = new Date();
-                const day = String(now.getDate()).padStart(2, '0');
-                const month = now.toLocaleString('en-US', { month: 'short' });
-                const year = now.getFullYear();
-                const hours = String(now.getHours()).padStart(2, '0');
-                const minutes = String(now.getMinutes()).padStart(2, '0');
-                const seconds = String(now.getSeconds()).padStart(2, '0');
+            const now = new Date();
+            const day = String(now.getDate()).padStart(2, '0');
+            const month = now.toLocaleString('en-US', { month: 'short' });
+            const year = now.getFullYear();
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            const seconds = String(now.getSeconds()).padStart(2, '0');
 
-                return `${day} ${month} ${year} ${hours}:${minutes}:${seconds}`;
-            }
+            return `${day} ${month} ${year} ${hours}:${minutes}:${seconds}`;
+        }
 
     </script>
 </body>

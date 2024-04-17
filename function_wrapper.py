@@ -35,12 +35,17 @@ async def default(websocket: WebSocket, item_data):
 
 
 # TODO:
-# Gemini via endpoint http://localhost:6006/v1
+
+
+# Gemini
+# https://www.tencent.com/en-us/
+# IBM
+# Oracle
+# Salesforce
+# Anthropic	    ANTHROPIC_API_KEY
 
 
 # https://pypi.org/project/inference-providers/
-# Provider	    Key
-# Anthropic	    ANTHROPIC_API_KEY
 # Anyscale	    ANYSCALE_API_KEY
 # deepinfra	    DEEPINFRA_API_KEY
 # fireworks.ai	FIREWORKS_API_KEY
@@ -51,7 +56,6 @@ async def default(websocket: WebSocket, item_data):
 # together.ai	TOGETHERAI_API_KEY
 # https://replicate.com/
 
-# Perplexity
 # Telnyx
 # NVIDIA - Descript, WOMBO, and Kuaishou.
 
@@ -68,7 +72,6 @@ async def default(websocket: WebSocket, item_data):
 # https://www.reka.ai/
 # https://www.eleuther.ai/
 # https://character.ai/
-# https://www.tencent.com/en-us/
 
 # https://www.crn.com/news/cloud/2024/the-20-hottest-ai-cloud-companies-the-2024-crn-ai-100
 # Altair
@@ -77,13 +80,10 @@ async def default(websocket: WebSocket, item_data):
 # Dynatrace
 # H2O.ai
 # HashiCorp
-# IBM
 # Lambda Labs
 # MongoDB
 # Nerdio
-# Oracle
 # PagerDuty
-# Salesforce
 # Snowflake
 # Spectro Cloud
 # VMware by Broadcom
