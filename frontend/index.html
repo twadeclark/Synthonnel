@@ -73,25 +73,32 @@
             color: var(--textColor);
         }
 
-        #addItemBtn {
-            position: fixed; 
+        #addItemFormHider {
+            position: fixed;
             left: 104px; 
             bottom: 10px; 
+            z-index: 1;
+        }
+        #addItemBtn {
             background-color: var(--emphasisBackgroundColor);
         }
-        #addItemFormHider {
-            display:none
+        #addItemFormHider:hover {
+            width: 50%;
+            height: 44px;
+            padding-top: 26px;
+        }
+        #addItemFormHider:hover #addItemForm{
+            display: flex;
         }
         #addItemForm {
+            display: none;
             border-radius: 8px;
             box-shadow: 0 2px 5px rgba(0,0,0,0.2);
             position: fixed; 
-            left: 20px;
             bottom: 80px; 
             background: var(--emphasisBackgroundColor); 
             padding: 20px; 
             border: 1px solid var(--borderColor); 
-            display: inline-flex;
             gap: 20px;
             padding-top: 44px;
             z-index: 1;
@@ -125,26 +132,35 @@
             background-color: var(--emphasisBackgroundColor);
         }
 
-        #settingsBtn {
-            position: fixed; 
+        #settingsFormHider {
+            position: fixed;
             right: 30px; 
             bottom: 10px; 
+            text-align: right;
+            z-index: 1;
+        }
+        #settingsBtn {
             background-color: var(--emphasisBackgroundColor);
         }
-        #settingsFormHider {
-            display:none
+        #settingsFormHider:hover {
+            width: 238px;
+            height: 44px;
+            padding-top: 26px;
+        }
+        #settingsFormHider:hover #settingsForm {
+            display: block;
         }
         #settingsForm {
+            display: none;
             border-radius: 8px;
             box-shadow: 0 2px 5px rgba(0,0,0,0.2);
             position: fixed; 
-            right: 20px;
+            right: 30px;
             bottom: 80px; 
             background: var(--emphasisBackgroundColor); 
             padding: 20px; 
             border: 1px solid var(--borderColor); 
-            gap: 20px;
-            z-index: 1;
+            text-align: left;
         }
 
         #message {
@@ -697,13 +713,13 @@ input[type='select'] {
 .menu:hover {
     width: 100px;
 }
+.menu:hover .menu-items {
+    display: block;
+}
 .menu-items {
     display: none;
 }
 .menu-items a {
-    display: block;
-}
-.menu:hover .menu-items {
     display: block;
 }
 
@@ -724,12 +740,11 @@ input[type='select'] {
 
     <button id="logoBtn" class="button" title="Synthonnel Parley"></button>
 
-    <button id="addItemBtn" class="button" title="Activate or Delete Models">+</button>
     <div id="addItemFormHider">
+        <button id="addItemBtn" class="button" title="Activate or Delete Models">+</button>
         <div id="addItemForm">
             <div id="message">Disappearing message</div>
             <div class="addItemForm-left">
-                <span class="closebtn" onclick="this.parentElement.parentElement.parentElement.style.display = 'none';">&times;</span>
                 <input readonly type="text" id="newItemProvider" placeholder="Choose Template" title="API Template" class="nightmode-color-changer"></input>
                 <div class="dropdownModelOptionsSelect">
                     <select name="ModelOptionsSelect" id="ModelOptionsSelect" placeholder="Model" title="Model" class="nightmode-color-changer">
@@ -774,10 +789,9 @@ input[type='select'] {
 
     <button id="submitPrompt" class="button" title="Send Message">🠉</button>
 
-    <button id="settingsBtn" class="button" title="Settings">☰</button>
     <div id="settingsFormHider">
+        <button id="settingsBtn" class="button" title="Settings">☰</button>
         <div id="settingsForm">
-            <span class="closebtn" onclick="this.parentElement.parentElement.style.display = 'none';">&times;</span>
             <div style="text-align: center;">
                 <label style="font-size: 24px;">🌞</label>
                 <label class="switch">
@@ -976,7 +990,7 @@ input[type='select'] {
             promptCell.setAttribute("synthonnelCount", cellsToProcessTotal);
 
             promptCell.title = "Running.\n" + cellsToProcessTotal + " called.\n" + cellsToProcessTotal + " still working.\n";
-            promptCellDiv.style.backgroundColor = `rgba(255, 0, 0, 0.25)`;
+            promptCellDiv.style.backgroundColor = `rgba(0, 255, 0, 0.25)`;
 
             const ResponseRow = table.insertRow(-1);
             ResponseRow.className = 'response-row';
@@ -1032,7 +1046,7 @@ input[type='select'] {
                     </div><div class="raw-text"></div>`;
 
                     thisResponseCell.querySelector('#speedo-status').innerHTML = `Preparing Request..`;
-                    thisResponseCell.style = 'border: 2px solid red;';
+                    thisResponseCell.style = 'border: 2px solid green;';
 
                     const ws = new WebSocket(`ws://localhost:8000/ws/stream-llm-response`);
 
@@ -1221,6 +1235,7 @@ input[type='select'] {
         document.addEventListener('DOMContentLoaded', function() {
             loadModels();
             loadTemplateModelsList();
+            loadSavedModelsList();
             ModelOptionsSelect.disabled = true;
 
             function toggleVisibility(checkboxId, className) {
@@ -1297,23 +1312,6 @@ input[type='select'] {
 
             return th;
         }
-
-        document.getElementById('addItemBtn').onclick = function() {
-            if (document.getElementById('addItemFormHider').style.display == 'block') {
-                document.getElementById('addItemFormHider').style.display = 'none';
-            } else {
-                document.getElementById('addItemFormHider').style.display = 'block';
-                loadSavedModelsList();
-            }
-        };
-
-        document.getElementById('settingsBtn').onclick = function() {
-            if (document.getElementById('settingsFormHider').style.display == 'block') {
-                document.getElementById('settingsFormHider').style.display = 'none';
-            } else {
-                document.getElementById('settingsFormHider').style.display = 'block';
-            }
-        };
 
         document.getElementById('darkMode').onchange = function() {
             if (document.getElementById('darkMode').checked) {
