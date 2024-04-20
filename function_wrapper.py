@@ -5,7 +5,8 @@ import httpx
 from fastapi import WebSocket
 from pydantic import BaseModel
 from openai import AsyncOpenAI
-# from groq import Groq
+import google.generativeai as genai
+
 
 SAVE_MOST_RECENT_RESPONSE = True
 
@@ -32,10 +33,10 @@ async def default(websocket: WebSocket, item_data):
 # Google - through HuggingFace
 # Perplexity
 # Groq
+# Gemini
 
 
 # TODO:
-# Gemini
 # https://www.tencent.com/en-us/
 # IBM
 # Oracle
@@ -85,6 +86,93 @@ async def default(websocket: WebSocket, item_data):
 # Snowflake
 # Spectro Cloud
 # VMware by Broadcom
+
+async def googleai(websocket, item_data):
+    try:
+        # base_url = item_data["providerUrl"]
+        api_key = item_data["apiKey"]
+
+        model = item_data["model"]
+        params_parsed = parse_params(item_data["parameters"])
+
+        messages_temp = item_data["messages"]
+        messages = []
+        system_instruction = None
+
+        for msgtmp in messages_temp:
+            role = msgtmp["role"]
+
+            if role == "system":
+                if "-1.0-" in model: # gemini-1.0 models do not accept system message, requires dummy model response
+                    messages.append({ 'role':'user', 'parts':[{'text':msgtmp["content"]}] })
+                    messages.append({ 'role':'model', 'parts':[{'text':'Ok.'}] })
+                else:
+                    system_instruction = msgtmp["content"]
+            else:
+                if role == "user":
+                    role = "user"
+                elif role == "assistant":
+                    role = "model"
+                else:
+                    role = "user"
+
+                messages.append({ 'role':role, 'parts':[{'text':msgtmp["content"]}] })
+
+        genai.configure( api_key = api_key)
+
+        generation_config = genai.GenerationConfig( max_output_tokens   = strtoint(params_parsed.get("max_output_tokens", None)),
+                                                    temperature         = strtofloat(params_parsed.get("temperature", None)),
+                                                    top_p               = strtofloat(params_parsed.get("top_p", None)),
+                                                    top_k               = strtoint(params_parsed.get("top_k", None)) )
+
+        genai_gm = None
+
+        if system_instruction:
+            genai_gm = genai.GenerativeModel( model_name          = model,
+                                              generation_config   = generation_config,
+                                              system_instruction  = system_instruction )
+        else:
+            genai_gm = genai.GenerativeModel( model_name = model, generation_config = generation_config )
+
+        async def streamer():
+            raw_responses_most_recent_dump = ""
+
+            try:
+                stream = await genai_gm.generate_content_async( contents=messages, stream=True )
+
+                async for chunk in stream:
+                    if chunk:
+                        raw_responses_most_recent_dump += str(chunk) + "\n"
+
+                    try:
+                        content = chunk.text
+                        if content:
+                            await websocket.send_text(content)
+                    except Exception: # sometimes this just happens
+                        # await websocket.send_text('\n\n# chunk.text is empty: ' + str(chunk))
+                        pass
+
+            except genai.types.generation_types.BlockedPromptException as e:
+                print(f"Prompt blocked due to: {e}")
+                await websocket.send_text('\n\n# Prompt blocked due to: ' + str(e))
+
+            except Exception as e:
+                print(e)
+                print(e.with_traceback)
+                await websocket.send_text('\n\n# THREAD Big problems. Exception: ' + str(e))
+                await websocket.send_text('\n\n# THREAD Big problems. Exception with_traceback: ' + str(e.with_traceback))
+
+            if SAVE_MOST_RECENT_RESPONSE:
+                with open("scratch/raw_responses_most_recent_dump_googleai.txt", 'w', encoding='utf-8') as file:
+                    file.write(raw_responses_most_recent_dump)
+
+        await streamer()
+
+        return "googleai done."
+    except Exception as e:
+        print(e)
+        await websocket.send_text('\n\n# Big problems. Exception: ' + str(e))
+        return "googleai error!"
 
 
 async def groqai(websocket, item_data):
@@ -554,6 +642,7 @@ inference_providers = {
     "Hugging Face Endpoint": FunctionWrapper(huggingfaceendpoint, "Hugging Face Endpoint", "Hugging Face Endpoint"),
     "Perplexity": FunctionWrapper(perplexity, "Perplexity", "Perplexity"),
     "Groq": FunctionWrapper(groqai, "Groq", "Groq"),
+    "GoogleAI": FunctionWrapper(googleai, "GoogleAI", "GoogleAI"),
 }
 
 class FunctionInfo(BaseModel):

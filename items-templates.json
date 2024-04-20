@@ -2,6 +2,16 @@
     {
         "model": "",
         "systemPrompt": "You are a helpful assistant who provides brief answers to user questions.",
+        "provider": "GoogleAI",
+        "note": "",
+        "providerUrl": "(not used)",
+        "parameters": "max_output_tokens = 1024\n#temperature      = float\n#top_p            = float\n#top_k            = int\n",
+        "apiKey": "",
+        "model_options": ["models/gemini-1.0-pro", "models/gemini-1.0-pro-001", "models/gemini-1.0-pro-latest", "models/gemini-1.5-pro-latest"]
+    },
+    {
+        "model": "",
+        "systemPrompt": "You are a helpful assistant who provides brief answers to user questions.",
         "provider": "Groq",
         "note": "",
         "providerUrl": "https://api.groq.com/openai/v1",
