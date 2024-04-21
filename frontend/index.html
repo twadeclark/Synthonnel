@@ -11,6 +11,7 @@
             --emphasisBackgroundColor: #FFFFFF;
             --borderColor: #C0C0C0;
             --headerRow-height: 1px;
+            --boxShadow: rgba(0,0,0,0.4);
         }
         body {
             font-family: Verdana, Arial, Tahoma, sans-serif;
@@ -33,6 +34,7 @@
             width: 44px;
             background-color: var(--backgroundColor);
             color: var(--textColor);
+            box-shadow: 0 2px 5px var(--boxShadow);
         }
         .button:hover {
             transform: scale(1.1);
@@ -93,7 +95,7 @@
         #addItemForm {
             display: none;
             border-radius: 8px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            box-shadow: 0px 8px 16px 0px var(--boxShadow);
             position: fixed; 
             bottom: 80px; 
             background: var(--emphasisBackgroundColor); 
@@ -122,6 +124,7 @@
             padding-left: 18px;
             background-color: var(--emphasisBackgroundColor);
             color: var(--textColor);
+            box-shadow: 0 2px 5px var(--boxShadow);
         }
 
         #submitPrompt {
@@ -153,7 +156,7 @@
         #settingsForm {
             display: none;
             border-radius: 8px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            box-shadow: 0px 8px 16px 0px var(--boxShadow);
             position: fixed; 
             right: 30px;
             bottom: 80px; 
@@ -294,6 +297,7 @@
             padding: 12px;
             border: 1px solid var(--borderColor);
             border-radius: 8px;
+            box-shadow: 0 2px 5px var(--boxShadow);
         }
         .prompt-row {
             font-style: italic;
@@ -306,7 +310,7 @@
             max-height: 28px;
             overflow-y: hidden;
             padding: 0%;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            box-shadow: 0 2px 5px var(--boxShadow);
         }
         .promptCell {
             padding-left: 10%;
@@ -340,7 +344,7 @@
             border-bottom: 1px solid var(--borderColor);
             border-bottom-left-radius: 8px;
             border-bottom-right-radius: 8px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            box-shadow: 0 2px 5px var(--boxShadow);
             font-weight:normal;
             font-size: 18px;
         }
@@ -411,7 +415,7 @@
             background-color: var(--emphasisBackgroundColor);
             display: block;
             position: absolute;
-            box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+            box-shadow: 0px 8px 16px 0px var(--boxShadow);
             padding: 10px;
             border: 1px solid var(--borderColor);
             border-radius: 8px;
@@ -633,7 +637,7 @@ input[type='select'] {
 }
 .select-class {
     font-size: 18px;
-    max-height: 322px;
+    max-height: 437px;
     overflow-y: scroll;
     background-color: var(--emphasisBackgroundColor);
     color: var(--textColor);
@@ -1320,11 +1324,13 @@ input[type='select'] {
                 document.documentElement.style.setProperty('--textColor', '#F0F0F0');
                 document.documentElement.style.setProperty('--emphasisBackgroundColor', '#000000');
                 document.documentElement.style.setProperty('--borderColor', '#606060');
+                document.documentElement.style.setProperty('--boxShadow', 'rgba(255,255,255,0.2)');
             } else {
                 document.documentElement.style.setProperty('--backgroundColor', '#F0F0F0');
                 document.documentElement.style.setProperty('--textColor', '#0F0F0F');
                 document.documentElement.style.setProperty('--emphasisBackgroundColor', '#FFFFFF');
                 document.documentElement.style.setProperty('--borderColor', '#C0C0C0');
+                document.documentElement.style.setProperty('--boxShadow', 'rgba(0,0,0,0.4)');
             }
         };
 
@@ -1433,7 +1439,7 @@ input[type='select'] {
             if (!itemSavedExists) {
                 const option = new Option(item.model + " / " + item.provider, JSON.stringify(item));
                 option.dataset.itemData = itemDataString;
-                option.title = `${item.model}\n${item.provider}\n${item.note}\n${item.providerUrl}\n${item.parameters}\n`;
+                option.title = `${item.model}\n${item.provider}\n${item.note}\n${item.providerUrl}\n${item.parameters}\n${item.systemPrompt}\n`;
                 selectElement.appendChild(option);
                 saveSavedModelList();
             }
@@ -1517,7 +1523,7 @@ input[type='select'] {
 
                         const uniqueId = `item-${index}`;
                         const option = new Option(itemData.model + " / " + itemData.provider + " / " + itemData.note, uniqueId);
-                        option.title = `${itemData.model}\n${itemData.provider}\n${itemData.note}\n${itemData.providerUrl}\n${itemData.parameters}\n`;
+                        option.title = `${itemData.model}\n${itemData.provider}\n${itemData.note}\n${itemData.providerUrl}\n${itemData.parameters}\n${itemData.systemPrompt}\n`;
                         option.dataset.itemData = JSON.stringify(itemData);
                         selectElement.appendChild(option);
                     });

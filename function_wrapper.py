@@ -17,10 +17,10 @@ class FunctionWrapper:
         self.id = id
 
 async def default(websocket: WebSocket, item_data):
-    await asyncio.sleep(0.5)
+    await asyncio.sleep(0.1)
     await websocket.send_text("This interface is not implemented.\n")
     for key, value in item_data.items():
-        await asyncio.sleep(0.5)
+        await asyncio.sleep(0.1)
         await websocket.send_text(f"You sent the key '{key}' and the value is '{value}'.\n")
     return "This interface is not implemented."
 
@@ -612,21 +612,39 @@ async def internaltesting(websocket: WebSocket, item_data):
     model_chooser = item_data["model"].lower()
 
     if "lightning" in model_chooser:
-        for i in range(0, len(response_text), 5):
-            chunk = response_text[i:i+5]
-            # await asyncio.sleep(0.01) # 0.02 : 33 t/s .  0.01 : 66 t/s . 0.0 : 960 t/s . commented  : 1030 t / s
+        for i in range(0, len(response_text), 4):
+            chunk = response_text[i:i+4]
             await websocket.send_text(chunk)
     elif "fast" in model_chooser:
-        for i in range(0, len(response_text), 5):
-            chunk = response_text[i:i+5]
+        await asyncio.sleep(0.0)
+        for i in range(0, len(response_text), 4):
+            chunk = response_text[i:i+4]
             await asyncio.sleep(0.0)
             await websocket.send_text(chunk)
+    elif "standard" in model_chooser:
+        await asyncio.sleep(0.01)
+        for i in range(0, len(response_text), 4):
+            chunk = response_text[i:i+4]
+            await asyncio.sleep(0.01)
+            await websocket.send_text(chunk)
+    elif "slow" in model_chooser:
+        await asyncio.sleep(0.011)
+        for i in range(0, len(response_text), 4):
+            chunk = response_text[i:i+4]
+            await asyncio.sleep(0.011)
+            await websocket.send_text(chunk)
+    elif "crawl" in model_chooser:
+        await asyncio.sleep(0.04)
+        for i in range(0, len(response_text), 4):
+            chunk = response_text[i:i+4]
+            await asyncio.sleep(0.04)
+            await websocket.send_text(chunk)
     else:
-        await asyncio.sleep(random.uniform(0.0, 1.0))
-        loop_sleep = random.uniform(0.01, 0.03)
-        for i in range(0, len(response_text), 5):
-            chunk = response_text[i:i+5]
-            await asyncio.sleep(loop_sleep)
+        await asyncio.sleep(0.1)
+        await websocket.send_text("default - ")
+        for i in range(0, len(response_text), 4):
+            chunk = response_text[i:i+4]
+            await asyncio.sleep(0.1)
             await websocket.send_text(chunk)
 
     return "Internal Testing done."

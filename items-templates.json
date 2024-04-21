@@ -17,7 +17,7 @@
         "providerUrl": "https://api.groq.com/openai/v1",
         "parameters": "max_tokens          = 1024\nmax_time            = 60\ndo_sample           = True\n#top_k              = int\n#top_p              = int\n#temperature        = float\n#repetition_penalty = float",
         "apiKey": "",
-        "model_options": ["llama2-70b-4096", "mixtral-8x7b-32768", "gemma-7b-it"]
+        "model_options": ["gemma-7b-it", "llama2-70b-4096", "llama3-70b-8192", "llama3-8b-8192", "mixtral-8x7b-32768"]
     },
     {
         "model": "",
@@ -74,6 +74,6 @@
         "providerUrl": "Internal Testing",
         "parameters": "# Gibberish for Testing.",
         "apiKey": "none",
-        "model_options": ["Lorem Ipsum Lightning", "Lorem Ipsum Fast", "Lorem Ipsum Standard"]
+        "model_options": ["Lorem Ipsum Lightning", "Lorem Ipsum Fast", "Lorem Ipsum Standard", "Lorem Ipsum Slow", "Lorem Ipsum Crawl"]
     }
 ]
