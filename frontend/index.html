@@ -848,7 +848,9 @@ code {
             </div>
             <hr>
             <!-- <button class="button small-text-wide-button" onclick="saveParleyTSV()" title="Tab Separated Values.">TSV Download</button> -->
-            <button class="button small-text-wide-button" onclick="saveParleyTable()" title="Simple HTML Table.">Download as Table</button>
+            <button class="button small-text-wide-button" onclick="saveBareParleyTable()" title="Bare Formatting for Spreadsheets.">Download Bare Table</button><p>
+            <button class="button small-text-wide-button" onclick="saveMutedParleyTable()" title="Muted Formatting.">Download Muted Table</button><p>
+            <button class="button small-text-wide-button" onclick="saveFancyParleyTable()" title="Fancy Formatting.">Download Fancy Table</button>
         </div>
     </div>
 
@@ -1331,7 +1333,7 @@ code {
                 <div class="class4" >${item.providerUrl}</div>
                 <div class="class5" >${item.parameters}</div>
                 <div class="class6" >${item.systemPrompt}</div>
-                <div class="vote-count-display" id="vote-count-display" title="Vote Count">0</div>
+                <div class="vote-count-display" id="vote-count-display" title="(No Votes)">0</div>
             `;
 
             th.setAttribute('data-model', item.model);
@@ -1800,7 +1802,142 @@ code {
 
 
 
-        function saveParleyTable() {
+        function saveBareParleyTable() {
+            var table = document.getElementById("promptTable");
+            htmlData = "<html>\n";
+
+            htmlData += `
+<html>
+    <head>
+        <title>Synthonnel Parley ${getFormattedDateTimePolite()}</title>
+    </head>
+    <body style='font-family: sans-serif;'>
+        <table>
+            <caption><p>Synthonnel Parley - ${getFormattedDateTimePolite()}<p></caption>
+`;
+
+            var headerRow = document.getElementById("headerRow");
+            cellLen = headerRow.cells.length;
+
+            htmlData += "<tr >\n";
+            htmlData += `  <td width='1%'>Model:</th>\n`;
+            for(index=0; index<cellLen; index++) {
+                var item = headerRow.cells[index];
+                htmlData += `  <td width='2%'>${item.getAttribute('data-model')}</th>\n`;
+            }
+            htmlData += "</tr>\n";
+
+            htmlData += "<tr>\n";
+            htmlData += "  <td >Provider:</th>\n";
+            for(index=0; index<cellLen; index++) {
+                var item = headerRow.cells[index];
+                htmlData += "  <td >" + item.getAttribute('data-provider') + "</th>\n";
+            }
+            htmlData += "</tr>\n";
+
+            htmlData += "<tr>\n";
+            htmlData += "  <td >Note:</th>\n";
+            for(index=0; index<cellLen; index++) {
+                var item = headerRow.cells[index];
+                htmlData += "  <td >" + item.getAttribute('data-note') + "</th>\n";
+            }
+            htmlData += "</tr>\n";
+
+            htmlData += "<tr>\n";
+            htmlData += "  <td >ProviderUrl:</th>\n";
+            for(index=0; index<cellLen; index++) {
+                var item = headerRow.cells[index];
+                htmlData += "  <td >" + item.getAttribute('data-providerUrl') + "</th>\n";
+            }
+            htmlData += "</tr>\n";
+
+            htmlData += "<tr>\n";
+            htmlData += "  <td >Parameters:</th>\n";
+            for(index=0; index<cellLen; index++) {
+                var item = headerRow.cells[index];
+                htmlData += "  <td >" + item.getAttribute('data-parameters') + "</th>\n";
+            }
+            htmlData += "</tr>\n";
+
+            htmlData += "<tr>\n";
+            htmlData += "  <td >System Prompt:</th>\n";
+            for(index=0; index<cellLen; index++) {
+                var item = headerRow.cells[index];
+                htmlData += "  <td >" + item.getAttribute('data-systemPrompt') + "</th>\n";
+            }
+            htmlData += "</tr>\n";
+
+            htmlData += "<tr>\n";
+            htmlData += "  <td >Votes:</th>\n";
+            for(index=0; index<cellLen; index++) {
+                var item = headerRow.cells[index];
+                htmlData += "  <td >" + item.querySelector('#vote-count-display').title + "</th>\n";
+            }
+            htmlData += "</tr>\n";
+
+            for (var rowLoop = 1; rowLoop < table.rows.length; rowLoop++) {
+                if ( table.rows[rowLoop].cells[0].className === 'prompt-row' ) {
+                    htmlData += "<tr>\n";
+                    htmlData += "  <td ></td>".repeat(cellLen+1);
+                    htmlData += "</tr>\n";
+                    htmlData += "<tr >\n";
+                    htmlData += "  <td>Prompt</td>\n";
+                    htmlData += ("  <td>" + table.rows[rowLoop].cells[0].querySelector('.promptCell').innerHTML + "</td>").repeat(cellLen);
+                    htmlData += "\n";
+                } else {
+                    htmlData += "<tr >\n";
+                    htmlData += "  <td>Statistics</td>\n";
+                    for(cellLoop=0; cellLoop<cellLen; cellLoop++) {
+                        var text = "";
+
+                        if (table.rows[rowLoop].cells[cellLoop].querySelector('#firsttokenValue')) {
+                            text += " ~ 1st tok: " + table.rows[rowLoop].cells[cellLoop].querySelector('#firsttokenValue').innerHTML + " s \n";
+                            text += " ~ " + table.rows[rowLoop].cells[cellLoop].querySelector('#speedo-status').innerHTML.replace('<br>', ' ') + " \n";
+                            text += " ~ tok/sec: " + table.rows[rowLoop].cells[cellLoop].querySelector('#tokspersecValue').innerHTML + " \n";
+
+                            if ( table.rows[rowLoop]?.cells[cellLoop]?.querySelector('#upvote')?.className?.includes('upvoted') ) {
+                                text += " ~ upvote: +1";
+                            }
+                            if ( table.rows[rowLoop]?.cells[cellLoop]?.querySelector('#downvote')?.className?.includes('downvoted') ) {
+                                text += " ~ downvote: -1";
+                            }
+                        }
+                        htmlData += "  <td>" + text + "</td>\n";
+                    }
+                    htmlData += "</tr>\n";
+
+                    htmlData += "<tr>\n";
+                    htmlData += "  <td>";
+                    htmlData += table.rows[rowLoop].className === 'response-row' ? "Responses" : "Unknown";
+                    htmlData += "  </td>\n";
+                    for(cellLoop=0; cellLoop<cellLen; cellLoop++) {
+                        if (table.rows[rowLoop].cells[cellLoop].querySelector('.raw-text')) {
+                            htmlData += "  <td>" + table.rows[rowLoop].cells[cellLoop].querySelector('.raw-text').innerHTML + "</td>";
+                        } else {
+                            htmlData += "  <td>~ paused ~</td>";
+                        }
+                    }
+                }
+
+                htmlData += "</tr>\n";
+            }
+
+            htmlData += "</table></body></html>\n";
+
+            var blob = new Blob([htmlData], { type: "text/html;charset=utf-8" });
+            var link = document.createElement("a");
+            link.href = URL.createObjectURL(blob);
+            link.download = "Synthonnel_Parley_Bare_" + getFormattedDateTimeUnderscores() + ".html";
+            link.style.display = "none";
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+
+
+
+        function saveMutedParleyTable() {
             var table = document.getElementById("promptTable");
             htmlData = "<html>\n";
 
@@ -1989,7 +2126,7 @@ table td {
             var blob = new Blob([htmlData], { type: "text/html;charset=utf-8" });
             var link = document.createElement("a");
             link.href = URL.createObjectURL(blob);
-            link.download = "Synthonnel_Parley_" + getFormattedDateTimeUnderscores() + ".html";
+            link.download = "Synthonnel_Parley_Muted_" + getFormattedDateTimeUnderscores() + ".html";
             link.style.display = "none";
             document.body.appendChild(link);
             link.click();
