@@ -728,6 +728,29 @@ input[type='select'] {
     display: block;
 }
 
+.raw-text {
+    display: none;
+    white-space: pre-wrap;
+    font-family: monospace;
+}
+.markdown-text {
+    display: block;
+}
+pre {
+    background-color: var(--borderColor);
+    color: var(--textColor);
+    border-left: 5px solid #008800;
+    padding: 10px;
+    margin: 20px 0;
+    overflow: auto;
+}
+code {
+    background-color: var(--borderColor);
+    color: var(--textColor);
+    font-family: 'Courier New', Courier, monospace;
+    white-space-collapse: preserve;
+    text-wrap: wrap;
+}
 
 </style>
 </head>
@@ -816,7 +839,7 @@ input[type='select'] {
             <input type="checkbox" id="sticky-prompt" checked> <label for="sticky-prompt">Sticky Prompt</label> <br>
             <input type="checkbox" id="vote-count-checkbox" checked> <label for="vote-count-checkbox">Vote Count</label> <br>
             <div style="text-align: center;">
-                <label> Plain </label>
+                <label> 𝑀𝒶𝓇𝓀𝒹𝑜𝓌𝓃 </label>
                 <label class="switch position-switch-lower">
                     <input type="checkbox" id="monospace-responses">
                     <span class="slider round"></span>
@@ -1048,7 +1071,7 @@ input[type='select'] {
                             <br>
                             <div id="downvote" class="vote-arrow-red" onclick="if (this.className.includes('downvoted')) {this.className='vote-arrow-red';} else {this.className='vote-arrow-red-downvoted';}; this.parentElement.children.namedItem('upvote').className='vote-arrow-green';countClassInColumns();">🠇</div>
                         </div>
-                    </div><div class="raw-text"></div>`;
+                    </div><div class="raw-text"></div><div class="markdown-text">`;
 
                     thisResponseCell.querySelector('#speedo-status').innerHTML = `Preparing Request..`;
                     thisResponseCell.style = 'border: 2px solid green;';
@@ -1111,6 +1134,7 @@ input[type='select'] {
                         thisResponseCell.querySelector('#speedo-status').innerHTML = `Receiving..<br>Tokens: ${tokenCount}`;
 
                         thisResponseCell.querySelector('.raw-text').textContent += event.data;
+                        thisResponseCell.querySelector('.markdown-text').textContent += event.data;
 
                         if (tokenCount == 1) {
                             firstTokenTime = new Date();
@@ -1153,6 +1177,10 @@ input[type='select'] {
                         thisResponseCell.querySelector('#speedo-status').title = `Complete.\nTokens: ${tokenCount}\nRuntime: ${(runTime / 1000).toFixed(2)}`;
                         thisResponseCell.style = ``;
                         resetTokpersecMinMax();
+
+                        // 𝑀𝒶𝓇𝓀𝒹𝑜𝓌𝓃
+                        var converter = new showdown.Converter();
+                        thisResponseCell.querySelector('.markdown-text').innerHTML = converter.makeHtml(thisResponseCell.querySelector('.raw-text').textContent);
 
                         promptCell.setAttribute("synthonnelCount", parseInt(promptCell.getAttribute("synthonnelCount") - 1));
                         if (parseInt(promptCell.getAttribute("synthonnelCount")) < 1) {
@@ -1285,7 +1313,7 @@ input[type='select'] {
             const th = document.createElement('th');
             th.className = 'headerElement';
             th.textContent = item.provider;
-            th.title = `Model: ${item.model}\nAPI Template: ${item.provider}\nNote: ${item.note}\nProvider URL: ${item.providerUrl}\nParameters: ${item.parameters}\nSystem Prompt: ${item.systemPrompt}`;
+            th.title = `Model: ${item.model}\nAPI Template: ${item.provider}\nNote: ${item.note}\nProvider URL: ${item.providerUrl}\nParameters:\n${item.parameters}\nSystem Prompt: ${item.systemPrompt}`;
             th.innerHTML = `
                 <div class="menu" title="">
                     <span class="hamburger">☰</span>
@@ -1339,11 +1367,11 @@ input[type='select'] {
             document.head.appendChild(styleSheet);
 
             if (document.getElementById('monospace-responses').checked) {
-                styleSheet.sheet.insertRule(`.response-row { white-space: pre-wrap; }`, 0);
-                styleSheet.sheet.insertRule(`.response-row { font-family: monospace; }`, 0);
+                styleSheet.sheet.insertRule(`.raw-text { display: block; }`, 0);
+                styleSheet.sheet.insertRule(`.markdown-text { display: none; }`, 0);
             } else {
-                styleSheet.sheet.insertRule(`.response-row { white-space: initial; }`, 0);
-                styleSheet.sheet.insertRule(`.response-row { font-family: unset; }`, 0);
+                styleSheet.sheet.insertRule(`.raw-text { display: none; }`, 0);
+                styleSheet.sheet.insertRule(`.markdown-text { display: block; }`, 0);
             }
         };
 
@@ -2034,5 +2062,6 @@ table td {
         }
 
     </script>
+    <script src="showdown.min.js"></script>
 </body>
 </html>
