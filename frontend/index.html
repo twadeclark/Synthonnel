@@ -1309,6 +1309,11 @@ code {
             loadSavedModelsList();
             ModelOptionsSelect.disabled = true;
 
+            if (localStorage.getItem('theme') === 'darkMode') {
+                document.getElementById('darkMode').checked = true;
+                setDarkMode();
+            }
+
             function toggleVisibility(checkboxId, className) {
                 const checkbox = document.getElementById(checkboxId);
                 checkbox.addEventListener('change', function() {
@@ -1386,19 +1391,29 @@ code {
 
         document.getElementById('darkMode').onchange = function() {
             if (document.getElementById('darkMode').checked) {
-                document.documentElement.style.setProperty('--backgroundColor', '#2F2F2F');
-                document.documentElement.style.setProperty('--textColor', '#F0F0F0');
-                document.documentElement.style.setProperty('--emphasisBackgroundColor', '#000000');
-                document.documentElement.style.setProperty('--borderColor', '#606060');
-                document.documentElement.style.setProperty('--boxShadow', 'rgba(255,255,255,0.2)');
+                localStorage.setItem('theme', 'darkMode');
+                setDarkMode();
             } else {
-                document.documentElement.style.setProperty('--backgroundColor', '#F0F0F0');
-                document.documentElement.style.setProperty('--textColor', '#0F0F0F');
-                document.documentElement.style.setProperty('--emphasisBackgroundColor', '#FFFFFF');
-                document.documentElement.style.setProperty('--borderColor', '#C0C0C0');
-                document.documentElement.style.setProperty('--boxShadow', 'rgba(0,0,0,0.4)');
+                localStorage.setItem('theme', 'light');
+                setLightMode();
             }
         };
+
+        function setDarkMode() {
+            document.documentElement.style.setProperty('--backgroundColor', '#2F2F2F');
+            document.documentElement.style.setProperty('--textColor', '#F0F0F0');
+            document.documentElement.style.setProperty('--emphasisBackgroundColor', '#000000');
+            document.documentElement.style.setProperty('--borderColor', '#606060');
+            document.documentElement.style.setProperty('--boxShadow', 'rgba(255,255,255,0.2)');
+        }
+
+        function setLightMode() {
+            document.documentElement.style.setProperty('--backgroundColor', '#F0F0F0');
+            document.documentElement.style.setProperty('--textColor', '#0F0F0F');
+            document.documentElement.style.setProperty('--emphasisBackgroundColor', '#FFFFFF');
+            document.documentElement.style.setProperty('--borderColor', '#C0C0C0');
+            document.documentElement.style.setProperty('--boxShadow', 'rgba(0,0,0,0.4)');
+        }
 
         document.getElementById('monospace-responses').onchange = function() {
             const styleSheet = document.createElement("style");
