@@ -125,6 +125,7 @@
             background-color: var(--emphasisBackgroundColor);
             color: var(--textColor);
             box-shadow: 0 2px 5px var(--boxShadow);
+            z-index: 1;
         }
 
         #submitPrompt {
@@ -347,6 +348,7 @@
             box-shadow: 0 2px 5px var(--boxShadow);
             font-weight:normal;
             font-size: 18px;
+            min-width: 200px;
         }
         #headerRow {
             text-align: center;
@@ -746,6 +748,7 @@ pre {
     padding: 10px;
     margin: 20px 0;
     overflow: auto;
+    text-wrap: wrap;
 }
 code {
     background-color: var(--borderColor);
@@ -856,7 +859,7 @@ code {
             <button class="button small-text-wide-button" onclick="saveFancyParleyTable()" title="Fancy Formatting.">Download Fancy Table</button>
         </div>
     </div>
-
+    <div id="table-copy" style="display: none;"></div>
     <script>
 
         function deleteColumn(indexToRemove) {
@@ -1100,21 +1103,23 @@ code {
                             role = 'user';
                             content = rowFresh.cells[0].textContent.trim();
                         } else {
+                            role = 'assistant';
                             if ( rowFresh.cells[index].querySelector('.raw-text') ) {
-                                role = 'assistant';
                                 content = rowFresh.cells[index].querySelector('.raw-text').textContent.trim();
                             }
                         }
 
-                        if (content.length > 0) {
-                            messages.push({"role": role, "content": content});
+                        if (!content) {
+                            content = "ok.";
                         }
+
+                        messages.push({"role": role, "content": content});
                     }
 
                     var tokenCount = 0;
                     var firstTokenTime = new Date();
                     var tokensPerSecond = 0;
-                    
+
                     if (isAtBottom) { tableContainer.scrollTop = tableContainer.scrollHeight - tableContainer.clientHeight }
 
                     ws.onopen = function(event) {
@@ -1802,6 +1807,70 @@ code {
             link.click();
             document.body.removeChild(link);
         }
+
+
+
+        function saveFancyParleyTable() {
+            docStyle = document.documentElement.style.cssText;
+            docStyleTag = "";
+            if (docStyle) {
+                docStyleTag = ` style='${docStyle}'`;
+            }
+
+            htmlData = `<!DOCTYPE html>
+<html lang="en" ${docStyleTag}>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Synthonnel Parley ${getFormattedDateTimePolite()}</title>
+    <style>`;
+
+            styleTmp = "";
+            const ruleList = document.styleSheets[0].cssRules;
+            for (const rule of ruleList) {
+                ruleTmp = rule.cssText;
+                if (rule.selectorText == ".hamburger") { ruleTmp=".hamburger { display:none; }"; }
+                if (rule.selectorText == ".vote-arrows") { ruleTmp=".vote-arrows { display:none; }"; }
+                styleTmp += ruleTmp + "\n";
+            }
+
+            htmlData += styleTmp;
+            htmlData += "</style></head>";
+
+            const tableCopy = document.getElementById("promptTable").cloneNode(true);
+            tableCopy.setAttribute("title",`Synthonnel Parley - ${getFormattedDateTimePolite()}`)
+
+            const tableHeaders = tableCopy.querySelectorAll("th");
+            for (let i = 0; i < tableHeaders.length; i++) {
+                const th = tableHeaders[i];
+                th.removeAttribute('title');
+                for (let j = th.attributes.length - 1; j >= 0; j--) {
+                    const attribute = th.attributes[j];
+                    if (attribute.name.startsWith("data-")) {
+                        th.removeAttribute(attribute.name);
+                    }
+                }
+            }
+
+            const tableCopyDiv = document.getElementById("table-copy");
+            tableCopyDiv.innerHTML = "";
+            tableCopyDiv.appendChild(tableCopy);
+
+            htmlData += tableCopyDiv.innerHTML;
+            htmlData += "</body></html>\n";
+
+            var blob = new Blob([htmlData], { type: "text/html;charset=utf-8" });
+            var link = document.createElement("a");
+            link.href = URL.createObjectURL(blob);
+            link.download = "Synthonnel_Parley_Fancy_" + getFormattedDateTimeUnderscores() + ".html";
+            link.style.display = "none";
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+
+
 
 
 
