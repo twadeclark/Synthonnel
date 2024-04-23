@@ -1867,12 +1867,14 @@ code {
     <style>`;
 
             styleTmp = "";
-            const ruleList = document.styleSheets[0].cssRules;
-            for (const rule of ruleList) {
-                ruleTmp = rule.cssText;
-                if (rule.selectorText == ".hamburger") { ruleTmp=".hamburger { display:none; }"; }
-                if (rule.selectorText == ".vote-arrows") { ruleTmp=".vote-arrows { display:none; }"; }
-                styleTmp += ruleTmp + "\n";
+            for (let i = 0; i < document.styleSheets.length; i++) {
+                const ruleList = document.styleSheets[i].cssRules;
+                for (const rule of ruleList) {
+                    ruleTmp = rule.cssText;
+                    if (rule.selectorText == ".hamburger") { ruleTmp=".hamburger { display:none; }"; }
+                    if (rule.selectorText == ".vote-arrows") { ruleTmp=".vote-arrows { display:none; }"; }
+                    styleTmp += ruleTmp + "\n";
+                }
             }
 
             htmlData += styleTmp;
@@ -1893,6 +1895,23 @@ code {
                 }
             }
 
+            function toggleVisibilityThis(checkboxId, className) {
+                const checkbox = document.getElementById(checkboxId);
+                if (!checkbox.checked) {
+                    const classElements = tableCopy.querySelectorAll(`.${className}`);
+                    for (c=0; c<classElements.length;c++) {
+                        classElements[c].innerHTML = "";
+                    }
+                }
+            }
+
+            toggleVisibilityThis('check1', 'class1');
+            toggleVisibilityThis('check2', 'class2');
+            toggleVisibilityThis('check3', 'class3');
+            toggleVisibilityThis('check4', 'class4');
+            toggleVisibilityThis('check5', 'class5');
+            toggleVisibilityThis('check6', 'class6');
+
             const tableCopyDiv = document.getElementById("table-copy");
             tableCopyDiv.innerHTML = "";
             tableCopyDiv.appendChild(tableCopy);
@@ -1909,9 +1928,6 @@ code {
             link.click();
             document.body.removeChild(link);
         }
-
-
-
 
 
 
