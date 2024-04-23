@@ -754,8 +754,28 @@ code {
     background-color: var(--borderColor);
     color: var(--textColor);
     font-family: 'Courier New', Courier, monospace;
-    white-space-collapse: preserve;
     text-wrap: wrap;
+}
+
+.wide-code {
+    margin-left: 24px;
+    margin-right: -20px;
+    display:inline-block;
+    -webkit-transform:scale(2,1);
+    -moz-transform:scale(2,1);
+    -ms-transform:scale(2,1);
+    -o-transform:scale(2,1);
+    transform:scale(2,1);
+}
+.narrow-code {
+    margin-left: -52px;
+    margin-right: 0px;
+    display:inline-block;
+    -webkit-transform:scale(0.5,1);
+    -moz-transform:scale(0.5,1);
+    -ms-transform:scale(0.5,1);
+    -o-transform:scale(0.5,1);
+    transform:scale(0.5,1);
 }
 
 </style>
@@ -851,6 +871,14 @@ code {
                     <span class="slider round"></span>
                 </label>
                 <label style="font-family: 'Lucida Console', Courier, monospace;" for="monospace-responses"> Monospace </label>
+            </div>
+            <div style="text-align: center;">
+                <label class="narrow-code"> Narrow <span style="font-family: Courier, monospace;">Code</span> </label>
+                <label class="switch position-switch-lower">
+                    <input type="checkbox" id="wide-narrow-code-switch">
+                    <span class="slider round"></span>
+                </label>
+                <label for="wide-narrow-code-switch" class="wide-code"> Wide </label>
             </div>
             <hr>
             <!-- <button class="button small-text-wide-button" onclick="saveParleyTSV()" title="Tab Separated Values.">TSV Download</button> -->
@@ -1382,6 +1410,19 @@ code {
             } else {
                 styleSheet.sheet.insertRule(`.raw-text { display: none; }`, 0);
                 styleSheet.sheet.insertRule(`.markdown-text { display: block; }`, 0);
+            }
+        };
+
+        document.getElementById('wide-narrow-code-switch').onchange = function() {
+            const styleSheet = document.createElement("style");
+            document.head.appendChild(styleSheet);
+
+            if (document.getElementById('wide-narrow-code-switch').checked) {
+                styleSheet.sheet.insertRule(`pre { text-wrap: nowrap; }`, 0);
+                styleSheet.sheet.insertRule(`code { text-wrap: nowrap; }`, 0);
+            } else {
+                styleSheet.sheet.insertRule(`pre { text-wrap: wrap; }`, 0);
+                styleSheet.sheet.insertRule(`code { text-wrap: wrap; }`, 0);
             }
         };
 
