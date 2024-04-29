@@ -1039,7 +1039,8 @@ code {
             const headerRow = table.rows[0];
             const headerCells = headerRow.cells;
 
-            const promptRow = table.insertRow(-1);
+            const tbody = table.querySelector('tbody');
+            const promptRow = tbody.insertRow(-1);
             const promptCell = promptRow.insertCell(0);
             promptCell.className = 'prompt-row';
             promptCell.colSpan = '100';
