@@ -661,6 +661,7 @@ inference_providers = {
     "Perplexity": FunctionWrapper(perplexity, "Perplexity", "Perplexity"),
     "Groq": FunctionWrapper(groqai, "Groq", "Groq"),
     "GoogleAI": FunctionWrapper(googleai, "GoogleAI", "GoogleAI"),
+    "Generic OpenAI Interface": FunctionWrapper(openai, "Generic OpenAI Interface", "Generic OpenAI Interface"),
 }
 
 class FunctionInfo(BaseModel):
