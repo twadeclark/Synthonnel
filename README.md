@@ -1,47 +1,54 @@
 # Synthonnel
 
-Directions
+One Prompt, Many LLMs.
 
-# Basics:
+## User Guide
 
-Create the vitual environment:
+See the Tutorial at [Synthonnel.com](https://www.synthonnel.com/) for more information.
 
+## Super Quick Start - From Source
+
+#### Create and Activate Virtual Environment
+
+```
 python -m venv venv
+```
 
+- **Windows**:
 
-Start the vitual environment:
-
+```
 .\venv\Scripts\activate
+```
+
+- **macOS/Linux**:
+
+```
+source venv/bin/activate
+```
 
 
-Freeze your pip:
+#### Install Required Packages:
 
-Pip Freeze:
-
-pip freeze > requirements.txt
-
-
-# To run from source:
+```
+pip install -r requirements.txt
+```
 
 
-Start FastAPI backend:
+#### Start Backend:
 
+```
 uvicorn main:app --reload
+```
 
 
-Start webserver for front end:
+#### Use Browser for UI:
 
-cd .\frontend\
-
-python -m http.server 8080
+[http://127.0.0.1:8000/](http://127.0.0.1:8000/)
 
 
-Go here for UI:
+### Reference
 
-http://localhost:8080/
-
-
-# Optional Supported OpenAI parameters:
+#### Optional Supported OpenAI parameters:
     frequency_penalty: float | NotGiven | None = NOT_GIVEN,
     logprobs: bool | NotGiven | None = NOT_GIVEN,
     max_tokens: int | NotGiven | None = NOT_GIVEN,
@@ -55,8 +62,7 @@ http://localhost:8080/
     user: str | NotGiven = NOT_GIVEN,
     timeout: float | Timeout | NotGiven | None = NOT_GIVEN
 
-
-# ALL OpenAI parameters:
+#### ALL OpenAI parameters:
     messages: Iterable[ChatCompletionMessageParam],
     model: str,
     frequency_penalty: float | NotGiven | None = NOT_GIVEN,
@@ -81,4 +87,3 @@ http://localhost:8080/
     extra_query: Query | None = None,
     extra_body: Body | None = None,
     timeout: float | Timeout | NotGiven | None = NOT_GIVEN
-

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Synthonnel Parley</title>
+    <title>Synthonnel Parley </title>
     <style>
         :root {
             --backgroundColor: #F0F0F0;
@@ -1357,6 +1357,7 @@
             loadTemplateModelsList();
             loadSavedModelsList();
             ModelOptionsSelect.disabled = true;
+            document.title = "Synthonnel Parley " + getFormattedDateTimePolite();
 
             if (localStorage.getItem('theme') === 'darkMode') {
                 document.getElementById('darkMode').checked = true;
@@ -1388,11 +1389,14 @@
         });
 
         function loadModels() {
+            const headerRow = document.getElementById('headerRow');
+            if (headerRow.cells.length > 0) {
+                return;
+            }
+
             fetch('http://localhost:8000/get-items-active')
                 .then(response => response.json())
                 .then(data => {
-                    const headerRow = document.getElementById('headerRow');
-
                     data.forEach((item, index) => {
                         const th = addColumn(item, index);
                         headerRow.appendChild(th);
