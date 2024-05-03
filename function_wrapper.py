@@ -24,69 +24,6 @@ async def default(websocket: WebSocket, item_data):
         await websocket.send_text(f"You sent the key '{key}' and the value is '{value}'.\n")
     return "This interface is not implemented."
 
-###### Completed Inference Providers:
-# LM Studio - for local inference
-# OpenAI
-# HuggingFace
-# AWS - through HuggingFace
-# Azure - through HuggingFace
-# Google - through HuggingFace
-# Perplexity
-# Groq
-# Gemini
-
-
-# TODO:
-# https://www.tencent.com/en-us/
-# IBM
-# Oracle
-# Salesforce
-# Anthropic	    ANTHROPIC_API_KEY
-
-
-# https://pypi.org/project/inference-providers/
-# Anyscale	    ANYSCALE_API_KEY
-# deepinfra	    DEEPINFRA_API_KEY
-# fireworks.ai	FIREWORKS_API_KEY
-# Lepton AI	    LEPTON_API_KEY
-# Mistral AI	MISTRAL_API_KEY
-# Octo AI	    OCTOAI_TOKEN
-# OpenRouter    AI	OPENROUTER_API_KEY
-# together.ai	TOGETHERAI_API_KEY
-# https://replicate.com/
-
-# Telnyx
-# NVIDIA - Descript, WOMBO, and Kuaishou.
-
-# https://meta.discourse.org/t/options-for-using-an-alternative-ai-provider/299790
-# https://docs.mendable.ai/mendable-api/chat
-
-# https://thebusinessdive.com/openai-competitors
-# https://www.anthropic.com/
-# https://cohere.com/
-# https://stability.ai/
-# https://inflection.ai/
-# https://aleph-alpha.com/
-# https://www.ai21.com/
-# https://www.reka.ai/
-# https://www.eleuther.ai/
-# https://character.ai/
-
-# https://www.crn.com/news/cloud/2024/the-20-hottest-ai-cloud-companies-the-2024-crn-ai-100
-# Altair
-# Cirrascale Cloud Services
-# Dataminr
-# Dynatrace
-# H2O.ai
-# HashiCorp
-# Lambda Labs
-# MongoDB
-# Nerdio
-# PagerDuty
-# Snowflake
-# Spectro Cloud
-# VMware by Broadcom
-
 async def googleai(websocket, item_data):
     try:
         # base_url = item_data["providerUrl"]
