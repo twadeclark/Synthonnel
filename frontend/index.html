@@ -778,6 +778,18 @@ code {
     -o-transform:scale(0.5,1);
     transform:scale(0.5,1);
 }
+.promptCellDelete {
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    border: 1px solid var(--borderColor);
+    border-radius: 6px 6px 6px 6px;
+    font-size: smaller;
+    font-style: normal;
+    line-height: 18px;
+    background-color: var(--emphasisBackgroundColor);
+    cursor: pointer;
+}
 
 </style>
 </head>
@@ -1023,6 +1035,10 @@ code {
             document.getElementById('submitPrompt').style.opacity = textAreaElement.value.trim().length == 0 ? '0.3' : '1';
         });
 
+        function deleteThisRow(element) {
+            element.closest('tr').remove();
+        }
+
         document.getElementById('submitPrompt').addEventListener('click', function() {
             const tableContainer = document.getElementById("table-container")
             const isAtBottom = tableContainer.scrollHeight - tableContainer.clientHeight <= tableContainer.scrollTop + 50;
@@ -1040,11 +1056,22 @@ code {
             const headerRow = table.rows[0];
             const headerCells = headerRow.cells;
 
+            if (table.rows.length > 2) {
+                var secondToLastRow = table.rows[table.rows.length - 2];
+                secondToLastRow.querySelector('.promptCellDelete').innerHTML = ``;
+            }
+
             const tbody = table.querySelector('tbody');
             const promptRow = tbody.insertRow(-1);
             const promptCell = promptRow.insertCell(0);
             promptCell.className = 'prompt-row';
             promptCell.colSpan = '100';
+
+            const promptCellDivDelete = document.createElement('div');
+            promptCellDivDelete.innerHTML = "❌";
+            promptCellDivDelete.className = 'promptCellDelete';
+            promptCellDivDelete.id = 'promptCellDeleteID';
+            promptCell.appendChild(promptCellDivDelete);
 
             const promptCellDiv = document.createElement('div');
             promptCellDiv.innerHTML = prompt;
@@ -1061,6 +1088,13 @@ code {
             const ResponseRow = table.insertRow(-1);
             ResponseRow.className = 'response-row';
             
+            promptCellDivDelete.addEventListener('click', function() {
+                if (confirm('Are you sure you want to delete this prompt and responses from the Parley?')) {
+                    deleteThisRow(promptRow);
+                    deleteThisRow(ResponseRow);
+                }
+            });
+
             if (isAtBottom) { tableContainer.scrollTop = tableContainer.scrollHeight - tableContainer.clientHeight }
 
             var StartTime = new Date();
@@ -1890,6 +1924,7 @@ code {
                     ruleTmp = rule.cssText;
                     if (rule.selectorText == ".hamburger") { ruleTmp=".hamburger { display:none; }"; }
                     if (rule.selectorText == ".vote-arrows") { ruleTmp=".vote-arrows { display:none; }"; }
+                    if (rule.selectorText == ".promptCellDelete") { ruleTmp=".promptCellDelete { display:none; }"; }
                     styleTmp += ruleTmp + "\n";
                 }
             }
