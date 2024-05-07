@@ -1,16 +1,25 @@
 from typing import List
 import json
+import webbrowser
+import os
+import sys
 from fastapi import FastAPI, WebSocket, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
+import uvicorn
 import function_wrapper
 
 app = FastAPI()
 
-json_file_path_active = 'items-active.json'
-json_file_path_saved = 'items-saved.json'
-json_file_path_templates = 'items-templates.json'
+def get_base_directory():
+    if getattr(sys, 'frozen', False):
+        return sys._MEIPASS
+    return os.path.dirname(__file__)
+
+json_file_path_active = os.path.join(get_base_directory(), 'json_files/items-active.json')
+json_file_path_saved = os.path.join(get_base_directory(), 'json_files/items-saved.json')
+json_file_path_templates = os.path.join(get_base_directory(), 'json_files/items-templates.json')
 
 app.add_middleware(
     CORSMiddleware,
@@ -96,4 +105,8 @@ def get_functions():
         functions_info.append(function_wrapper.FunctionInfo(friendly_name=func_wrapper.friendly_name, id=func_wrapper.id))
     return functions_info
 
-app.mount("/", StaticFiles(directory="frontend", html=True), name="static")
+app.mount("/", StaticFiles(directory=os.path.join(get_base_directory(), 'frontend'), html=True), name="static")
+
+if __name__ == '__main__':
+    webbrowser.open_new("http://localhost:8000/")
+    uvicorn.run(app, host="127.0.0.1", port=8000, reload=False)

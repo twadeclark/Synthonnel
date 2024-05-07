@@ -3,3 +3,5 @@ __pycache__
 scratch/
 items-active.json
 items-saved.json
+build/
+dist/

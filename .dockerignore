@@ -1,0 +1,5 @@
+__pychche__/
+scratch/
+venv/
+json_files/items-active.json
+json_files/items-saved.json

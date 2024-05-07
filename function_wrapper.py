@@ -8,7 +8,7 @@ from openai import AsyncOpenAI
 import google.generativeai as genai
 
 
-SAVE_MOST_RECENT_RESPONSE = True
+SAVE_MOST_RECENT_RESPONSE = False
 
 class FunctionWrapper:
     def __init__(self, func, friendly_name, id):
