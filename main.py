@@ -53,6 +53,7 @@ async def stream_llm_response(websocket: WebSocket):
         await function_wrapper.inference_providers[provider].func(websocket, item_data)
         print(f"Inference Success. provider: '{provider}' model: '{model}'")
     else:
+        await websocket.send_text(f"Inference Failure. provider: '{provider}' not found. Most likely due to corrupted API template.")
         print(f"Inference Failure. provider: '{provider}' not found.")
 
     await websocket.close()

@@ -96,8 +96,7 @@ async def googleai(websocket, item_data):
             except Exception as e:
                 print(e)
                 print(e.with_traceback)
-                await websocket.send_text('\n\n# THREAD Big problems. Exception: ' + str(e))
-                await websocket.send_text('\n\n# THREAD Big problems. Exception with_traceback: ' + str(e.with_traceback))
+                await websocket.send_text('\n\n# Exception: ' + str(e))
 
             if SAVE_MOST_RECENT_RESPONSE:
                 with open("scratch/raw_responses_most_recent_dump_googleai.txt", 'w', encoding='utf-8') as file:
@@ -108,7 +107,7 @@ async def googleai(websocket, item_data):
         return "googleai done."
     except Exception as e:
         print(e)
-        await websocket.send_text('\n\n# Big problems. Exception: ' + str(e))
+        await websocket.send_text('\n\n# Exception: ' + str(e))
         return "googleai error!"
 
 
@@ -160,8 +159,7 @@ async def groqai(websocket, item_data):
             except Exception as e:
                 print(e)
                 print(e.with_traceback)
-                await websocket.send_text('\n\n# THREAD Big problems. Exception: ' + str(e))
-                await websocket.send_text('\n\n# THREAD Big problems. Exception with_traceback: ' + str(e.with_traceback))
+                await websocket.send_text('\n\n# Exception: ' + str(e))
 
             if SAVE_MOST_RECENT_RESPONSE:
                 with open("scratch/raw_responses_most_recent_dump_GroqAI.txt", 'w', encoding='utf-8') as file:
@@ -172,7 +170,7 @@ async def groqai(websocket, item_data):
         return "groqai done."
     except Exception as e:
         print(e)
-        await websocket.send_text('\n\n# Big problems. Exception: ' + str(e))
+        await websocket.send_text('\n\n# Exception: ' + str(e))
         return "groqai error!"
 
 
@@ -222,8 +220,7 @@ async def perplexity(websocket, item_data):
             except Exception as e:
                 print(e)
                 print(e.with_traceback)
-                await websocket.send_text('\n\n# THREAD Big problems. Exception: ' + str(e))
-                await websocket.send_text('\n\n# THREAD Big problems. Exception with_traceback: ' + str(e.with_traceback))
+                await websocket.send_text('\n\n# Exception: ' + str(e))
 
             if SAVE_MOST_RECENT_RESPONSE:
                 with open("scratch/raw_responses_most_recent_dump_perplexity.txt", 'w', encoding='utf-8') as file:
@@ -234,7 +231,7 @@ async def perplexity(websocket, item_data):
         return "perplexity done."
     except Exception as e:
         print(e)
-        await websocket.send_text('\n\n# Big problems. Exception: ' + str(e))
+        await websocket.send_text('\n\n# Exception: ' + str(e))
         return "perplexity error!"
 
 
@@ -282,10 +279,7 @@ async def huggingfaceendpoint(websocket, item_data):
                     if content:
                         await websocket.send_text(content)
             except Exception as e:
-                print(e)
-                print(e.with_traceback)
-                await websocket.send_text('\n\n# THREAD Big problems. Exception: ' + str(e))
-                await websocket.send_text('\n\n# THREAD Big problems. Exception with_traceback: ' + str(e.with_traceback))
+                await websocket.send_text('# Exception: ' + str(e))
 
             if SAVE_MOST_RECENT_RESPONSE:
                 with open("scratch/raw_responses_most_recent_dump_huggingfaceendpoint.txt", 'w', encoding='utf-8') as file:
@@ -296,7 +290,7 @@ async def huggingfaceendpoint(websocket, item_data):
         return "huggingfaceendpoint done."
     except Exception as e:
         print(e)
-        await websocket.send_text('\n\n# Big problems. Exception: ' + str(e))
+        await websocket.send_text('# Exception: ' + str(e))
         return "huggingfaceendpoint error!"
 
 
@@ -350,8 +344,7 @@ async def openai(websocket, item_data):
             except Exception as e:
                 print(e)
                 print(e.with_traceback)
-                await websocket.send_text('\n\n# THREAD Big problems. Exception: ' + str(e))
-                await websocket.send_text('\n\n# THREAD Big problems. Exception with_traceback: ' + str(e.with_traceback))
+                await websocket.send_text('\n\n# Exception: ' + str(e))
 
             if SAVE_MOST_RECENT_RESPONSE:
                 with open("scratch/raw_responses_most_recent_dump_OpenAI.txt", 'w', encoding='utf-8') as file:
@@ -362,7 +355,7 @@ async def openai(websocket, item_data):
         return "openai done."
     except Exception as e:
         print(e)
-        await websocket.send_text('\n\n# Big problems. Exception: ' + str(e))
+        await websocket.send_text('\n\n# Exception: ' + str(e))
         return "openai error!"
 
 
@@ -442,7 +435,7 @@ async def huggingfacefree(websocket: WebSocket, item_data):
         return "huggingfacefree done."
     except Exception as e:
         print(e)
-        await websocket.send_text('\n\n# Big problems. Exception: ' + str(e))
+        await websocket.send_text('\n\n# Exception: ' + str(e))
         return "huggingfacefree error!"
 
 
@@ -496,8 +489,7 @@ async def lm_studio(websocket, item_data):
             except Exception as e:
                 print(e)
                 print(e.with_traceback)
-                await websocket.send_text('\n\n# THREAD Big problems. Exception: ' + str(e))
-                await websocket.send_text('\n\n# THREAD Big problems. Exception with_traceback: ' + str(e.with_traceback))
+                await websocket.send_text('\n\n# Exception: ' + str(e))
 
             if SAVE_MOST_RECENT_RESPONSE:
                 with open("scratch/raw_responses_most_recent_dump_LMStudio.txt", 'w', encoding='utf-8') as file:
@@ -508,7 +500,7 @@ async def lm_studio(websocket, item_data):
         return "lm_studio done."
     except Exception as e:
         print(e)
-        await websocket.send_text('\n\n# Big problems. Exception: ' + str(e))
+        await websocket.send_text('# Exception: ' + str(e))
         return "lm_studio error!"
 
 
