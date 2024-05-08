@@ -2395,6 +2395,15 @@ table td {
             return `${day} ${month} ${year} ${hours}:${minutes}:${seconds}`;
         }
 
+        window.onbeforeunload = function (event) {
+            const table = document.querySelector('#promptTable');
+            if (table.rows.length > 2) {
+                var message = "Are you sure you want to leave this page? You will lose your active Parley.";
+                event.returnValue = message;
+                return message;
+            }
+        };
+        
     </script>
     <script src="showdown.min.js"></script>
 </body>

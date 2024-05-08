@@ -10,7 +10,7 @@ a = Analysis(
     binaries=[],
     datas=[
         ('frontend', 'frontend'),
-        ('json_files', 'json_files'),
+        ('json_files/items-templates.json', 'json_files'),
     ],
     hiddenimports=[
         'fastapi', 
@@ -46,7 +46,7 @@ exe = EXE(
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
-    onefile=False,
+    onefile=True,
     icon='frontend\\images\\favicon\\favicon_multisize.ico'
 )
 coll = COLLECT(
