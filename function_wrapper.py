@@ -6,7 +6,9 @@ from fastapi import WebSocket
 from pydantic import BaseModel
 from openai import AsyncOpenAI
 import google.generativeai as genai
-
+from ibm_watsonx_ai.foundation_models import Model
+from ibm_watsonx_ai.metanames import GenTextParamsMetaNames as GenParams
+from ibm_watsonx_ai.foundation_models.utils.enums import ModelTypes, DecodingMethods
 
 SAVE_MOST_RECENT_RESPONSE = False
 
@@ -23,6 +25,147 @@ async def default(websocket: WebSocket, item_data):
         await asyncio.sleep(0.1)
         await websocket.send_text(f"You sent the key '{key}' and the value is '{value}'.\n")
     return "This interface is not implemented."
+
+async def ibmwatsonx(websocket, item_data):
+    try:
+        base_url = item_data["providerUrl"]
+        api_key = item_data["apiKey"]
+
+        model = item_data["model"]
+        params_parsed = parse_params(item_data["parameters"])
+
+        project_id = params_parsed.get("project_id", None)
+        space_id = params_parsed.get("space_id", None)
+        guardrails = strtobool(params_parsed.get("guardrails", None))
+
+        messages_temp = item_data["messages"]
+        messages = []
+        system_instruction = None
+
+        for msgtmp in messages_temp:
+            roleTmp = msgtmp["role"]
+
+            if roleTmp == "system":
+                system_instruction = msgtmp["content"]
+            else:
+                if roleTmp == "user":
+                    role = "user"
+                elif roleTmp == "assistant":
+                    role = "model"
+                else:
+                    role = "user"
+
+                messages.append({ 'role':role, 'parts':[{'text':msgtmp["content"]}] })
+
+
+
+
+
+
+        params = {
+            GenParams.DECODING_METHOD       : params_parsed.get("DECODING_METHOD", None),
+            GenParams.LENGTH_PENALTY        : params_parsed.get("LENGTH_PENALTY", None),
+            GenParams.TEMPERATURE           : strtofloat(params_parsed.get("TEMPERATURE", None)),
+            GenParams.TOP_P                 : strtofloat(params_parsed.get("TOP_P", None)),
+            GenParams.TOP_K                 : strtoint(params_parsed.get("TOP_K", None)),
+            GenParams.RANDOM_SEED           : strtoint(params_parsed.get("RANDOM_SEED", None)),
+            GenParams.REPETITION_PENALTY    : strtofloat(params_parsed.get("REPETITION_PENALTY", None)),
+            GenParams.MIN_NEW_TOKENS        : strtoint(params_parsed.get("MIN_NEW_TOKENS", 1)),
+            GenParams.MAX_NEW_TOKENS        : strtoint(params_parsed.get("MAX_NEW_TOKENS", 1024)),
+            GenParams.STOP_SEQUENCES        : params_parsed.get("STOP_SEQUENCES", None),
+            GenParams.TIME_LIMIT            : strtoint(params_parsed.get("TIME_LIMIT", 60)),
+            GenParams.TRUNCATE_INPUT_TOKENS : strtoint(params_parsed.get("TRUNCATE_INPUT_TOKENS", None)),
+            # GenParams.RETURN_OPTIONS        : params_parsed.get("RETURN_OPTIONS", None),
+        }
+
+        kwargs = {k: v for k, v in params.items() if v is not None}
+
+        model_enum = None
+
+        match model:
+            case 'codellama/codellama-34b-instruct-hf':
+                model_enum = ModelTypes.CODELLAMA_34B_INSTRUCT_HF
+            case 'elyza/elyza-japanese-llama-2-7b-instruct':
+                model_enum = ModelTypes.ELYZA_JAPANESE_LLAMA_2_7B_INSTRUCT
+            case 'google/flan-t5-xl':
+                model_enum = ModelTypes.FLAN_T5_XL
+            case 'google/flan-t5-xxl':
+                model_enum = ModelTypes.FLAN_T5_XXL
+            case 'google/flan-ul2':
+                model_enum = ModelTypes.FLAN_UL2
+            case 'eleutherai/gpt-neox-20b':
+                model_enum = ModelTypes.GPT_NEOX
+            case 'ibm/granite-13b-chat-v1':
+                model_enum = ModelTypes.GRANITE_13B_CHAT
+            case 'ibm/granite-13b-chat-v2':
+                model_enum = ModelTypes.GRANITE_13B_CHAT_V2
+            case 'ibm/granite-13b-instruct-v1':
+                model_enum = ModelTypes.GRANITE_13B_INSTRUCT
+            case 'ibm/granite-13b-instruct-v2':
+                model_enum = ModelTypes.GRANITE_13B_INSTRUCT_V2
+            case 'GRANITE_20B_MULTILINGUAL ':
+                model_enum = ModelTypes.GRANITE_20B_MULTILINGUAL
+            case 'meta-llama/llama-2-13b-chat':
+                model_enum = ModelTypes.LLAMA_2_13B_CHAT
+            case 'meta-llama/llama-2-70b-chat':
+                model_enum = ModelTypes.LLAMA_2_70B_CHAT
+            case 'ibm-mistralai/mixtral-8x7b-instruct-v01-q':
+                model_enum = ModelTypes.MIXTRAL_8X7B_INSTRUCT_V01_Q
+            case 'ibm/mpt-7b-instruct2':
+                model_enum = ModelTypes.MPT_7B_INSTRUCT2
+            case 'bigscience/mt0-xxl':
+                model_enum = ModelTypes.MT0_XXL
+            case 'bigcode/starcoder':
+                model_enum = ModelTypes.STARCODER
+
+        client = Model(
+            model_id=model_enum,
+            credentials={
+                "apikey": api_key,
+                "url": base_url
+            },
+            params=params,
+            project_id=project_id,
+            space_id=space_id
+            )
+
+        async def streamer():
+
+            raw_responses_most_recent_dump = ""
+
+            try:
+                stream = await client.generate_text_stream(prompt=messages,
+                                                          params=kwargs,
+                                                          raw_response=False,
+                                                          guardrails=guardrails)
+                async for chunk in stream:
+
+                    if chunk:
+                        raw_responses_most_recent_dump += str(chunk) + "\n"
+
+                    # content = chunk.choices[0].delta.content
+                    # if content:
+                    #     await websocket.send_text(content)
+                    if chunk:
+                        await websocket.send_text(chunk)
+
+            except Exception as e:
+                print(e)
+                print(e.with_traceback)
+                await websocket.send_text('\n\n# Exception: ' + str(e))
+
+            if SAVE_MOST_RECENT_RESPONSE:
+                with open("scratch/raw_responses_most_recent_dump_IBMWatsonX.txt", 'w', encoding='utf-8') as file:
+                    file.write(raw_responses_most_recent_dump)
+
+        await streamer()
+
+        return "openai done."
+    except Exception as e:
+        print(e)
+        await websocket.send_text('\n\n# Exception: ' + str(e))
+        return "ibmwatsonx error!"
+
 
 async def googleai(websocket, item_data):
     try:
@@ -591,6 +734,7 @@ inference_providers = {
     "Groq": FunctionWrapper(groqai, "Groq", "Groq"),
     "GoogleAI": FunctionWrapper(googleai, "GoogleAI", "GoogleAI"),
     "Generic OpenAI Interface": FunctionWrapper(openai, "Generic OpenAI Interface", "Generic OpenAI Interface"),
+    "IBM WatsonX": FunctionWrapper(ibmwatsonx, "IBM WatsonX", "IBM WatsonX"),
 }
 
 class FunctionInfo(BaseModel):
