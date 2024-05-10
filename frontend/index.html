@@ -804,6 +804,9 @@
             background-color: var(--emphasisBackgroundColor);
             cursor: pointer;
         }
+        .promptCellDelete::after {
+            content: "❌";
+        }
 
 </style>
 </head>
@@ -1082,7 +1085,6 @@
             promptCell.colSpan = '100';
 
             const promptCellDivDelete = document.createElement('div');
-            promptCellDivDelete.innerHTML = "❌";
             promptCellDivDelete.className = 'promptCellDelete';
             promptCellDivDelete.id = 'promptCellDeleteID';
             promptCell.appendChild(promptCellDivDelete);
