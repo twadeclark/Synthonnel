@@ -878,7 +878,7 @@
         </table>
     </div>
 
-    <a href="https://www.synthonnel.com/docs/userGuide" id="logoBtn" class="button" title="User Guide" target="_blank"></a>
+    <a href="https://www.synthonnel.com/docs/category/user-guide" id="logoBtn" class="button" title="User Guide" target="_blank"></a>
 
     <div id="addItemFormHider">
         <button id="addItemBtn" class="button" title="Activate or Delete Models">+</button>
@@ -1661,7 +1661,7 @@
                 JSON.parse(opt.dataset.itemData)['apiKey'] === item.apiKey
             );
 
-            if (!itemSavedExists) {
+            if (!itemSavedExists && item.provider != "Internal Testing") {
                 const option = new Option(item.model + " / " + item.provider, JSON.stringify(item));
                 option.dataset.itemData = itemDataString;
                 option.title = `${item.model}\n${item.provider}\n${item.note}\n${item.providerUrl}\n${item.parameters}\n${item.systemPrompt}\n`;
@@ -2502,7 +2502,7 @@ table td {
             if (quickTestWindow.style.display === 'grid' ) {
                 return;
             }
-            
+
             messages = [];
             systemPrompt = document.getElementById('newItemSystemPrompt').value.trim()
 
@@ -2560,7 +2560,7 @@ table td {
             quickTestWindowStatus3.textContent = ""
             quickTestWindowStatus4.textContent = ""
             quickTestWindowResponse.textContent = ""
-            
+
             stopStopwatch();
             resetStopwatch();
             startStopwatch();
