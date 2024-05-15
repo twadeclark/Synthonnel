@@ -635,6 +635,7 @@
             display: grid; 
             gap: 20px;
             width: 325px;
+            min-width: 300px;
         }
         .vertical-row {
             position: relative;
@@ -808,6 +809,61 @@
             content: "❌";
         }
 
+        #quickTestWindow {
+            position: fixed;
+            display: grid; 
+            padding: 20px;
+            top: 25%;
+            left: 25%;
+            width: 40%;
+            border: 3px solid var(--borderColor);
+            border-radius: 6px 6px 6px 6px;
+            font-size: smaller;
+            font-style: normal;
+            line-height: 18px;
+            background-color: var(--emphasisBackgroundColor);
+            z-index: 4;
+        }
+        .quickTestWindowPrompt {
+            width: 95%;
+            border: 1px solid var(--borderColor);
+            border-radius: 6px 6px 6px 6px;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: smaller;
+            font-style: normal;
+            white-space: pre-line;
+            line-height: 18px;
+            background-color: var(--backgroundColor);
+        }
+        .quickTestWindowResponse {
+            width: 95%;
+            border: 1px solid var(--borderColor);
+            border-radius: 6px 6px 6px 6px;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: medium;
+            font-style: normal;
+            white-space: pre-line;
+            line-height: 18px;
+            background-color: var(--backgroundColor);
+            margin-top: 20px;
+        }
+        #quickTestWindowClose {
+            position: absolute;
+            top: 2px;
+            right: 2px;
+            border: 1px solid var(--borderColor);
+            border-radius: 6px 6px 6px 6px;
+            font-size: smaller;
+            font-style: normal;
+            line-height: 18px;
+            background-color: var(--emphasisBackgroundColor);
+            cursor: pointer;
+        }
+        #quickTestWindowClose::after {
+            content: "❌";
+        }
+
+
 </style>
 </head>
 <body>
@@ -839,9 +895,12 @@
                 <textarea id="newItemParameters" placeholder="parameters.." rows="4" title="Parameters" class="nightmode-color-changer"></textarea>
                 <input type="password" id="newItemApiKey" placeholder="Api Key" title="Api Key" class="nightmode-color-changer">
                 <input type="text" id="newItemNote" placeholder="note.." title="Note" class="nightmode-color-changer">
-                <div>
+                <div style="display: flex;">
                     <div style="float: left;">
                         <button id="clearForm" class="button small-text-just-wide-enough-button" onclick="clearAddItemForm();">Clear</button>
+                    </div>
+                    <div style="margin: 0 auto;">
+                        <button id="quickTest" class="button small-text-just-wide-enough-button" onclick="quickTestAddItemForm();">QuickTest</button>
                     </div>
                     <div style="float: right;">
                         <button id="confirmAddItem" class="button small-text-just-wide-enough-button">Activate Model</button>
@@ -918,7 +977,23 @@
         </div>
     </div>
     <div id="table-copy" style="display: none;"></div>
+    <div id="quickTestWindow" style="display: none;">
+        <div id="quickTestWindowClose" onclick="quickTestAddItemFormClose()"></div>
+        <div id="quickTestWindowProvider" class="quickTestWindowPrompt"></div>
+        <div id="quickTestWindowModel" class="quickTestWindowPrompt"></div>
+        <div id="quickTestWindowSystemPrompt" class="quickTestWindowPrompt"></div>
+        <div id="quickTestWindowProviderUrl" class="quickTestWindowPrompt"></div>
+        <div id="quickTestWindowParameters" class="quickTestWindowPrompt"></div>
+        <div id="quickTestWindowNote" class="quickTestWindowPrompt"></div>
+        <div id="quickTestWindowPrompt" class="quickTestWindowPrompt"></div>
+        <div id="quickTestWindowStatus1" class="quickTestWindowResponse"></div>
+        <div id="quickTestWindowStatus2" class="quickTestWindowResponse"></div>
+        <div id="quickTestWindowStatus3" class="quickTestWindowResponse"></div>
+        <div id="quickTestWindowStatus4" class="quickTestWindowResponse"></div>
+        <div id="quickTestWindowResponse" class="quickTestWindowResponse"></div>
+    </div>
     <script>
+        const webSocketAddress = `ws://localhost:8000/ws/stream-llm-response`;
 
         function deleteColumn(indexToRemove) {
             if (!confirm("Remove Model from Active List?")) {
@@ -1164,7 +1239,7 @@
                     thisResponseCell.querySelector('#speedo-status').innerHTML = `Preparing Request..`;
                     thisResponseCell.style = 'border: 2px solid green;';
 
-                    const ws = new WebSocket(`ws://localhost:8000/ws/stream-llm-response`);
+                    const ws = new WebSocket(webSocketAddress);
 
                     const tableFresh = document.querySelector('#promptTable');
 
@@ -2406,7 +2481,158 @@ table td {
                 return message;
             }
         };
-        
+
+        let ws;
+
+        function quickTestAddItemFormClose() {
+            const quickTestWindow = document.getElementById("quickTestWindow");
+            quickTestWindow.style.display = 'none';
+            stopStopwatch();
+            try {
+                ws.close();
+            } catch (error) {
+                // no problem
+            }
+        }
+
+        function quickTestAddItemForm() {
+            quickTestWindowPromptQuestion = "State your name.";
+            const quickTestWindow = document.getElementById("quickTestWindow");
+
+            if (quickTestWindow.style.display === 'grid' ) {
+                return;
+            }
+            
+            messages = [];
+            systemPrompt = document.getElementById('newItemSystemPrompt').value.trim()
+
+            if (systemPrompt) {
+                messages.push({"role": "system", "content": systemPrompt});
+            }
+            messages.push({"role": "user", "content": quickTestWindowPromptQuestion});
+
+            const item = {
+                messages: messages,
+                model: document.getElementById('newItemModel').value.trim(),
+                provider: document.getElementById('newItemProvider').value.trim(),
+                note: document.getElementById('newItemNote').value.trim(),
+                providerUrl: document.getElementById('newItemProviderUrl').value.trim(),
+                systemPrompt: systemPrompt,
+                parameters: document.getElementById('newItemParameters').value.trim(),
+                apiKey: document.getElementById('newItemApiKey').value.trim()
+            };
+
+            if (!(item.provider && item.model && item.providerUrl && item.apiKey)) {
+                showMessage("Missing required fields:");
+
+                if (!item.model) { flashElementRed("newItemModel"); }
+                if (!item.providerUrl) { flashElementRed("newItemProviderUrl"); }
+                if (!item.provider) { flashElementRed("newItemProvider"); }
+                if (!item.apiKey) { flashElementRed("newItemApiKey"); }
+
+                return;
+            } 
+
+            quickTestWindow.style.display = 'grid'; 
+
+            const quickTestWindowModel = document.getElementById("quickTestWindowModel");
+            const quickTestWindowProvider = document.getElementById("quickTestWindowProvider");
+            const quickTestWindowNote = document.getElementById("quickTestWindowNote");
+            const quickTestWindowProviderUrl = document.getElementById("quickTestWindowProviderUrl");
+            const quickTestWindowSystemPrompt = document.getElementById("quickTestWindowSystemPrompt");
+            const quickTestWindowParameters = document.getElementById("quickTestWindowParameters");
+            const quickTestWindowPrompt = document.getElementById("quickTestWindowPrompt");
+            quickTestWindowModel.textContent = item.model;
+            quickTestWindowProvider.textContent = item.provider;
+            quickTestWindowNote.textContent = item.note;
+            quickTestWindowProviderUrl.textContent = item.providerUrl;
+            quickTestWindowSystemPrompt.textContent = item.systemPrompt;
+            quickTestWindowParameters.textContent = item.parameters;
+            quickTestWindowPrompt.textContent = "QuickTest Prompt: " + quickTestWindowPromptQuestion;
+
+            const quickTestWindowStatus1 = document.getElementById("quickTestWindowStatus1");
+            const quickTestWindowStatus2 = document.getElementById("quickTestWindowStatus2");
+            const quickTestWindowStatus3 = document.getElementById("quickTestWindowStatus3");
+            const quickTestWindowStatus4 = document.getElementById("quickTestWindowStatus4");
+            const quickTestWindowResponse = document.getElementById("quickTestWindowResponse");
+            quickTestWindowStatus1.textContent = ""
+            quickTestWindowStatus2.textContent = ""
+            quickTestWindowStatus3.textContent = ""
+            quickTestWindowStatus4.textContent = ""
+            quickTestWindowResponse.textContent = ""
+            
+            stopStopwatch();
+            resetStopwatch();
+            startStopwatch();
+
+            quickTestWindowStatus1.textContent = formatTime(elapsedTime) + " Prepping QuickTest."
+            quickTestWindowResponse.textContent = "";
+
+            ws = new WebSocket(webSocketAddress);
+
+            ws.onopen = function(event) {
+                ws.send(JSON.stringify(item));
+                quickTestWindowStatus2.textContent = formatTime(elapsedTime) + " QuickTest Sent."
+            }
+
+            ws.onmessage = function(event) {
+                quickTestWindowResponse.textContent += event.data;
+                if (quickTestWindowStatus3.textContent.length < 1) {
+                    quickTestWindowStatus3.textContent = formatTime(elapsedTime) + " Response Begin."
+                }
+            }
+
+            ws.onerror = function(event) {
+                stopStopwatch();
+                quickTestWindowResponse.textContent += event.data;
+                quickTestWindowStatus4.textContent = formatTime(elapsedTime) + " Response Error!"
+            };
+
+            ws.onclose = function(event) {
+                stopStopwatch();
+                quickTestWindowStatus4.textContent = formatTime(elapsedTime) + " Response Complete."
+            }
+
+        }
+
+        let startTime = 0;
+        let elapsedTime = 0;
+        let intervalId;
+
+        function formatTime(timeInMs) { // time in HH:MM:SS.SSS format
+            const hours = Math.floor(timeInMs / (60 * 60 * 1000));
+            const minutes = Math.floor((timeInMs % (60 * 60 * 1000)) / (60 * 1000));
+            const seconds = Math.floor((timeInMs % (60 * 1000)) / 1000);
+            const milliseconds = Math.floor(timeInMs % 1000);
+
+            return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}.${milliseconds.toString().padStart(3, '0')}`;
+        }
+
+        function startStopwatch() {
+            startTime = Date.now() - elapsedTime;
+            intervalId = setInterval(() => {
+                elapsedTime = Date.now() - startTime;
+                quickTestWindowStatusSet();
+            }, 1);
+        }
+
+        function stopStopwatch() {
+            clearInterval(intervalId);
+        }
+
+        function resetStopwatch() {
+            clearInterval(intervalId);
+            startTime = 0;
+            elapsedTime = 0;
+            quickTestWindowStatusSet();
+        }
+
+        function quickTestWindowStatusSet() {
+            quickTestWindowStatus4.textContent = formatTime(elapsedTime)
+        }
+
+
+
     </script>
     <script src="showdown.min.js"></script>
 </body>

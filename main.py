@@ -94,8 +94,13 @@ def save_items_saved(items: List[Item]):
 
 @app.get("/get-items-templates")
 def get_items_templates():
-    with open(json_file_path_templates, 'r', encoding='utf-8') as file:
-        return json.load(file)
+    try:
+        with open(json_file_path_templates, 'r', encoding='utf-8') as file:
+            return json.load(file)
+    except FileNotFoundError:
+        return {}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/get-api-templates")
 def get_functions():

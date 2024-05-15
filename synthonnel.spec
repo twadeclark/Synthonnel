@@ -10,15 +10,10 @@ a = Analysis(
     binaries=[],
     datas=[
         ('frontend', 'frontend'),
-        ('json_files/items-templates.json', 'json_files'),
+        ('json_files/items-templates.json', 'json_files')
     ],
-    hiddenimports=[
-        'fastapi', 
-        'fastapi.middleware.cors', 
-        'fastapi.staticfiles', 
-        'starlette', 
-        'pydantic'
-    ],
+hiddenimports=[
+],
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],

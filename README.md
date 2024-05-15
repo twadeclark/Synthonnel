@@ -55,7 +55,9 @@ uvicorn main:app --reload
 
 
 ### To Make the PyInstaller:
+Be sure to run pyinstaller from inside the nice, fresh, clean virtual environment you just created.
 ```
+.\venv\Scripts\activate
 pyinstaller --clean --noconfirm synthonnel.spec
 ```
 This creates `synthonnel.exe` and a directory `_internal` at `/dist/synthonnel/`. You need both of these, especially all the contents of `_internal`. Put the exe and the `_internal` directory into the same folder, then just double click the exe file.

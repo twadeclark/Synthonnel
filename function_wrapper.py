@@ -7,9 +7,6 @@ from fastapi import WebSocket
 from pydantic import BaseModel
 from openai import AsyncOpenAI
 import google.generativeai as genai
-from ibm_watsonx_ai.foundation_models import Model
-from ibm_watsonx_ai.metanames import GenTextParamsMetaNames as GenParams
-from ibm_watsonx_ai.foundation_models.utils.enums import ModelTypes, DecodingMethods
 import requests
 
 SAVE_MOST_RECENT_RESPONSE = False
@@ -32,8 +29,8 @@ def get_ibm_iam_token(api_key):
     url = 'https://iam.cloud.ibm.com/identity/token'
     headers = {'Content-Type': 'application/x-www-form-urlencoded'}
     data = f'grant_type=urn:ibm:params:oauth:grant-type:apikey&apikey={api_key}'
-    
-    response = requests.post(url, headers=headers, data=data)
+
+    response = requests.post(url, headers=headers, data=data, timeout=60)
     token = response.json().get('access_token')
     return token
 
@@ -47,6 +44,10 @@ async def ibmwatsonx(websocket, item_data):
 
         project_id = params_parsed.get("project_id", None)
         space_id = params_parsed.get("space_id", None)
+
+        if project_id is None and space_id is None:
+            await websocket.send_text("Parameter error. \nEither `project_id` or `space_id` must be specified in the `Parameter` section.")
+
         guardrails = strtobool(params_parsed.get("guardrails", None))
 
         messages_temp = item_data["messages"]
@@ -68,23 +69,22 @@ async def ibmwatsonx(websocket, item_data):
             messages += "<|assistant|>\n"
 
         params = {
-            GenParams.DECODING_METHOD       : params_parsed.get("DECODING_METHOD", None),
-            GenParams.LENGTH_PENALTY        : params_parsed.get("LENGTH_PENALTY", None),
-            GenParams.TEMPERATURE           : strtofloat(params_parsed.get("TEMPERATURE", None)),
-            GenParams.TOP_P                 : strtofloat(params_parsed.get("TOP_P", None)),
-            GenParams.TOP_K                 : strtoint(params_parsed.get("TOP_K", None)),
-            GenParams.RANDOM_SEED           : strtoint(params_parsed.get("RANDOM_SEED", None)),
-            GenParams.REPETITION_PENALTY    : strtofloat(params_parsed.get("REPETITION_PENALTY", None)),
-            GenParams.MIN_NEW_TOKENS        : strtoint(params_parsed.get("MIN_NEW_TOKENS", 1)),
-            GenParams.MAX_NEW_TOKENS        : strtoint(params_parsed.get("MAX_NEW_TOKENS", 1024)),
-            GenParams.STOP_SEQUENCES        : params_parsed.get("STOP_SEQUENCES", None),
-            GenParams.TIME_LIMIT            : strtoint(params_parsed.get("TIME_LIMIT", 60)),
-            GenParams.TRUNCATE_INPUT_TOKENS : strtoint(params_parsed.get("TRUNCATE_INPUT_TOKENS", None)),
-            # GenParams.RETURN_OPTIONS        : params_parsed.get("RETURN_OPTIONS", None),
+            'DECODING_METHOD'       : params_parsed.get("DECODING_METHOD", None),
+            'LENGTH_PENALTY'        : params_parsed.get("LENGTH_PENALTY", None),
+            'TEMPERATURE'           : strtofloat(params_parsed.get("TEMPERATURE", None)),
+            'TOP_P'                 : strtofloat(params_parsed.get("TOP_P", None)),
+            'TOP_K'                 : strtoint(params_parsed.get("TOP_K", None)),
+            'RANDOM_SEED'           : strtoint(params_parsed.get("RANDOM_SEED", None)),
+            'REPETITION_PENALTY'    : strtofloat(params_parsed.get("REPETITION_PENALTY", None)),
+            'MIN_NEW_TOKENS'        : strtoint(params_parsed.get("MIN_NEW_TOKENS", 1)),
+            'MAX_NEW_TOKENS'        : strtoint(params_parsed.get("MAX_NEW_TOKENS", 1024)),
+            'STOP_SEQUENCES'        : params_parsed.get("STOP_SEQUENCES", None),
+            'TIME_LIMIT'            : strtoint(params_parsed.get("TIME_LIMIT", 60000)),
+            'TRUNCATE_INPUT_TOKENS' : strtoint(params_parsed.get("TRUNCATE_INPUT_TOKENS", None)),
+            'RETURN_OPTIONS'        : params_parsed.get("RETURN_OPTIONS", None),
         }
 
         kwargs = {k: v for k, v in params.items() if v is not None}
-
 
         async def streamer():
             raw_responses_most_recent_dump = ""
@@ -94,17 +94,16 @@ async def ibmwatsonx(websocket, item_data):
                     "input"         :   messages,
                     "parameters"    :   kwargs,
                     "model_id"      :   model,
-                	"project_id"    :   project_id
+                	"project_id"    :   project_id,
+                	"space_id"      :   space_id
                 }
 
                 token = get_ibm_iam_token(api_key)
-
                 headers = {"Authorization": f"Bearer {token}"}
 
                 async with httpx.AsyncClient() as client:
                     async with client.stream("POST", base_url, json=body, headers=headers) as response:
                         async for chunk in response.aiter_lines():
-                            print("chunk: ", chunk)
                             if chunk:
                                 raw_responses_most_recent_dump += str(chunk) + "\n"
                                 try:
@@ -115,8 +114,8 @@ async def ibmwatsonx(websocket, item_data):
                                     chunk_data = data["results"][0]["generated_text"]
                                     if chunk_data:
                                         await websocket.send_text(chunk_data)
-                                except ValueError:
-                                    print("--not parsed\n")
+                                except Exception:
+                                    pass
 
                 if SAVE_MOST_RECENT_RESPONSE:
                     raw_responses_most_recent_dump = str(response) + "\n"
@@ -135,7 +134,7 @@ async def ibmwatsonx(websocket, item_data):
 
         await streamer()
 
-        return "openai done."
+        return "ibmwatsonx done."
     except Exception as e:
         print(e)
         traceback.print_exc()
