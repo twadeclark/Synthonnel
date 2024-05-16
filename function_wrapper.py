@@ -47,16 +47,16 @@ async def ibmwatsonx(websocket, item_data):
 
         if project_id is None and space_id is None:
             await websocket.send_text("Parameter error. \nEither `project_id` or `space_id` must be specified in the `Parameter` section.")
+            return
 
         guardrails = strtobool(params_parsed.get("guardrails", None))
 
         messages_temp = item_data["messages"]
         messages = ""
 
-        if "granite" in model:
+        if "granite" in model or "merlinite" in model:
             for msgtmp in messages_temp:
                 roletmp = msgtmp["role"]
-
                 if roletmp == "system":
                     messages += "<|system|>\n" + str(msgtmp["content"]).strip() + "\n"
                 elif roletmp == "user":
@@ -65,8 +65,50 @@ async def ibmwatsonx(websocket, item_data):
                     messages += "<|assistant|>\n" + str(msgtmp["content"]).strip() + "\n"
                 else:
                     messages += str(msgtmp["content"]).strip() + "\n"
-
             messages += "<|assistant|>\n"
+        elif "codellama" in model:
+            messages = ""
+            for msgtmp in messages_temp:
+                roletmp = msgtmp["role"]
+                if roletmp == "system":
+                    messages += "" + str(msgtmp["content"]).strip() + "\n"
+                elif roletmp == "user":
+                    messages += "----------------\nQUESTION: " + str(msgtmp["content"]).strip() + "\n----------------\n"
+                elif roletmp == "assistant":
+                    messages += "<|start_header_id|>assistant<|end_header_id|>\n" + str(msgtmp["content"]).strip() + "<|eot_id|>\n"
+                else:
+                    messages += str(msgtmp["content"]).strip() + "\n"
+            messages += "Helpful Answer:"
+        elif "llama" in model:
+            messages = "<|begin_of_text|>"
+            for msgtmp in messages_temp:
+                roletmp = msgtmp["role"]
+                if roletmp == "system":
+                    messages += "<|start_header_id|>system<|end_header_id|>" + str(msgtmp["content"]).strip() + "<|eot_id|>\n"
+                elif roletmp == "user":
+                    messages += "<|start_header_id|>user<|end_header_id|>\n" + str(msgtmp["content"]).strip() + "<|eot_id|>\n"
+                elif roletmp == "assistant":
+                    messages += "<|start_header_id|>assistant<|end_header_id|>\n" + str(msgtmp["content"]).strip() + "<|eot_id|>\n"
+                else:
+                    messages += str(msgtmp["content"]).strip() + "\n"
+            messages += "<|start_header_id|>assistant<|end_header_id|>\n"
+        elif "mixtral" in model:
+            messages = ""
+            for msgtmp in messages_temp:
+                roletmp = msgtmp["role"]
+                if roletmp == "system":
+                    messages += "<s>[INST] " + str(msgtmp["content"]).strip() + " [INST]</s> "
+                elif roletmp == "user":
+                    messages += "[INST] " + str(msgtmp["content"]).strip() + " [INST]</s> \n"
+                elif roletmp == "assistant":
+                    messages += "" + str(msgtmp["content"]).strip() + "</s>\n"
+                else:
+                    messages += str(msgtmp["content"]).strip() + "\n"
+            messages += ""
+        else:
+            for msgtmp in messages_temp:
+                messages += msgtmp["role"] + " : " + str(msgtmp["content"]).strip() + "\n"
+
 
         params = {
             'DECODING_METHOD'       : params_parsed.get("DECODING_METHOD", None),
@@ -106,14 +148,12 @@ async def ibmwatsonx(websocket, item_data):
                         async for chunk in response.aiter_lines():
                             if chunk:
                                 raw_responses_most_recent_dump += str(chunk) + "\n"
+                                if chunk.startswith('data: '):
+                                    chunk = chunk[6:]
                                 try:
-                                    if chunk.startswith('data: '):
-                                        chunk = chunk[6:]
-
                                     data = json.loads(chunk)
                                     chunk_data = data["results"][0]["generated_text"]
-                                    if chunk_data:
-                                        await websocket.send_text(chunk_data)
+                                    await websocket.send_text(chunk_data)
                                 except Exception:
                                     pass
 

@@ -813,9 +813,10 @@
             position: fixed;
             display: grid; 
             padding: 20px;
-            top: 25%;
-            left: 25%;
-            width: 40%;
+            top: 10%;
+            left: 10%;
+            width: 80%;
+            height: 80%;
             border: 3px solid var(--borderColor);
             border-radius: 6px 6px 6px 6px;
             font-size: smaller;
@@ -823,6 +824,7 @@
             line-height: 18px;
             background-color: var(--emphasisBackgroundColor);
             z-index: 4;
+            overflow: scroll;
         }
         .quickTestWindowPrompt {
             width: 95%;
@@ -837,12 +839,14 @@
         }
         .quickTestWindowResponse {
             width: 95%;
+            max-width: 95%;
             border: 1px solid var(--borderColor);
             border-radius: 6px 6px 6px 6px;
             font-family: 'Courier New', Courier, monospace;
             font-size: medium;
             font-style: normal;
-            white-space: pre-line;
+            word-wrap: break-word;
+            white-space: pre-wrap;
             line-height: 18px;
             background-color: var(--backgroundColor);
             margin-top: 20px;
@@ -2496,7 +2500,7 @@ table td {
         }
 
         function quickTestAddItemForm() {
-            quickTestWindowPromptQuestion = "State your name.";
+            const quickTestWindowPromptQuestion = "Tell me a joke.";
             const quickTestWindow = document.getElementById("quickTestWindow");
 
             if (quickTestWindow.style.display === 'grid' ) {
@@ -2571,11 +2575,13 @@ table td {
             ws = new WebSocket(webSocketAddress);
 
             ws.onopen = function(event) {
+                console.log("onopen", event);
                 ws.send(JSON.stringify(item));
                 quickTestWindowStatus2.textContent = formatTime(elapsedTime) + " QuickTest Sent."
             }
 
             ws.onmessage = function(event) {
+                console.log("onmessage", event);
                 quickTestWindowResponse.textContent += event.data;
                 if (quickTestWindowStatus3.textContent.length < 1) {
                     quickTestWindowStatus3.textContent = formatTime(elapsedTime) + " Response Begin."
@@ -2583,13 +2589,18 @@ table td {
             }
 
             ws.onerror = function(event) {
+                console.log("onerror", event);
                 stopStopwatch();
                 quickTestWindowResponse.textContent += event.data;
                 quickTestWindowStatus4.textContent = formatTime(elapsedTime) + " Response Error!"
             };
 
             ws.onclose = function(event) {
+                console.log("onclose", event);
                 stopStopwatch();
+                if (event.data) {
+                    quickTestWindowResponse.textContent += event.data;
+                }
                 quickTestWindowStatus4.textContent = formatTime(elapsedTime) + " Response Complete."
             }
 

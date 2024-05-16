@@ -4,7 +4,7 @@
         "systemPrompt": "You are a helpful assistant who provides brief answers to user questions.",
         "provider": "IBM WatsonX",
         "note": "",
-        "providerUrl": "https://us-south.ml.cloud.ibm.com",
+        "providerUrl": "https://us-south.ml.cloud.ibm.com/ml/v1/text/generation_stream?version=2023-05-29",
         "parameters": "########## REQUIRED\n# Either project_id or space_id must be specified.\n# project_id = \n# space_id = \n########## REQUIRED\n\nMIN_NEW_TOKENS          = 1\nMAX_NEW_TOKENS          = 1024\nTIME_LIMIT              = 60\n# DECODING_METHOD       = 'greedy' or 'sample'\n# LENGTH_PENALTY        = dictionary\n# TEMPERATURE           = float\n# TOP_P                 = float\n# TOP_K                 = integer\n# RANDOM_SEED           = integer\n# REPETITION_PENALTY    = float\n# STOP_SEQUENCES        = list\n# TRUNCATE_INPUT_TOKENS = integer\n",
         "apiKey": "",
         "model_options": ["codellama/codellama-34b-instruct-hf", "elyza/elyza-japanese-llama-2-7b-instruct", "google/flan-t5-xl", "google/flan-t5-xxl", "google/flan-ul2", "eleutherai/gpt-neox-20b", "ibm/granite-13b-chat-v2", "ibm/granite-13b-instruct-v1", "ibm/granite-13b-instruct-v2", "ibm/granite-20b-multilingual", "meta-llama/llama-2-13b-chat", "meta-llama/llama-2-70b-chat", "ibm-mistralai/mixtral-8x7b-instruct-v01-q", "ibm/mpt-7b-instruct2", "bigscience/mt0-xxl", "bigcode/starcoder"]
