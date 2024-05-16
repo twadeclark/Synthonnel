@@ -679,10 +679,17 @@
         #modelListSaved {
             position: block;
             width: 100%;
+            height: 395px;
         }
         #modelListTemplates {
             display: none;
             width: 100%;
+        }
+        .option-match {
+            opacity: 100%;
+        }
+        .option-no-match {
+            opacity: 50%;
         }
 
         #newItemProvider {
@@ -913,10 +920,11 @@
             </div>
             <div class="vertical-row"></div>
             <div class="addItemForm-right">
+                <input type="text" id="search-box" placeholder="Search Saved Models" class="nightmode-color-changer">
                 <select name="modelListSaved" id="modelListSaved" class="select-class" size="100" title="Recently Used Profiles"></select>
                 <select name="modelListTemplates" id="modelListTemplates" class="select-class" size="100" title="API Template Profiles"></select>
                 <div style="position: relative;">
-                    <div style="position: absolute;bottom: 2px;left: 0;">
+                    <div style="float: left;">
                         <label> Saved </label>
                         <label class="switch position-switch-lower">
                             <input type="checkbox" id="view-model-templates">
@@ -924,7 +932,7 @@
                         </label>
                         <label for="view-model-templates"> Templates </label>
                     </div>
-                    <div style="position: absolute;bottom: 0;right: 0;">
+                    <div style="float: right;">
                         <button id="deleteFromModelListSaved" class="button small-text-just-wide-enough-button" onclick="deleteFromSavedModelsList();">Delete</button>
                     </div>
                 </div>
@@ -1584,7 +1592,7 @@
                 document.querySelector('#deleteFromModelListSaved').disabled = true;
                 document.getElementById('deleteFromModelListSaved').style.opacity = '0.0';
 
-
+                document.getElementById('search-box').style.display = 'none';
             } else {
                 document.getElementById('modelListSaved').style.display = 'block';
                 document.getElementById('modelListTemplates').style.display = 'none';
@@ -1592,6 +1600,7 @@
                 document.querySelector('#deleteFromModelListSaved').removeAttribute("disabled");
                 document.getElementById('deleteFromModelListSaved').style.opacity = '';
 
+                document.getElementById('search-box').style.display = 'block';
             }
         };
 
@@ -2642,6 +2651,43 @@ table td {
             quickTestWindowStatus4.textContent = formatTime(elapsedTime)
         }
 
+        function filterOptions(searchTerm) {
+            const modelListSaved = document.getElementById("modelListSaved");
+            const options = Array.from(modelListSaved.children);
+
+            options.sort((a, b) => {
+                const textA = a.text.toLowerCase();
+                const textB = b.text.toLowerCase();
+                if (textA.includes(searchTerm.toLowerCase())) {
+                    if (!textB.includes(searchTerm.toLowerCase())) {
+                        return -1;
+                    }
+                }
+                return 0;
+            });
+
+            const fragment = document.createDocumentFragment();
+            options.forEach((option) => {
+                fragment.appendChild(option);
+                const text = option.text.toLowerCase();
+
+                if (text.includes(searchTerm.toLowerCase())) {
+                    option.classList.add("option-match");
+                    option.classList.remove("option-no-match");
+                } else {
+                    option.classList.add("option-no-match");
+                    option.classList.remove("option-match");
+                }
+            });
+
+            modelListSaved.innerHTML = "";
+            modelListSaved.appendChild(fragment);
+        }
+
+        document.getElementById("search-box").addEventListener("keyup", () => {
+            const searchTerm = document.getElementById("search-box").value;
+            filterOptions(searchTerm);
+        });
 
 
     </script>
