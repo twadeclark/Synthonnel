@@ -79,6 +79,19 @@ async def ibmwatsonx(websocket, item_data):
                 else:
                     messages += str(msgtmp["content"]).strip() + "\n"
             messages += "Helpful Answer:"
+        elif "mixtral" in model or "ELYZA" in model:
+            messages = ""
+            for msgtmp in messages_temp:
+                roletmp = msgtmp["role"]
+                if roletmp == "system":
+                    messages += "<s>[INST] " + str(msgtmp["content"]).strip() + " [INST]</s> "
+                elif roletmp == "user":
+                    messages += "[INST] " + str(msgtmp["content"]).strip() + " [INST]</s> \n"
+                elif roletmp == "assistant":
+                    messages += "" + str(msgtmp["content"]).strip() + "</s>\n"
+                else:
+                    messages += str(msgtmp["content"]).strip() + "\n"
+            messages += ""
         elif "llama" in model:
             messages = "<|begin_of_text|>"
             for msgtmp in messages_temp:
@@ -92,19 +105,21 @@ async def ibmwatsonx(websocket, item_data):
                 else:
                     messages += str(msgtmp["content"]).strip() + "\n"
             messages += "<|start_header_id|>assistant<|end_header_id|>\n"
-        elif "mixtral" in model:
+        elif "flan" in model or "mt0" in model:
             messages = ""
-            for msgtmp in messages_temp:
-                roletmp = msgtmp["role"]
-                if roletmp == "system":
-                    messages += "<s>[INST] " + str(msgtmp["content"]).strip() + " [INST]</s> "
-                elif roletmp == "user":
-                    messages += "[INST] " + str(msgtmp["content"]).strip() + " [INST]</s> \n"
-                elif roletmp == "assistant":
-                    messages += "" + str(msgtmp["content"]).strip() + "</s>\n"
-                else:
-                    messages += str(msgtmp["content"]).strip() + "\n"
-            messages += ""
+            mostRecentUserPrompt = ""
+            if messages_temp[0]["role"] == "system":
+                messages += "" + str(messages_temp[0]["content"]).strip() + "\n"
+                messages_temp.pop(0)
+            if messages_temp[-1]["role"] == "user":
+                mostRecentUserPrompt = str(messages_temp[0]["content"]).strip()
+                messages_temp.pop()
+            if len(messages_temp) > 0:
+                messages += "---------------- CHAT HISTORY: "
+                for msgtmp in messages_temp:
+                    messages += "" + str(msgtmp["content"]).strip() + "\n"
+            messages += "---------------- \nQUESTION: " + mostRecentUserPrompt + " \n---------------- \nHelpful Answer:"
+
         else:
             for msgtmp in messages_temp:
                 messages += msgtmp["role"] + " : " + str(msgtmp["content"]).strip() + "\n"
